@@ -2,19 +2,20 @@
 /// <reference types="cordova-plugin-file" />
 /// <reference types="cordova-plugin-file-transfer" />
 /// <reference types="cordova" />
-/// <reference types="cordova-plugin-dialogs" />
 
 "use strict";
 
-declare var zip: any;
 declare var cordova: Cordova;
 
+import { Plugins } from '@capacitor/core';
 import LocalPackage = require("./localPackage");
 import RemotePackage = require("./remotePackage");
 import CodePushUtil = require("./codePushUtil");
 import NativeAppInfo = require("./nativeAppInfo");
 import Sdk = require("./sdk");
 import SyncStatus = require("./syncStatus");
+
+const { Modals } = Plugins;
 
 /**
  * This is the entry point to Cordova CodePush SDK.
@@ -362,7 +363,7 @@ class CodePush implements CodePushCordovaPlugin {
             remotePackage.download(onDownloadSuccess, onError, downloadProgress);
         };
 
-        var onUpdate = (remotePackage: RemotePackage) => {
+        var onUpdate = async (remotePackage: RemotePackage) => {
             var updateShouldBeIgnored = remotePackage && (remotePackage.failedInstall && syncOptions.ignoreFailedUpdates);
             if (!remotePackage || updateShouldBeIgnored) {
                 if (updateShouldBeIgnored) {
@@ -381,28 +382,33 @@ class CodePush implements CodePushCordovaPlugin {
                     var message = dlgOpts.appendReleaseDescription ?
                         dlgOpts.mandatoryUpdateMessage + dlgOpts.descriptionPrefix + remotePackage.description
                         : dlgOpts.mandatoryUpdateMessage;
-                    navigator.notification.alert(message, () => { downloadAndInstallUpdate(remotePackage); }, dlgOpts.updateTitle, dlgOpts.mandatoryContinueButtonLabel);
+                    await Modals.alert({
+                        message,
+                        title: dlgOpts.updateTitle,
+                        buttonTitle: dlgOpts.mandatoryContinueButtonLabel
+                    });
+                    downloadAndInstallUpdate(remotePackage);
                 } else if (!remotePackage.isMandatory && syncOptions.updateDialog) {
                     /* Confirm update with user */
-                    var optionalUpdateCallback = (buttonIndex: number) => {
-                        switch (buttonIndex) {
-                            case 1:
-                                /* Install */
-                                downloadAndInstallUpdate(remotePackage);
-                                break;
-                            case 2:
-                            default:
-                                /* Cancel */
-                                CodePushUtil.logMessage("User cancelled the update.");
-                                syncCallback && syncCallback(null, SyncStatus.UPDATE_IGNORED);
-                                break;
-                        }
-                    };
-
                     var message = dlgOpts.appendReleaseDescription ?
                         dlgOpts.optionalUpdateMessage + dlgOpts.descriptionPrefix + remotePackage.description
                         : dlgOpts.optionalUpdateMessage;
-                    navigator.notification.confirm(message, optionalUpdateCallback, dlgOpts.updateTitle, [dlgOpts.optionalInstallButtonLabel, dlgOpts.optionalIgnoreButtonLabel]);
+
+                    const confirmResult = await Modals.confirm({
+                        message,
+                        title: dlgOpts.updateTitle,
+                        okButtonTitle: dlgOpts.optionalInstallButtonLabel,
+                        cancelButtonTitle: dlgOpts.optionalIgnoreButtonLabel
+                    });
+
+                    if (confirmResult.value) {
+                        /* Install */
+                        downloadAndInstallUpdate(remotePackage);
+                    } else {
+                        /* Cancel */
+                        CodePushUtil.logMessage("User cancelled the update.");
+                        syncCallback && syncCallback(null, SyncStatus.UPDATE_IGNORED);
+                    }
                 } else {
                     /* No user interaction */
                     downloadAndInstallUpdate(remotePackage);
