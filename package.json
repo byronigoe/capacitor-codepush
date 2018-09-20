@@ -24,6 +24,7 @@
   "author": "Microsoft Corporation",
   "license": "MIT",
   "devDependencies": {
+    "@capacitor/core": "^1.0.0-beta.7",
     "@types/assert": "0.0.31",
     "@types/cordova": "0.0.34",
     "@types/cordova-plugin-device": "0.0.3",
@@ -51,5 +52,8 @@
     "run-sequence": "^2.2.0",
     "tslint": "^4.5.1",
     "typescript": "^2.5.2"
+  },
+  "peerDependencies": {
+    "@capacitor/core": "^1.0.0-beta.7"
   }
 }
