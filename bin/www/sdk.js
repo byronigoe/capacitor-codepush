@@ -8,13 +8,13 @@
 
 
 "use strict";
-var NativeAppInfo = require("./nativeAppInfo");
-var HttpRequester = require("./httpRequester");
-var Sdk = (function () {
-    function Sdk() {
-    }
-    Sdk.getAcquisitionManager = function (callback, userDeploymentKey, contentType) {
-        var resolveManager = function () {
+const NativeAppInfo = require("./nativeAppInfo");
+const HttpRequester = require("./httpRequester");
+const core_1 = require("@capacitor/core");
+const { Device } = core_1.Plugins;
+class Sdk {
+    static getAcquisitionManager(callback, userDeploymentKey, contentType) {
+        var resolveManager = () => {
             if (userDeploymentKey !== Sdk.DefaultConfiguration.deploymentKey || contentType) {
                 var customConfiguration = {
                     deploymentKey: userDeploymentKey || Sdk.DefaultConfiguration.deploymentKey,
@@ -38,9 +38,9 @@ var Sdk = (function () {
             resolveManager();
         }
         else {
-            NativeAppInfo.getServerURL(function (serverError, serverURL) {
-                NativeAppInfo.getDeploymentKey(function (depolymentKeyError, deploymentKey) {
-                    NativeAppInfo.getApplicationVersion(function (appVersionError, appVersion) {
+            NativeAppInfo.getServerURL((serverError, serverURL) => {
+                NativeAppInfo.getDeploymentKey((depolymentKeyError, deploymentKey) => {
+                    NativeAppInfo.getApplicationVersion(async (appVersionError, appVersion) => {
                         if (!appVersion) {
                             callback(new Error("Could not get the app version. Please check your config.xml file."), null);
                         }
@@ -48,6 +48,7 @@ var Sdk = (function () {
                             callback(new Error("Could not get the CodePush configuration. Please check your config.xml file."), null);
                         }
                         else {
+                            const device = await Device.getInfo();
                             Sdk.DefaultConfiguration = {
                                 deploymentKey: deploymentKey,
                                 serverUrl: serverURL,
@@ -64,10 +65,10 @@ var Sdk = (function () {
                 });
             });
         }
-    };
-    Sdk.reportStatusDeploy = function (pkg, status, currentDeploymentKey, previousLabelOrAppVersion, previousDeploymentKey, callback) {
+    }
+    static reportStatusDeploy(pkg, status, currentDeploymentKey, previousLabelOrAppVersion, previousDeploymentKey, callback) {
         try {
-            Sdk.getAcquisitionManager(function (error, acquisitionManager) {
+            Sdk.getAcquisitionManager((error, acquisitionManager) => {
                 if (error) {
                     callback && callback(error, null);
                 }
@@ -79,10 +80,10 @@ var Sdk = (function () {
         catch (e) {
             callback && callback(e, null);
         }
-    };
-    Sdk.reportStatusDownload = function (pkg, deploymentKey, callback) {
+    }
+    static reportStatusDownload(pkg, deploymentKey, callback) {
         try {
-            Sdk.getAcquisitionManager(function (error, acquisitionManager) {
+            Sdk.getAcquisitionManager((error, acquisitionManager) => {
                 if (error) {
                     callback && callback(error, null);
                 }
@@ -94,7 +95,6 @@ var Sdk = (function () {
         catch (e) {
             callback && callback(new Error("An error occured while reporting the download status. " + e), null);
         }
-    };
-    return Sdk;
-}());
+    }
+}
 module.exports = Sdk;

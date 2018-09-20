@@ -8,28 +8,13 @@
 
 
 "use strict";
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-var LocalPackage = require("./localPackage");
-var Package = require("./package");
-var NativeAppInfo = require("./nativeAppInfo");
-var CodePushUtil = require("./codePushUtil");
-var Sdk = require("./sdk");
-var RemotePackage = (function (_super) {
-    __extends(RemotePackage, _super);
-    function RemotePackage() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    RemotePackage.prototype.download = function (successCallback, errorCallback, downloadProgress) {
-        var _this = this;
+const LocalPackage = require("./localPackage");
+const Package = require("./package");
+const NativeAppInfo = require("./nativeAppInfo");
+const CodePushUtil = require("./codePushUtil");
+const Sdk = require("./sdk");
+class RemotePackage extends Package {
+    download(successCallback, errorCallback, downloadProgress) {
         try {
             CodePushUtil.logMessage("Downloading update");
             if (!this.downloadUrl) {
@@ -37,17 +22,17 @@ var RemotePackage = (function (_super) {
             }
             else {
                 this.currentFileTransfer = new FileTransfer();
-                var downloadSuccess = function (fileEntry) {
-                    _this.currentFileTransfer = null;
-                    fileEntry.file(function (file) {
-                        NativeAppInfo.isFailedUpdate(_this.packageHash, function (installFailed) {
+                var downloadSuccess = (fileEntry) => {
+                    this.currentFileTransfer = null;
+                    fileEntry.file((file) => {
+                        NativeAppInfo.isFailedUpdate(this.packageHash, (installFailed) => {
                             var localPackage = new LocalPackage();
-                            localPackage.deploymentKey = _this.deploymentKey;
-                            localPackage.description = _this.description;
-                            localPackage.label = _this.label;
-                            localPackage.appVersion = _this.appVersion;
-                            localPackage.isMandatory = _this.isMandatory;
-                            localPackage.packageHash = _this.packageHash;
+                            localPackage.deploymentKey = this.deploymentKey;
+                            localPackage.description = this.description;
+                            localPackage.label = this.label;
+                            localPackage.appVersion = this.appVersion;
+                            localPackage.isMandatory = this.isMandatory;
+                            localPackage.packageHash = this.packageHash;
                             localPackage.isFirstRun = false;
                             localPackage.failedInstall = installFailed;
                             localPackage.localPath = fileEntry.toInternalURL();
@@ -55,15 +40,15 @@ var RemotePackage = (function (_super) {
                             successCallback && successCallback(localPackage);
                             Sdk.reportStatusDownload(localPackage, localPackage.deploymentKey);
                         });
-                    }, function (fileError) {
+                    }, (fileError) => {
                         CodePushUtil.invokeErrorCallback(new Error("Could not access local package. Error code: " + fileError.code), errorCallback);
                     });
                 };
-                var downloadError = function (error) {
-                    _this.currentFileTransfer = null;
+                var downloadError = (error) => {
+                    this.currentFileTransfer = null;
                     CodePushUtil.invokeErrorCallback(new Error(error.body), errorCallback);
                 };
-                this.currentFileTransfer.onprogress = function (progressEvent) {
+                this.currentFileTransfer.onprogress = (progressEvent) => {
                     if (downloadProgress) {
                         var dp = { receivedBytes: progressEvent.loaded, totalBytes: progressEvent.total };
                         downloadProgress(dp);
@@ -75,8 +60,8 @@ var RemotePackage = (function (_super) {
         catch (e) {
             CodePushUtil.invokeErrorCallback(new Error("An error occured while downloading the package. " + (e && e.message) ? e.message : ""), errorCallback);
         }
-    };
-    RemotePackage.prototype.abortDownload = function (abortSuccess, abortError) {
+    }
+    abortDownload(abortSuccess, abortError) {
         try {
             if (this.currentFileTransfer) {
                 this.currentFileTransfer.abort();
@@ -86,7 +71,6 @@ var RemotePackage = (function (_super) {
         catch (e) {
             abortError && abortError(e);
         }
-    };
-    return RemotePackage;
-}(Package));
+    }
+}
 module.exports = RemotePackage;

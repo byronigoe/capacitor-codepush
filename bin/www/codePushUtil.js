@@ -8,18 +8,16 @@
 
 
 "use strict";
-var CodePushUtil = (function () {
-    function CodePushUtil() {
-    }
-    CodePushUtil.copyUnassignedMembers = function (fromParameter, toParameter) {
-        for (var key in fromParameter) {
+class CodePushUtil {
+    static copyUnassignedMembers(fromParameter, toParameter) {
+        for (let key in fromParameter) {
             if (toParameter[key] === undefined || toParameter[key] === null) {
                 toParameter[key] = fromParameter[key];
             }
         }
-    };
-    CodePushUtil.getNodeStyleCallbackFor = function (successCallback, errorCallback) {
-        return function (error, result) {
+    }
+    static getNodeStyleCallbackFor(successCallback, errorCallback) {
+        return (error, result) => {
             if (error) {
                 errorCallback && errorCallback(error);
             }
@@ -27,23 +25,22 @@ var CodePushUtil = (function () {
                 successCallback && successCallback(result);
             }
         };
-    };
-    CodePushUtil.getErrorMessage = function (e) {
+    }
+    static getErrorMessage(e) {
         return e && e.message || e && e.toString() || "";
-    };
-    CodePushUtil.logMessage = function (msg) {
+    }
+    static logMessage(msg) {
         console.log(CodePushUtil.TAG + " " + msg);
-    };
-    CodePushUtil.logError = function (message, error) {
-        var errorMessage = (message || "") + " " + CodePushUtil.getErrorMessage(error);
-        var stackTrace = error && error.stack ? ". StackTrace: " + error.stack : '';
-        console.error(CodePushUtil.TAG + " " + errorMessage + stackTrace);
-    };
-    CodePushUtil.TAG = "[CodePush]";
-    CodePushUtil.invokeErrorCallback = function (error, errorCallback) {
-        CodePushUtil.logError(null, error);
-        errorCallback && errorCallback(error);
-    };
-    return CodePushUtil;
-}());
+    }
+    static logError(message, error) {
+        const errorMessage = `${message || ""} ${CodePushUtil.getErrorMessage(error)}`;
+        const stackTrace = error && error.stack ? `. StackTrace: ${error.stack}` : '';
+        console.error(`${CodePushUtil.TAG} ${errorMessage}${stackTrace}`);
+    }
+}
+CodePushUtil.TAG = "[CodePush]";
+CodePushUtil.invokeErrorCallback = (error, errorCallback) => {
+    CodePushUtil.logError(null, error);
+    errorCallback && errorCallback(error);
+};
 module.exports = CodePushUtil;

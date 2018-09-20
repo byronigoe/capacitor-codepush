@@ -8,11 +8,11 @@
 
 
 "use strict";
-var HttpRequester = (function () {
-    function HttpRequester(contentType) {
+class HttpRequester {
+    constructor(contentType) {
         this.contentType = contentType;
     }
-    HttpRequester.prototype.request = function (verb, url, callbackOrRequestBody, callback) {
+    request(verb, url, callbackOrRequestBody, callback) {
         var requestBody;
         var requestCallback = callback;
         if (!requestCallback && typeof callbackOrRequestBody === "function") {
@@ -37,8 +37,8 @@ var HttpRequester = (function () {
         xhr.setRequestHeader("X-CodePush-Plugin-Version", cordova.require("cordova/plugin_list").metadata["cordova-plugin-code-push"]);
         xhr.setRequestHeader("X-CodePush-SDK-Version", cordova.require("cordova/plugin_list").metadata["code-push"]);
         xhr.send(requestBody);
-    };
-    HttpRequester.prototype.getHttpMethodName = function (verb) {
+    }
+    getHttpMethodName(verb) {
         switch (verb) {
             case 0:
                 return "GET";
@@ -61,7 +61,6 @@ var HttpRequester = (function () {
             default:
                 return null;
         }
-    };
-    return HttpRequester;
-}());
+    }
+}
 module.exports = HttpRequester;

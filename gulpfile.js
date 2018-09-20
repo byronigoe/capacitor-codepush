@@ -26,7 +26,7 @@ var compiledSourceWarningMessage = "\n \
 var tsCompileOptions = {
     "noImplicitAny": true,
     "noEmitOnError": true,
-    "target": "ES5",
+    "target": "ES2017",
     "module": "commonjs",
     "sourceMap": false,
     "removeComments": true

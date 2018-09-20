@@ -8,9 +8,6 @@
 
 
 "use strict";
-var Package = (function () {
-    function Package() {
-    }
-    return Package;
-}());
+class Package {
+}
 module.exports = Package;
