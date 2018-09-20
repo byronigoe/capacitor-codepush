@@ -1,11 +1,13 @@
 /// <reference path="../typings/codePush.d.ts" />
 /// <reference types="cordova-plugin-file-transfer" />
-/// <reference types="cordova-plugin-device" />
 
 "use strict";
 
 import NativeAppInfo = require("./nativeAppInfo");
 import HttpRequester = require("./httpRequester");
+import { Plugins } from '@capacitor/core';
+
+const { Device } = Plugins
 
 /**
  * Interacts with the CodePush Acquisition SDK.
@@ -43,12 +45,13 @@ class Sdk {
         } else {
             NativeAppInfo.getServerURL((serverError: Error, serverURL: string) => {
                 NativeAppInfo.getDeploymentKey((depolymentKeyError: Error, deploymentKey: string) => {
-                    NativeAppInfo.getApplicationVersion((appVersionError: Error, appVersion: string) => {
+                    NativeAppInfo.getApplicationVersion(async (appVersionError: Error, appVersion: string) => {
                         if (!appVersion) {
                             callback(new Error("Could not get the app version. Please check your config.xml file."), null);
                         } else if (!serverURL) {
                             callback(new Error("Could not get the CodePush configuration. Please check your config.xml file."), null);
                         } else {
+                            const device = await Device.getInfo();
                             Sdk.DefaultConfiguration = {
                                 deploymentKey: deploymentKey,
                                 serverUrl: serverURL,
