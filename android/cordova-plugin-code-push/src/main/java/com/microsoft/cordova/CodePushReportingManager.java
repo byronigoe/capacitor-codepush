@@ -1,9 +1,8 @@
 package com.microsoft.cordova;
 
-import org.apache.cordova.CordovaWebView;
-
 import java.util.Locale;
 import android.app.Activity;
+import android.webkit.WebView;
 
 /**
  * Handles the native -> JS reporting mechanism.
@@ -22,12 +21,13 @@ public class CodePushReportingManager {
     /**
      * Invokes the window.codePush.reportStatus JS function for the given webView.
      */
-    public void reportStatus(StatusReport statusReport, final CordovaWebView webView) {
+    public void reportStatus(StatusReport statusReport, final WebView webView) {
         /* JS function to call: window.codePush.reportStatus(status: number, label: String, appVersion: String, currentDeploymentKey: String, previousLabelOrAppVersion?: string, previousDeploymentKey?: string) */
         if (statusReport.deploymentKey == null || statusReport.deploymentKey.isEmpty()) {
             return;
         }
 
+        // TODO: fix js call
         final String script = String.format(
             Locale.US,
             "javascript:document.addEventListener(\"deviceready\", function () { window.codePush.reportStatus(%d, %s, %s, %s, %s, %s); });",

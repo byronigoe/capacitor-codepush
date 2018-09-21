@@ -3,36 +3,33 @@ package com.microsoft.cordova;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.util.Base64;
+import android.webkit.WebView;
 
+import com.getcapacitor.JSObject;
+import com.getcapacitor.NativePlugin;
+import com.getcapacitor.Plugin;
+import com.getcapacitor.PluginCall;
+import com.getcapacitor.PluginMethod;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.nimbusds.jwt.SignedJWT;
 
-import org.apache.cordova.CallbackContext;
-import org.apache.cordova.ConfigXmlParser;
-import org.apache.cordova.CordovaArgs;
-import org.apache.cordova.CordovaInterface;
-import org.apache.cordova.CordovaPlugin;
-import org.apache.cordova.CordovaWebView;
 import org.json.JSONException;
 
 import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Array;
 import java.net.MalformedURLException;
 import java.security.KeyFactory;
-import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.interfaces.RSAPublicKey;
-import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Date;
 import java.util.Map;
 
 /**
- * Native Android CodePush Cordova Plugin.
+ * Native Android CodePush Capacitor Plugin.
  */
-public class CodePush extends CordovaPlugin {
+@NativePlugin()
+public class CodePush extends Plugin {
 
     private static final String DEPLOYMENT_KEY_PREFERENCE = "codepushdeploymentkey";
     private static final String PUBLIC_KEY_PREFERENCE = "codepushpublickey";
@@ -40,7 +37,6 @@ public class CodePush extends CordovaPlugin {
     private static final String WWW_ASSET_PATH_PREFIX = "file:///android_asset/www/";
     private static final String NEW_LINE = System.getProperty("line.separator");
     private static boolean ShouldClearHistoryOnLoad = false;
-    private CordovaWebView mainWebView;
     private CodePushPackageManager codePushPackageManager;
     private CodePushReportingManager codePushReportingManager;
     private StatusReport rollbackStatusReport;
@@ -50,103 +46,84 @@ public class CodePush extends CordovaPlugin {
     private long lastPausedTimeMs = 0;
 
     @Override
-    public void initialize(CordovaInterface cordova, CordovaWebView webView) {
-        super.initialize(cordova, webView);
-        CodePushPreferences codePushPreferences = new CodePushPreferences(cordova.getActivity());
-        codePushPackageManager = new CodePushPackageManager(cordova.getActivity(), codePushPreferences);
-        codePushReportingManager = new CodePushReportingManager(cordova.getActivity(), codePushPreferences);
-        mainWebView = webView;
+    public void load() {
+        CodePushPreferences codePushPreferences = new CodePushPreferences(bridge.getActivity());
+        codePushPackageManager = new CodePushPackageManager(bridge.getActivity(), codePushPreferences);
+        codePushReportingManager = new CodePushReportingManager(bridge.getActivity(), codePushPreferences);
     }
 
-    @Override
-    public boolean execute(String action, CordovaArgs args, final CallbackContext callbackContext) {
-        if ("getAppVersion".equals(action)) {
-            return execGetAppVersion(callbackContext);
-        } else if ("getBinaryHash".equals(action)) {
-            return execGetBinaryHash(callbackContext);
-        } else if ("getDeploymentKey".equals(action)) {
-            this.returnStringPreference(DEPLOYMENT_KEY_PREFERENCE, callbackContext);
-            return true;
-        } else if ("getNativeBuildTime".equals(action)) {
-            return execGetNativeBuildTime(callbackContext);
-        } else if ("getServerURL".equals(action)) {
-            this.returnStringPreference(SERVER_URL_PREFERENCE, callbackContext);
-            return true;
-        } else if ("install".equals(action)) {
-            return execInstall(args, callbackContext);
-        } else if ("isFailedUpdate".equals(action)) {
-            return execIsFailedUpdate(args, callbackContext);
-        } else if ("isFirstRun".equals(action)) {
-            return execIsFirstRun(args, callbackContext);
-        } else if ("isPendingUpdate".equals(action)) {
-            return execIsPendingUpdate(args, callbackContext);
-        } else if ("notifyApplicationReady".equals(action)) {
-            return execNotifyApplicationReady(callbackContext);
-        } else if ("preInstall".equals(action)) {
-            return execPreInstall(args, callbackContext);
-        } else if ("reportFailed".equals(action)) {
-            return execReportFailed(args, callbackContext);
-        } else if ("reportSucceeded".equals(action)) {
-            return execReportSucceeded(args, callbackContext);
-        } else if ("restartApplication".equals(action)) {
-            return execRestartApplication(args, callbackContext);
-        } else if ("getPackageHash".equals(action)) {
-            return execGetPackageHash(args, callbackContext);
-        } else if ("decodeSignature".equals(action)) {
-            return execDecodeSignature(args, callbackContext);
-        } else if ("getPublicKey".equals(action)) {
-            return execGetPublicKey(args, callbackContext);
-        } else {
-            return false;
-        }
+    @PluginMethod()
+    public void getDeploymentKey(PluginCall call) {
+        this.returnStringPreference(DEPLOYMENT_KEY_PREFERENCE, call);
     }
 
-    private boolean execGetPublicKey(final CordovaArgs args, final CallbackContext callbackContext) {
-        String publicKey = mainWebView.getPreferences().getString(PUBLIC_KEY_PREFERENCE, null);
-        callbackContext.success(publicKey);
-        return true;
+    @PluginMethod()
+    public void getServerURL(PluginCall call) {
+        this.returnStringPreference(SERVER_URL_PREFERENCE, call);
     }
 
-    private boolean execDecodeSignature(final CordovaArgs args, final CallbackContext callbackContext) {
+    private JSObject jsObjectValue(String value) {
+        // TODO: fix all client calls
+        JSObject ret = new JSObject();
+        ret.put("value", value);
+        return ret;
+    }
+
+    private JSObject jsObjectValue(boolean value) {
+        // TODO: fix all client calls
+        JSObject ret = new JSObject();
+        ret.put("value", value);
+        return ret;
+    }
+
+    @PluginMethod()
+    public void getPublicKey(PluginCall call) {
+        String publicKey = (String) getConfigValue(PUBLIC_KEY_PREFERENCE);
+        call.success(jsObjectValue(publicKey));
+    }
+
+    @PluginMethod()
+    public void decodeSignature(final PluginCall call) {
         new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground(Void... voids) {
                 try {
-                    String stringPublicKey = args.getString(0);
+                    // TODO: fix client
+                    String stringPublicKey = call.getString("publicKey");
 
                     final PublicKey publicKey;
                     try {
                         publicKey = parsePublicKey(stringPublicKey);
                     } catch (CodePushException e) {
-                        callbackContext.error("Error occurred while creating the a public key" + e.getMessage());
+                        call.error("Error occurred while creating the a public key" + e.getMessage());
                         return null;
                     }
 
-                    final String signature = args.getString(1);
+                    // TODO: fix client
+                    final String signature = call.getString("signature");
 
                     final Map<String, Object> claims;
                     try {
                         claims = verifyAndDecodeJWT(signature, publicKey);
                     } catch (CodePushException e) {
-                        callbackContext.error("The update could not be verified because it was not signed by a trusted party. " + e.getMessage());
+                        call.error("The update could not be verified because it was not signed by a trusted party. " + e.getMessage());
                         return null;
                     }
 
                     final String contentHash = (String) claims.get("contentHash");
                     if (contentHash == null) {
-                        callbackContext.error("The update could not be verified because the signature did not specify a content hash.");
+                        call.error("The update could not be verified because the signature did not specify a content hash.");
                         return null;
                     }
-                    callbackContext.success(contentHash);
+                    call.success(jsObjectValue(contentHash));
 
                 } catch (Exception e) {
-                    callbackContext.error("Unknown error occurred during signature decoding. " + e.getMessage());
+                    call.error("Unknown error occurred during signature decoding. " + e.getMessage());
                 }
 
                 return null;
             }
         }.execute();
-        return true;
     }
 
     private PublicKey parsePublicKey(String stringPublicKey) throws CodePushException {
@@ -180,54 +157,55 @@ public class CodePush extends CordovaPlugin {
         }
     }
 
-    private boolean execGetBinaryHash(final CallbackContext callbackContext) {
+    @PluginMethod()
+    public void getBinaryHash(final PluginCall call) {
         String cachedBinaryHash = codePushPackageManager.getCachedBinaryHash();
         if (cachedBinaryHash == null) {
             new AsyncTask<Void, Void, Void>() {
                 @Override
                 protected Void doInBackground(Void... params) {
                     try {
-                        String binaryHash = UpdateHashUtils.getBinaryHash(cordova.getActivity());
+                        String binaryHash = UpdateHashUtils.getBinaryHash(bridge.getActivity());
                         codePushPackageManager.saveBinaryHash(binaryHash);
-                        callbackContext.success(binaryHash);
+                        call.success(jsObjectValue(binaryHash));
                     } catch (Exception e) {
-                        callbackContext.error("An error occurred when trying to get the hash of the binary contents. " + e.getMessage());
+                        call.error("An error occurred when trying to get the hash of the binary contents. " + e.getMessage());
                     }
 
                     return null;
                 }
             }.execute();
         } else {
-            callbackContext.success(cachedBinaryHash);
+            call.success(jsObjectValue(cachedBinaryHash));
         }
-
-        return true;
     }
 
-    private boolean execGetPackageHash(final CordovaArgs args, final CallbackContext callbackContext) {
+    @PluginMethod()
+    public void getPackageHash(final PluginCall call) {
         new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground(Void... params) {
                 try {
-                    String binaryHash = UpdateHashUtils.getHashForPath(cordova.getActivity(), args.getString(0) + "/www");
-                    callbackContext.success(binaryHash);
+                    // TODO: fix client side
+                    String binaryHash = UpdateHashUtils.getHashForPath(bridge.getActivity(), call.getString("path") + "/www");
+                    call.success(jsObjectValue(binaryHash));
                 } catch (Exception e) {
-                    callbackContext.error("An error occurred when trying to get the hash of the binary contents. " + e.getMessage());
+                    call.error("An error occurred when trying to get the hash of the binary contents. " + e.getMessage());
                 }
 
                 return null;
             }
         }.execute();
-        return true;
     }
 
-    private boolean execNotifyApplicationReady(CallbackContext callbackContext) {
+    @PluginMethod()
+    public void notifyApplicationReady(PluginCall call) {
         if (this.codePushPackageManager.isBinaryFirstRun()) {
             // Report first run of a store version app
             this.codePushPackageManager.saveBinaryFirstRunFlag();
             try {
-                String appVersion = Utilities.getAppVersionName(cordova.getActivity());
-                codePushReportingManager.reportStatus(new StatusReport(ReportingStatus.STORE_VERSION, null, appVersion, mainWebView.getPreferences().getString(DEPLOYMENT_KEY_PREFERENCE, null)), this.mainWebView);
+                String appVersion = Utilities.getAppVersionName(bridge.getActivity());
+                codePushReportingManager.reportStatus(new StatusReport(ReportingStatus.STORE_VERSION, null, appVersion, (String) getConfigValue(DEPLOYMENT_KEY_PREFERENCE)), bridge.getWebView());
             } catch (PackageManager.NameNotFoundException e) {
                 // Should not happen unless the appVersion is not specified, in which case we can't report anything anyway.
                 e.printStackTrace();
@@ -235,68 +213,63 @@ public class CodePush extends CordovaPlugin {
         } else if (this.codePushPackageManager.installNeedsConfirmation()) {
             // Report CodePush update installation that has not been confirmed yet
             CodePushPackageMetadata currentMetadata = this.codePushPackageManager.getCurrentPackageMetadata();
-            codePushReportingManager.reportStatus(new StatusReport(ReportingStatus.UPDATE_CONFIRMED, currentMetadata.label, currentMetadata.appVersion, currentMetadata.deploymentKey), this.mainWebView);
+            codePushReportingManager.reportStatus(new StatusReport(ReportingStatus.UPDATE_CONFIRMED, currentMetadata.label, currentMetadata.appVersion, currentMetadata.deploymentKey), bridge.getWebView());
         } else if (rollbackStatusReport != null) {
             // Report a CodePush update that has been rolled back
-            codePushReportingManager.reportStatus(rollbackStatusReport, this.mainWebView);
+            codePushReportingManager.reportStatus(rollbackStatusReport, bridge.getWebView());
             rollbackStatusReport = null;
         } else if (codePushReportingManager.hasFailedReport()) {
             // Previous status report failed, so try it again
-            codePushReportingManager.reportStatus(codePushReportingManager.getAndClearFailedReport(), this.mainWebView);
+            codePushReportingManager.reportStatus(codePushReportingManager.getAndClearFailedReport(), bridge.getWebView());
         }
 
         // Mark the update as confirmed and not requiring a rollback
         this.codePushPackageManager.clearInstallNeedsConfirmation();
         this.cleanOldPackageSilently();
-        callbackContext.success();
-        return true;
+        call.success();
     }
 
-    private boolean execIsFirstRun(CordovaArgs args, CallbackContext callbackContext) {
-        try {
-            boolean isFirstRun = false;
-            String packageHash = args.getString(0);
-            CodePushPackageMetadata currentPackageMetadata = codePushPackageManager.getCurrentPackageMetadata();
-            if (null != currentPackageMetadata) {
-                /* This is the first run for a package if we just updated, and the current package hash matches the one provided. */
-                isFirstRun = (null != packageHash
-                        && !packageHash.isEmpty()
-                        && packageHash.equals(currentPackageMetadata.packageHash)
-                        && didUpdate);
-            }
-            callbackContext.success(isFirstRun ? 1 : 0);
-        } catch (JSONException e) {
-            callbackContext.error("Invalid package hash. " + e.getMessage());
+    @PluginMethod()
+    public void isFirstRun(PluginCall call) {
+        boolean isFirstRun = false;
+        // TODO: fix client side
+        String packageHash = call.getString("packageHash");
+        CodePushPackageMetadata currentPackageMetadata = codePushPackageManager.getCurrentPackageMetadata();
+        if (null != currentPackageMetadata) {
+            /* This is the first run for a package if we just updated, and the current package hash matches the one provided. */
+            isFirstRun = (null != packageHash
+                    && !packageHash.isEmpty()
+                    && packageHash.equals(currentPackageMetadata.packageHash)
+                    && didUpdate);
         }
-        return true;
+        call.success(jsObjectValue(isFirstRun));
     }
 
-    private boolean execIsPendingUpdate(CordovaArgs args, CallbackContext callbackContext) {
+    @PluginMethod()
+    public void isPendingUpdate(PluginCall call) {
         try {
             InstallOptions pendingInstall = this.codePushPackageManager.getPendingInstall();
-            callbackContext.success((pendingInstall != null) ? 1 : 0);
+            call.success(jsObjectValue(pendingInstall != null));
         } catch (Exception e) {
-            callbackContext.error("An error occurred. " + e.getMessage());
+            call.error("An error occurred. " + e.getMessage());
         }
-        return true;
     }
 
-    private boolean execIsFailedUpdate(CordovaArgs args, CallbackContext callbackContext) {
-        try {
-            final String packageHash = args.getString(0);
-            boolean isFailedUpdate = this.codePushPackageManager.isFailedUpdate(packageHash);
-            callbackContext.success(isFailedUpdate ? 1 : 0);
-        } catch (JSONException e) {
-            callbackContext.error("Could not read the package hash: " + e.getMessage());
-        }
-        return true;
+    @PluginMethod()
+    public void isFailedUpdate(PluginCall call) {
+        // TODO: fix client side
+        final String packageHash = call.getString("packageHash");
+        boolean isFailedUpdate = this.codePushPackageManager.isFailedUpdate(packageHash);
+        call.success(jsObjectValue(isFailedUpdate));
     }
 
-    private boolean execInstall(CordovaArgs args, CallbackContext callbackContext) {
+    @PluginMethod()
+    public void install(PluginCall call) {
         try {
-            final String startLocation = args.getString(0);
-            final InstallMode installMode = InstallMode.fromValue(args.optInt(1));
-            final int minimumBackgroundDuration = args.optInt(2);
+            // TODO: fix client side
+            final String startLocation = call.getString("startLocation");
+            final InstallMode installMode = InstallMode.fromValue(call.getInt("installMode"));
+            final int minimumBackgroundDuration = call.getInt("minimumBackgroundDuration");
 
             File startPage = this.getStartPageForPackage(startLocation);
             if (startPage != null) {
@@ -310,51 +283,51 @@ public class CodePush extends CordovaPlugin {
                     this.codePushPackageManager.savePendingInstall(pendingInstall);
                 }
 
-                callbackContext.success();
+                call.success();
             } else {
-                callbackContext.error("Could not find the package start page.");
+                call.error("Could not find the package start page.");
             }
         } catch (Exception e) {
-            callbackContext.error("Cound not read webview URL: " + e.getMessage());
+            call.error("Cound not read webview URL: " + e.getMessage());
         }
-        return true;
     }
 
-    private boolean execReportFailed(CordovaArgs args, CallbackContext callbackContext) {
+    @PluginMethod()
+    public void reportFailed(PluginCall call) {
         try {
-            StatusReport statusReport = StatusReport.deserialize(args.optJSONObject(0));
+            // TODO: fix client side
+            StatusReport statusReport = StatusReport.deserialize(call.getObject("statusReport"));
             codePushReportingManager.saveFailedReport(statusReport);
         } catch (JSONException e) {
             Utilities.logException(e);
         }
-
-        return true;
     }
 
-    private boolean execReportSucceeded(CordovaArgs args, CallbackContext callbackContext) {
+    @PluginMethod()
+    public void reportSucceeded(PluginCall call) {
         try {
-            StatusReport statusReport = StatusReport.deserialize(args.optJSONObject(0));
+            // TODO: fix client side
+            StatusReport statusReport = StatusReport.deserialize(call.getObject("statusReport"));
             codePushReportingManager.saveSuccessfulReport(statusReport);
         } catch (JSONException e) {
             Utilities.logException(e);
         }
-
-        return true;
     }
 
-    private boolean execRestartApplication(CordovaArgs args, CallbackContext callbackContext) {
+    @PluginMethod()
+    public void restartApplication(PluginCall call) {
         try {
             /* check if we have a deployed package already */
             CodePushPackageMetadata deployedPackageMetadata = this.codePushPackageManager.getCurrentPackageMetadata();
             if (deployedPackageMetadata != null) {
-                callbackContext.success();
+                call.success();
                 didStartApp = false;
-                onStart();
+                handleOnStart();
             } else {
                 final String configLaunchUrl = this.getConfigLaunchUrl();
                 if (!this.pluginDestroyed) {
-                    callbackContext.success();
-                    this.cordova.getActivity().runOnUiThread(new Runnable() {
+                    call.success();
+                    this.bridge.getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             navigateToURL(configLaunchUrl);
@@ -363,9 +336,8 @@ public class CodePush extends CordovaPlugin {
                 }
             }
         } catch (Exception e) {
-            callbackContext.error("An error occurred while restarting the application." + e.getMessage());
+            call.error("An error occurred while restarting the application." + e.getMessage());
         }
-        return true;
     }
 
     private void markUpdate() {
@@ -388,12 +360,12 @@ public class CodePush extends CordovaPlugin {
         CodePushPackageMetadata deployedPackageMetadata = this.codePushPackageManager.getCurrentPackageMetadata();
         if (deployedPackageMetadata != null) {
             String deployedPackageTimeStamp = deployedPackageMetadata.nativeBuildTime;
-            long nativeBuildTime = Utilities.getApkBuildTime(this.cordova.getActivity());
+            long nativeBuildTime = Utilities.getApkBuildTime(this.bridge.getActivity());
 
             String deployedPackageVersion = deployedPackageMetadata.appVersion;
             String applicationVersion = null;
             try {
-                applicationVersion = Utilities.getAppVersionName(this.cordova.getActivity());
+                applicationVersion = Utilities.getAppVersionName(this.bridge.getActivity());
             } catch (PackageManager.NameNotFoundException e) {
                 e.printStackTrace();
             }
@@ -427,50 +399,51 @@ public class CodePush extends CordovaPlugin {
         }
     }
 
-    private boolean execPreInstall(CordovaArgs args, CallbackContext callbackContext) {
-    /* check if package is valid */
+    @PluginMethod()
+    public void preInstall(PluginCall call) {
+        /* check if package is valid */
         try {
-            final String startLocation = args.getString(0);
+            // TODO: fix client side
+            final String startLocation = call.getString("startLocation");
             File startPage = this.getStartPageForPackage(startLocation);
             if (startPage != null) {
                 /* start page exists */
-                callbackContext.success();
+                call.success();
             } else {
-                callbackContext.error("Could not get the package start page");
+                call.error("Could not get the package start page");
             }
         } catch (Exception e) {
-            callbackContext.error("Could not get the package start page");
+            call.error("Could not get the package start page");
         }
-        return true;
     }
 
-    private boolean execGetAppVersion(CallbackContext callbackContext) {
+    @PluginMethod()
+    public void getAppVersion(PluginCall call) {
         try {
-            String appVersionName = Utilities.getAppVersionName(this.cordova.getActivity());
-            callbackContext.success(appVersionName);
+            String appVersionName = Utilities.getAppVersionName(this.bridge.getActivity());
+            call.success(jsObjectValue(appVersionName));
         } catch (PackageManager.NameNotFoundException e) {
-            callbackContext.error("Cannot get application version.");
+            call.error("Cannot get application version.");
         }
-        return true;
     }
 
-    private boolean execGetNativeBuildTime(CallbackContext callbackContext) {
-        long millis = Utilities.getApkBuildTime(this.cordova.getActivity());
+    @PluginMethod()
+    public void getNativeBuildTime(PluginCall call) {
+        long millis = Utilities.getApkBuildTime(this.bridge.getActivity());
         if (millis == -1) {
-            callbackContext.error("Could not get the application buildstamp.");
+            call.error("Could not get the application buildstamp.");
         } else {
             String result = String.valueOf(millis);
-            callbackContext.success(result);
+            call.success(jsObjectValue(result));
         }
-        return true;
     }
 
-    private void returnStringPreference(String preferenceName, CallbackContext callbackContext) {
-        String result = mainWebView.getPreferences().getString(preferenceName, null);
+    private void returnStringPreference(String preferenceName, PluginCall call) {
+        String result = (String) getConfigValue(preferenceName);
         if (result != null) {
-            callbackContext.success(result);
+            call.success(jsObjectValue(result));
         } else {
-            callbackContext.error("Could not get preference: " + preferenceName);
+            call.error("Could not get preference: " + preferenceName);
         }
     }
 
@@ -497,7 +470,7 @@ public class CodePush extends CordovaPlugin {
                 final String finalURL = url;
 
                 if (!this.pluginDestroyed) {
-                    this.cordova.getActivity().runOnUiThread(new Runnable() {
+                    this.bridge.getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             navigateToURL(finalURL);
@@ -518,13 +491,13 @@ public class CodePush extends CordovaPlugin {
     private void navigateToURL(String url) {
         if (url != null) {
             CodePush.ShouldClearHistoryOnLoad = true;
-            this.mainWebView.loadUrlIntoView(url, false);
+            bridge.getWebView().loadUrl(url);
         }
     }
 
     private File getStartPageForPackage(String packageLocation) {
         if (packageLocation != null) {
-            File startPage = new File(this.cordova.getActivity().getFilesDir() + packageLocation, "www/" + getConfigStartPageName());
+            File startPage = new File(this.bridge.getActivity().getFilesDir() + packageLocation, "www/" + getConfigStartPageName());
             if (startPage.exists()) {
                 return startPage;
             }
@@ -554,28 +527,23 @@ public class CodePush extends CordovaPlugin {
     }
 
     private String getConfigLaunchUrl() {
-        ConfigXmlParser parser = new ConfigXmlParser();
-        parser.parse(this.cordova.getActivity());
-        return parser.getLaunchUrl();
+        // TODO: implement me
+        return "https://localhost:8080";
     }
 
     /**
      * Called when the system is about to start resuming a previous activity.
-     *
-     * @param multitasking Flag indicating if multitasking is turned on for app
      */
     @Override
-    public void onPause(boolean multitasking) {
+    public void handleOnPause() {
         lastPausedTimeMs = new Date().getTime();
     }
 
     /**
      * Called when the activity will start interacting with the user.
-     *
-     * @param multitasking Flag indicating if multitasking is turned on for app
      */
     @Override
-    public void onResume(boolean multitasking) {
+    public void handleOnResume() {
         this.pluginDestroyed = false;
     }
 
@@ -583,7 +551,7 @@ public class CodePush extends CordovaPlugin {
      * Called when the activity is becoming visible to the user.
      */
     @Override
-    public void onStart() {
+    public void handleOnStart() {
         clearDeploymentsIfBinaryUpdated();
         if (!didStartApp) {
             /* The application was just started. */
@@ -611,7 +579,7 @@ public class CodePush extends CordovaPlugin {
                 this.markUpdate();
                 this.codePushPackageManager.clearPendingInstall();
             } else if (codePushReportingManager.hasFailedReport()) {
-                codePushReportingManager.reportStatus(codePushReportingManager.getAndClearFailedReport(), this.mainWebView);
+                codePushReportingManager.reportStatus(codePushReportingManager.getAndClearFailedReport(), bridge.getWebView());
             }
         }
     }
@@ -619,18 +587,20 @@ public class CodePush extends CordovaPlugin {
     /**
      * The final call you receive before your activity is destroyed.
      */
-    @Override
+    // TODO: capacitor doesn't seem to have this hook
     public void onDestroy() {
         this.pluginDestroyed = true;
     }
 
-    @Override
+
     public Object onMessage(String id, Object data) {
+        // TODO: capacitor doesn't seem to have this hook
         if ("onPageFinished".equals(id)) {
             if (CodePush.ShouldClearHistoryOnLoad) {
                 CodePush.ShouldClearHistoryOnLoad = false;
-                if (this.mainWebView != null) {
-                    this.mainWebView.clearHistory();
+                WebView webView = this.bridge.getWebView();
+                if (webView != null) {
+                    webView.clearHistory();
                 }
             }
         }
