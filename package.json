@@ -2,6 +2,7 @@
   "name": "cordova-plugin-code-push",
   "version": "1.11.13",
   "description": "CodePush Plugin for Apache Cordova",
+  "main": "bin/www/codePush.js",
   "cordova": {
     "id": "cordova-plugin-code-push",
     "platforms": [
