@@ -1,11 +1,11 @@
 /// <reference path="../typings/codePush.d.ts" />
-/// <reference types="cordova-plugin-file-transfer" />
 
 "use strict";
 
 import NativeAppInfo = require("./nativeAppInfo");
 import HttpRequester = require("./httpRequester");
 import { Plugins } from '@capacitor/core';
+import { AcquisitionManager } from 'code-push/script/acquisition-sdk';
 
 const { Device } = Plugins
 
@@ -20,8 +20,8 @@ class Sdk {
     /**
      * Reads the CodePush configuration and creates an AcquisitionManager instance using it.
      */
-    public static getAcquisitionManager(callback: Callback<AcquisitionManager>, userDeploymentKey?: string, contentType?: string): void {
-        var resolveManager = (): void => {
+    public static async getAcquisitionManager(userDeploymentKey?: string, contentType?: string): Promise<AcquisitionManager> {
+        const resolveManager = (): Promise<AcquisitionManager> => {
             if (userDeploymentKey !== Sdk.DefaultConfiguration.deploymentKey || contentType) {
                 var customConfiguration: Configuration = {
                     deploymentKey: userDeploymentKey || Sdk.DefaultConfiguration.deploymentKey,
@@ -32,59 +32,60 @@ class Sdk {
                 };
                 var requester = new HttpRequester(contentType);
                 var customAcquisitionManager: AcquisitionManager = new AcquisitionManager(requester, customConfiguration);
-                callback(null, customAcquisitionManager);
+                return Promise.resolve(customAcquisitionManager);
             } else if (Sdk.DefaultConfiguration.deploymentKey) {
-                callback(null, Sdk.DefaultAcquisitionManager);
+                return Promise.resolve(Sdk.DefaultAcquisitionManager);
             } else {
-                callback(new Error("No deployment key provided, please provide a default one in your config.xml or specify one in the call to checkForUpdate() or sync()."), null);
+                return Promise.reject(new Error("No deployment key provided, please provide a default one in your config.xml or specify one in the call to checkForUpdate() or sync()."));
             }
         };
 
         if (Sdk.DefaultAcquisitionManager) {
-            resolveManager();
+            return resolveManager();
         } else {
-            NativeAppInfo.getServerURL((serverError: Error, serverURL: string) => {
-                NativeAppInfo.getDeploymentKey((depolymentKeyError: Error, deploymentKey: string) => {
-                    NativeAppInfo.getApplicationVersion(async (appVersionError: Error, appVersion: string) => {
-                        if (!appVersion) {
-                            callback(new Error("Could not get the app version. Please check your config.xml file."), null);
-                        } else if (!serverURL) {
-                            callback(new Error("Could not get the CodePush configuration. Please check your config.xml file."), null);
-                        } else {
-                            const device = await Device.getInfo();
-                            Sdk.DefaultConfiguration = {
-                                deploymentKey: deploymentKey,
-                                serverUrl: serverURL,
-                                ignoreAppVersion: false,
-                                appVersion: appVersion,
-                                clientUniqueId: device.uuid
-                            };
+            let serverUrl = null;
+            try {
+                serverUrl = await NativeAppInfo.getServerURL()
+            } catch (e) {
+                throw new Error("Could not get the CodePush configuration. Please check your config.xml file.");
+            }
 
-                            if (deploymentKey) {
-                                Sdk.DefaultAcquisitionManager = new AcquisitionManager(new HttpRequester(), Sdk.DefaultConfiguration);
-                            }
+            let appVersion = null;
+            try {
+                appVersion = await NativeAppInfo.getApplicationVersion()
+            } catch (e) {
+                throw new Error("Could not get the app version. Please check your config.xml file.");
+            }
 
-                            resolveManager();
-                        }
-                    });
-                });
-            });
+            let deploymentKey = null;
+            try {
+                deploymentKey = await NativeAppInfo.getDeploymentKey()
+            } catch (e) {}
+
+            const device = await Device.getInfo();
+            Sdk.DefaultConfiguration = {
+                deploymentKey,
+                serverUrl,
+                ignoreAppVersion: false,
+                appVersion,
+                clientUniqueId: device.uuid
+            };
+
+            if (deploymentKey) {
+                Sdk.DefaultAcquisitionManager = new AcquisitionManager(new HttpRequester(), Sdk.DefaultConfiguration);
+            }
+
+            return resolveManager();
         }
     }
 
     /**
      * Reports the deployment status to the CodePush server.
      */
-    public static reportStatusDeploy(pkg?: IPackage, status?: string, currentDeploymentKey?: string, previousLabelOrAppVersion?: string, previousDeploymentKey?: string, callback?: Callback<void>) {
+    public static async reportStatusDeploy(pkg?: IPackage, status?: string, currentDeploymentKey?: string, previousLabelOrAppVersion?: string, previousDeploymentKey?: string, callback?: Callback<void>) {
         try {
-            Sdk.getAcquisitionManager((error: Error, acquisitionManager: AcquisitionManager) => {
-                if (error) {
-                    callback && callback(error, null);
-                }
-                else {
-                    acquisitionManager.reportStatusDeploy(pkg, status, previousLabelOrAppVersion, previousDeploymentKey, callback);
-                }
-            }, currentDeploymentKey, "application/json");
+            const acquisitionManager = await Sdk.getAcquisitionManager(currentDeploymentKey, "application/json")
+            acquisitionManager.reportStatusDeploy(pkg, status, previousLabelOrAppVersion, previousDeploymentKey, callback);
         } catch (e) {
             callback && callback(e, null);
         }
@@ -93,16 +94,10 @@ class Sdk {
     /**
      * Reports the download status to the CodePush server.
      */
-    public static reportStatusDownload(pkg: IPackage, deploymentKey?: string, callback?: Callback<void>) {
+    public static async reportStatusDownload(pkg: IPackage, deploymentKey?: string, callback?: Callback<void>) {
         try {
-            Sdk.getAcquisitionManager((error: Error, acquisitionManager: AcquisitionManager) => {
-                if (error) {
-                    callback && callback(error, null);
-                }
-                else {
-                    acquisitionManager.reportStatusDownload(pkg, callback);
-                }
-            }, deploymentKey, "application/json");
+            const acquisitionManager = await Sdk.getAcquisitionManager(deploymentKey, "application/json")
+            acquisitionManager.reportStatusDownload(pkg, callback);
         } catch (e) {
             callback && callback(new Error("An error occured while reporting the download status. " + e), null);
         }

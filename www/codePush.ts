@@ -1,11 +1,6 @@
 /// <reference path="../typings/codePush.d.ts" />
-/// <reference types="cordova-plugin-file" />
-/// <reference types="cordova-plugin-file-transfer" />
-/// <reference types="cordova" />
 
 "use strict";
-
-declare var cordova: Cordova;
 
 import { Plugins } from '@capacitor/core';
 import LocalPackage = require("./localPackage");
@@ -16,6 +11,7 @@ import Sdk = require("./sdk");
 import SyncStatus = require("./syncStatus");
 
 const { Modals } = Plugins;
+const NativeCodePush: NativeCodePushPlugin = (Plugins as any).CodePush;
 
 /**
  * This is the entry point to Cordova CodePush SDK.
@@ -24,7 +20,7 @@ const { Modals } = Plugins;
  * - notifying the plugin that the application loaded successfully after an update
  * - getting information about the currently deployed package
  */
-class CodePush implements CodePushCordovaPlugin {
+class CodePush implements CodePushCapacitorPlugin {
     /**
      * The default options for the sync command.
      */
@@ -43,20 +39,17 @@ class CodePush implements CodePushCordovaPlugin {
      * Notifies the plugin that the update operation succeeded and that the application is ready.
      * Calling this function is required on the first run after an update. On every subsequent application run, calling this function is a noop.
      * If using sync API, calling this function is not required since sync calls it internally.
-     *
-     * @param notifySucceeded Optional callback invoked if the plugin was successfully notified.
-     * @param notifyFailed Optional callback invoked in case of an error during notifying the plugin.
      */
-    public notifyApplicationReady(notifySucceeded?: SuccessCallback<void>, notifyFailed?: ErrorCallback): void {
-        cordova.exec(notifySucceeded, notifyFailed, "CodePush", "notifyApplicationReady", []);
+    public notifyApplicationReady(): Promise<void> {
+        return NativeCodePush.notifyApplicationReady();
     }
 
     /**
      * Reloads the application. If there is a pending update package installed using ON_NEXT_RESTART or ON_NEXT_RESUME modes, the update
      * will be immediately visible to the user. Otherwise, calling this function will simply reload the current version of the application.
      */
-    public restartApplication(installSuccess: SuccessCallback<void>, errorCallback?: ErrorCallback): void {
-        cordova.exec(installSuccess, errorCallback, "CodePush", "restartApplication", []);
+    public restartApplication(): Promise<void> {
+        return NativeCodePush.restartApplication();
     }
 
     /**
@@ -94,10 +87,10 @@ class CodePush implements CodePushCordovaPlugin {
 
             if (error) {
                 CodePushUtil.logError(`An error occurred while reporting status: ${JSON.stringify(reportArgs)}`, error);
-                cordova.exec(null, null, "CodePush", "reportFailed", [reportArgs]);
+                NativeCodePush.reportFailed({statusReport: reportArgs})
             } else {
                 CodePushUtil.logMessage(`Reported status: ${JSON.stringify(reportArgs)}`);
-                cordova.exec(null, null, "CodePush", "reportSucceeded", [reportArgs]);
+                NativeCodePush.reportSucceeded({statusReport: reportArgs})
             }
         };
 
@@ -117,13 +110,13 @@ class CodePush implements CodePushCordovaPlugin {
     /**
      * Get the current package information.
      *
-     * @param packageSuccess Callback invoked with the currently deployed package information.
-     * @param packageError Optional callback invoked in case of an error.
+     * @returns The currently deployed package information.
      */
-    public getCurrentPackage(packageSuccess: SuccessCallback<LocalPackage>, packageError?: ErrorCallback): void {
-        NativeAppInfo.isPendingUpdate((pendingUpdate: boolean) => {
-            var packageInfoFile = pendingUpdate ? LocalPackage.OldPackageInfoFile : LocalPackage.PackageInfoFile;
-            LocalPackage.getPackageInfoOrNull(packageInfoFile, packageSuccess, packageError);
+    public async getCurrentPackage(): Promise<ILocalPackage> {
+        const pendingUpdate = await NativeAppInfo.isPendingUpdate();
+        var packageInfoFile = pendingUpdate ? LocalPackage.OldPackageInfoFile : LocalPackage.PackageInfoFile;
+        return new Promise<ILocalPackage>((resolve, reject) => {
+            LocalPackage.getPackageInfoOrNull(packageInfoFile, resolve as any, reject);
         });
     }
 
@@ -131,14 +124,13 @@ class CodePush implements CodePushCordovaPlugin {
      * Gets the pending package information, if any. A pending package is one that has been installed but the application still runs the old code.
      * This happends only after a package has been installed using ON_NEXT_RESTART or ON_NEXT_RESUME mode, but the application was not restarted/resumed yet.
      */
-    public getPendingPackage(packageSuccess: SuccessCallback<ILocalPackage>, packageError?: ErrorCallback): void {
-        NativeAppInfo.isPendingUpdate((pendingUpdate: boolean) => {
-            if (pendingUpdate) {
-                LocalPackage.getPackageInfoOrNull(LocalPackage.PackageInfoFile, packageSuccess, packageError);
-            } else {
-                packageSuccess(null);
-            }
-        });
+    public async getPendingPackage(): Promise<ILocalPackage> {
+        const pendingUpdate = await NativeAppInfo.isPendingUpdate()
+        if (!pendingUpdate) return null;
+
+        return new Promise<ILocalPackage>((resolve, reject) => {
+            LocalPackage.getPackageInfoOrNull(LocalPackage.PackageInfoFile, resolve as any, reject);
+        })
     }
 
     /**
@@ -150,9 +142,9 @@ class CodePush implements CodePushCordovaPlugin {
      * @param queryError Optional callback invoked in case of an error.
      * @param deploymentKey Optional deployment key that overrides the config.xml setting.
      */
-    public checkForUpdate(querySuccess: SuccessCallback<RemotePackage>, queryError?: ErrorCallback, deploymentKey?: string): void {
+    public checkForUpdate(querySuccess: SuccessCallback<IRemotePackage>, queryError?: ErrorCallback, deploymentKey?: string): void {
         try {
-            var callback: Callback<RemotePackage | NativeUpdateNotification> = (error: Error, remotePackageOrUpdateNotification: IRemotePackage | NativeUpdateNotification) => {
+            var callback: Callback<RemotePackage | NativeUpdateNotification> = async (error: Error, remotePackageOrUpdateNotification: IRemotePackage | NativeUpdateNotification) => {
                 if (error) {
                     CodePushUtil.invokeErrorCallback(error, queryError);
                 }
@@ -170,20 +162,19 @@ class CodePush implements CodePushCordovaPlugin {
                         } else {
                             /* There is an update available for the current version. */
                             var remotePackage: RemotePackage = <RemotePackage>remotePackageOrUpdateNotification;
-                            NativeAppInfo.isFailedUpdate(remotePackage.packageHash, (installFailed: boolean) => {
-                                var result: RemotePackage = new RemotePackage();
-                                result.appVersion = remotePackage.appVersion;
-                                result.deploymentKey = deploymentKey; // server does not send back the deployment key
-                                result.description = remotePackage.description;
-                                result.downloadUrl = remotePackage.downloadUrl;
-                                result.isMandatory = remotePackage.isMandatory;
-                                result.label = remotePackage.label;
-                                result.packageHash = remotePackage.packageHash;
-                                result.packageSize = remotePackage.packageSize;
-                                result.failedInstall = installFailed;
-                                CodePushUtil.logMessage("An update is available. " + JSON.stringify(result));
-                                querySuccess && querySuccess(result);
-                            });
+                            const installFailed = await NativeAppInfo.isFailedUpdate(remotePackage.packageHash)
+                            var result: RemotePackage = new RemotePackage();
+                            result.appVersion = remotePackage.appVersion;
+                            result.deploymentKey = deploymentKey; // server does not send back the deployment key
+                            result.description = remotePackage.description;
+                            result.downloadUrl = remotePackage.downloadUrl;
+                            result.isMandatory = remotePackage.isMandatory;
+                            result.label = remotePackage.label;
+                            result.packageHash = remotePackage.packageHash;
+                            result.packageSize = remotePackage.packageSize;
+                            result.failedInstall = installFailed;
+                            CodePushUtil.logMessage("An update is available. " + JSON.stringify(result));
+                            querySuccess && querySuccess(result);
                         }
                     }
                     else {
@@ -192,36 +183,32 @@ class CodePush implements CodePushCordovaPlugin {
                 }
             };
 
-            var queryUpdate = () => {
-                Sdk.getAcquisitionManager((initError: Error, acquisitionManager: AcquisitionManager) => {
-                    if (initError) {
-                        CodePushUtil.invokeErrorCallback(initError, queryError);
-                    } else {
-                        LocalPackage.getCurrentOrDefaultPackage((localPackage: LocalPackage) => {
-                            NativeAppInfo.getApplicationVersion((appVersionError: Error, currentBinaryVersion: string) => {
-                                if (!appVersionError) {
-                                     localPackage.appVersion = currentBinaryVersion;
-                                }
-                                CodePushUtil.logMessage("Checking for update.");
-                                acquisitionManager.queryUpdateWithCurrentPackage(localPackage, callback);
-                            });
-                        }, (error: Error) => {
-                            CodePushUtil.invokeErrorCallback(error, queryError);
-                        });
-                    }
-                }, deploymentKey);
+            var queryUpdate = async () => {
+                try {
+                    const acquisitionManager = await Sdk.getAcquisitionManager(deploymentKey)
+                    LocalPackage.getCurrentOrDefaultPackage().then(async (localPackage: LocalPackage) => {
+                        try {
+                            const currentBinaryVersion = await NativeAppInfo.getApplicationVersion()
+                            localPackage.appVersion = currentBinaryVersion;
+                        } catch (e) {}
+                        CodePushUtil.logMessage("Checking for update.");
+                        acquisitionManager.queryUpdateWithCurrentPackage(localPackage, callback);
+                    }, (error: Error) => {
+                        CodePushUtil.invokeErrorCallback(error, queryError);
+                    });
+                } catch (e) {
+                    CodePushUtil.invokeErrorCallback(e, queryError);
+                }
             };
 
             if (deploymentKey) {
                 queryUpdate();
             } else {
-                NativeAppInfo.getDeploymentKey((deploymentKeyError: Error, defaultDeploymentKey: string) => {
-                    if (deploymentKeyError) {
-                        CodePushUtil.invokeErrorCallback(deploymentKeyError, queryError);
-                    } else {
-                        deploymentKey = defaultDeploymentKey;
-                        queryUpdate();
-                    }
+                NativeAppInfo.getDeploymentKey().then(defaultDeploymentKey => {
+                    deploymentKey = defaultDeploymentKey;
+                    queryUpdate();
+                }, deploymentKeyError => {
+                    CodePushUtil.invokeErrorCallback(deploymentKeyError, queryError);
                 });
             }
         } catch (e) {
@@ -252,13 +239,15 @@ class CodePush implements CodePushCordovaPlugin {
      * @param syncErrback Optional errback invoked if an error occurs. The callback will be called only once
      *
      */
-    public sync(syncCallback?: SuccessCallback<any>, syncOptions?: SyncOptions, downloadProgress?: SuccessCallback<DownloadProgress>, syncErrback?: ErrorCallback): void {
+    public async sync(syncOptions?: SyncOptions, downloadProgress?: SuccessCallback<DownloadProgress>): Promise<any> {
         /* Check if a sync is already in progress */
         if (CodePush.SyncInProgress) {
             /* A sync is already in progress */
             CodePushUtil.logMessage("Sync already in progress.");
-            syncCallback && syncCallback(SyncStatus.IN_PROGRESS);
-        } else {
+            return SyncStatus.IN_PROGRESS;
+        }
+
+        return new Promise((resolve, reject) => {
             /* Create a callback that resets the SyncInProgress flag when the sync is complete
              * If the sync status is a result status, then the sync must be complete and the flag must be updated
              * Otherwise, do not change the flag and trigger the syncCallback as usual
@@ -279,16 +268,16 @@ class CodePush implements CodePushCordovaPlugin {
                 }
 
                 if (err) {
-                    syncErrback && syncErrback(err);
+                    reject(err);
                 }
 
-                syncCallback && syncCallback(result);
+                resolve(result);
             };
 
             /* Begin the sync */
             CodePush.SyncInProgress = true;
             this.syncInternal(syncCallbackAndUpdateSyncInProgress, syncOptions, downloadProgress);
-        }
+        });
     }
 
     /**
@@ -327,7 +316,7 @@ class CodePush implements CodePushCordovaPlugin {
             CodePushUtil.copyUnassignedMembers(defaultOptions, syncOptions);
         }
 
-        window.codePush.notifyApplicationReady();
+        this.notifyApplicationReady();
 
         var onError = (error: Error) => {
             CodePushUtil.logError("An error occurred during sync.", error);
@@ -355,12 +344,12 @@ class CodePush implements CodePushCordovaPlugin {
 
         var onDownloadSuccess = (localPackage: ILocalPackage) => {
             syncCallback && syncCallback(null, SyncStatus.INSTALLING_UPDATE);
-            localPackage.install(onInstallSuccess, onError, syncOptions);
+            localPackage.install(syncOptions).then(onInstallSuccess, onError);
         };
 
         var downloadAndInstallUpdate = (remotePackage: RemotePackage) => {
             syncCallback && syncCallback(null, SyncStatus.DOWNLOADING_PACKAGE);
-            remotePackage.download(onDownloadSuccess, onError, downloadProgress);
+            remotePackage.download(downloadProgress).then(onDownloadSuccess, onError);
         };
 
         var onUpdate = async (remotePackage: RemotePackage) => {
@@ -417,7 +406,7 @@ class CodePush implements CodePushCordovaPlugin {
         };
 
         syncCallback && syncCallback(null, SyncStatus.CHECKING_FOR_UPDATE);
-        window.codePush.checkForUpdate(onUpdate, onError, syncOptions.deploymentKey);
+        this.checkForUpdate(onUpdate, onError, syncOptions.deploymentKey);
     }
 
     /**

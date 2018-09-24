@@ -48,10 +48,19 @@ class CodePushUtil {
 
     /**
      * Logs the error to the console and then forwards it to the provided ErrorCallback, if any.
+     * TODO: remove me
      */
     public static invokeErrorCallback = (error: Error, errorCallback: ErrorCallback): void => {
         CodePushUtil.logError(null, error);
         errorCallback && errorCallback(error);
+    };
+
+    /**
+     * Logs the error to the console and then throws the error.
+     */
+    public static throwError = (error: Error): void => {
+        CodePushUtil.logError(null, error);
+        throw error;
     };
 
     /**

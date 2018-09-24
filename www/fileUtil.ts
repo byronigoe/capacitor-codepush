@@ -79,7 +79,6 @@ class FileUtil {
     public static getDirectory(rootUri: string, path: string, createIfNotExists: boolean, callback: Callback<DirectoryEntry>): void {
         var pathArray: string[] = path.split("/");
 
-        var currentDir: DirectoryEntry;
         var currentIndex = 0;
 
         var appDirError = (error: FileError): void => {
@@ -90,7 +89,6 @@ class FileUtil {
             if (!createIfNotExists) {
                 appDir.getDirectory(path, { create: false, exclusive: false }, (directoryEntry: DirectoryEntry) => { callback(null, directoryEntry); }, appDirError);
             } else {
-                currentDir = appDir;
                 if (currentIndex >= pathArray.length) {
                     callback(null, appDir);
                 } else {

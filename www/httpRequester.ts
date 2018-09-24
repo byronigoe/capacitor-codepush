@@ -2,8 +2,6 @@
 
 "use strict";
 
-declare var cordova: Cordova;
-
 /**
  * XMLHttpRequest-based implementation of Http.Requester.
  */
@@ -40,9 +38,9 @@ class HttpRequester implements Http.Requester {
             xhr.setRequestHeader("Content-Type", this.contentType);
         }
 
-        xhr.setRequestHeader("X-CodePush-Plugin-Name", "cordova-plugin-code-push");
-        xhr.setRequestHeader("X-CodePush-Plugin-Version", cordova.require("cordova/plugin_list").metadata["cordova-plugin-code-push"]);
-        xhr.setRequestHeader("X-CodePush-SDK-Version", cordova.require("cordova/plugin_list").metadata["code-push"]);
+        xhr.setRequestHeader("X-CodePush-Plugin-Name", "capacitor-plugin-code-push");
+        xhr.setRequestHeader("X-CodePush-Plugin-Version", "1.11.13");
+        xhr.setRequestHeader("X-CodePush-SDK-Version", "2.0.6");
         xhr.send(requestBody);
     }
 
