@@ -18,4 +18,4 @@ enum InstallMode {
     ON_NEXT_RESUME
 }
 
-export = InstallMode;
+export default InstallMode;

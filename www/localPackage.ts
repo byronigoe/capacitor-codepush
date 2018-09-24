@@ -9,6 +9,7 @@ import NativeAppInfo = require("./nativeAppInfo");
 import FileUtil = require("./fileUtil");
 import CodePushUtil = require("./codePushUtil");
 import Sdk = require("./sdk");
+import InstallMode from "./installMode";
 
 /**
  * Defines a local package.

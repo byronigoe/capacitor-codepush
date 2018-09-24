@@ -3,6 +3,7 @@
 "use strict";
 
 import { Plugins } from '@capacitor/core';
+import InstallMode from './installMode';
 import LocalPackage = require("./localPackage");
 import RemotePackage = require("./remotePackage");
 import CodePushUtil = require("./codePushUtil");

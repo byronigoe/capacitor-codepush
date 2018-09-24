@@ -22,6 +22,8 @@ declare module Http {
     }
 }
 
+type InstallMode = any
+
 /**
  * Defines a package. All fields are non-nullable, except when retrieving the currently running package on the first run of the app,
  * in which case only the appVersion is compulsory.
@@ -315,26 +317,6 @@ declare enum SyncStatus {
      * Intermediate status - the update package is about to be installed.
      */
     INSTALLING_UPDATE
-}
-
-/**
- * Defines the available install modes for updates.
- */
-declare enum InstallMode {
-    /**
-     * The update will be applied to the running application immediately. The application will be reloaded with the new content immediately.
-     */
-    IMMEDIATE,
-
-    /**
-     * The update is downloaded but not installed immediately. The new content will be available the next time the application is started.
-     */
-    ON_NEXT_RESTART,
-
-    /**
-     * The udpate is downloaded but not installed immediately. The new content will be available the next time the application is resumed or restarted, whichever event happends first.
-     */
-    ON_NEXT_RESUME
 }
 
 /**
