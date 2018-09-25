@@ -43,4 +43,8 @@ CodePushUtil.invokeErrorCallback = (error, errorCallback) => {
     CodePushUtil.logError(null, error);
     errorCallback && errorCallback(error);
 };
+CodePushUtil.throwError = (error) => {
+    CodePushUtil.logError(null, error);
+    throw error;
+};
 module.exports = CodePushUtil;

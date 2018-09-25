@@ -62,7 +62,6 @@ class FileUtil {
     }
     static getDirectory(rootUri, path, createIfNotExists, callback) {
         var pathArray = path.split("/");
-        var currentDir;
         var currentIndex = 0;
         var appDirError = (error) => {
             callback(new Error("Could not get application subdirectory. Error code: " + error.code), null);
@@ -72,7 +71,6 @@ class FileUtil {
                 appDir.getDirectory(path, { create: false, exclusive: false }, (directoryEntry) => { callback(null, directoryEntry); }, appDirError);
             }
             else {
-                currentDir = appDir;
                 if (currentIndex >= pathArray.length) {
                     callback(null, appDir);
                 }

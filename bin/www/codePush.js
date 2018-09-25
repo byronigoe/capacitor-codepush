@@ -9,6 +9,7 @@
 
 "use strict";
 const core_1 = require("@capacitor/core");
+const installMode_1 = require("./installMode");
 const LocalPackage = require("./localPackage");
 const RemotePackage = require("./remotePackage");
 const CodePushUtil = require("./codePushUtil");
@@ -16,12 +17,13 @@ const NativeAppInfo = require("./nativeAppInfo");
 const Sdk = require("./sdk");
 const SyncStatus = require("./syncStatus");
 const { Modals } = core_1.Plugins;
+const NativeCodePush = core_1.Plugins.CodePush;
 class CodePush {
-    notifyApplicationReady(notifySucceeded, notifyFailed) {
-        cordova.exec(notifySucceeded, notifyFailed, "CodePush", "notifyApplicationReady", []);
+    notifyApplicationReady() {
+        return NativeCodePush.notifyApplicationReady();
     }
-    restartApplication(installSuccess, errorCallback) {
-        cordova.exec(installSuccess, errorCallback, "CodePush", "restartApplication", []);
+    restartApplication() {
+        return NativeCodePush.restartApplication();
     }
     reportStatus(status, label, appVersion, deploymentKey, previousLabelOrAppVersion, previousDeploymentKey) {
         if (((!label && appVersion === previousLabelOrAppVersion) || label === previousLabelOrAppVersion)
@@ -47,11 +49,11 @@ class CodePush {
             };
             if (error) {
                 CodePushUtil.logError(`An error occurred while reporting status: ${JSON.stringify(reportArgs)}`, error);
-                cordova.exec(null, null, "CodePush", "reportFailed", [reportArgs]);
+                NativeCodePush.reportFailed({ statusReport: reportArgs });
             }
             else {
                 CodePushUtil.logMessage(`Reported status: ${JSON.stringify(reportArgs)}`);
-                cordova.exec(null, null, "CodePush", "reportSucceeded", [reportArgs]);
+                NativeCodePush.reportSucceeded({ statusReport: reportArgs });
             }
         };
         switch (status) {
@@ -66,25 +68,24 @@ class CodePush {
                 break;
         }
     }
-    getCurrentPackage(packageSuccess, packageError) {
-        NativeAppInfo.isPendingUpdate((pendingUpdate) => {
-            var packageInfoFile = pendingUpdate ? LocalPackage.OldPackageInfoFile : LocalPackage.PackageInfoFile;
-            LocalPackage.getPackageInfoOrNull(packageInfoFile, packageSuccess, packageError);
+    async getCurrentPackage() {
+        const pendingUpdate = await NativeAppInfo.isPendingUpdate();
+        var packageInfoFile = pendingUpdate ? LocalPackage.OldPackageInfoFile : LocalPackage.PackageInfoFile;
+        return new Promise((resolve, reject) => {
+            LocalPackage.getPackageInfoOrNull(packageInfoFile, resolve, reject);
         });
     }
-    getPendingPackage(packageSuccess, packageError) {
-        NativeAppInfo.isPendingUpdate((pendingUpdate) => {
-            if (pendingUpdate) {
-                LocalPackage.getPackageInfoOrNull(LocalPackage.PackageInfoFile, packageSuccess, packageError);
-            }
-            else {
-                packageSuccess(null);
-            }
+    async getPendingPackage() {
+        const pendingUpdate = await NativeAppInfo.isPendingUpdate();
+        if (!pendingUpdate)
+            return null;
+        return new Promise((resolve, reject) => {
+            LocalPackage.getPackageInfoOrNull(LocalPackage.PackageInfoFile, resolve, reject);
         });
     }
     checkForUpdate(querySuccess, queryError, deploymentKey) {
         try {
-            var callback = (error, remotePackageOrUpdateNotification) => {
+            var callback = async (error, remotePackageOrUpdateNotification) => {
                 if (error) {
                     CodePushUtil.invokeErrorCallback(error, queryError);
                 }
@@ -100,20 +101,19 @@ class CodePush {
                         }
                         else {
                             var remotePackage = remotePackageOrUpdateNotification;
-                            NativeAppInfo.isFailedUpdate(remotePackage.packageHash, (installFailed) => {
-                                var result = new RemotePackage();
-                                result.appVersion = remotePackage.appVersion;
-                                result.deploymentKey = deploymentKey;
-                                result.description = remotePackage.description;
-                                result.downloadUrl = remotePackage.downloadUrl;
-                                result.isMandatory = remotePackage.isMandatory;
-                                result.label = remotePackage.label;
-                                result.packageHash = remotePackage.packageHash;
-                                result.packageSize = remotePackage.packageSize;
-                                result.failedInstall = installFailed;
-                                CodePushUtil.logMessage("An update is available. " + JSON.stringify(result));
-                                querySuccess && querySuccess(result);
-                            });
+                            const installFailed = await NativeAppInfo.isFailedUpdate(remotePackage.packageHash);
+                            var result = new RemotePackage();
+                            result.appVersion = remotePackage.appVersion;
+                            result.deploymentKey = deploymentKey;
+                            result.description = remotePackage.description;
+                            result.downloadUrl = remotePackage.downloadUrl;
+                            result.isMandatory = remotePackage.isMandatory;
+                            result.label = remotePackage.label;
+                            result.packageHash = remotePackage.packageHash;
+                            result.packageSize = remotePackage.packageSize;
+                            result.failedInstall = installFailed;
+                            CodePushUtil.logMessage("An update is available. " + JSON.stringify(result));
+                            querySuccess && querySuccess(result);
                         }
                     }
                     else {
@@ -121,38 +121,34 @@ class CodePush {
                     }
                 }
             };
-            var queryUpdate = () => {
-                Sdk.getAcquisitionManager((initError, acquisitionManager) => {
-                    if (initError) {
-                        CodePushUtil.invokeErrorCallback(initError, queryError);
-                    }
-                    else {
-                        LocalPackage.getCurrentOrDefaultPackage((localPackage) => {
-                            NativeAppInfo.getApplicationVersion((appVersionError, currentBinaryVersion) => {
-                                if (!appVersionError) {
-                                    localPackage.appVersion = currentBinaryVersion;
-                                }
-                                CodePushUtil.logMessage("Checking for update.");
-                                acquisitionManager.queryUpdateWithCurrentPackage(localPackage, callback);
-                            });
-                        }, (error) => {
-                            CodePushUtil.invokeErrorCallback(error, queryError);
-                        });
-                    }
-                }, deploymentKey);
+            var queryUpdate = async () => {
+                try {
+                    const acquisitionManager = await Sdk.getAcquisitionManager(deploymentKey);
+                    LocalPackage.getCurrentOrDefaultPackage().then(async (localPackage) => {
+                        try {
+                            const currentBinaryVersion = await NativeAppInfo.getApplicationVersion();
+                            localPackage.appVersion = currentBinaryVersion;
+                        }
+                        catch (e) { }
+                        CodePushUtil.logMessage("Checking for update.");
+                        acquisitionManager.queryUpdateWithCurrentPackage(localPackage, callback);
+                    }, (error) => {
+                        CodePushUtil.invokeErrorCallback(error, queryError);
+                    });
+                }
+                catch (e) {
+                    CodePushUtil.invokeErrorCallback(e, queryError);
+                }
             };
             if (deploymentKey) {
                 queryUpdate();
             }
             else {
-                NativeAppInfo.getDeploymentKey((deploymentKeyError, defaultDeploymentKey) => {
-                    if (deploymentKeyError) {
-                        CodePushUtil.invokeErrorCallback(deploymentKeyError, queryError);
-                    }
-                    else {
-                        deploymentKey = defaultDeploymentKey;
-                        queryUpdate();
-                    }
+                NativeAppInfo.getDeploymentKey().then(defaultDeploymentKey => {
+                    deploymentKey = defaultDeploymentKey;
+                    queryUpdate();
+                }, deploymentKeyError => {
+                    CodePushUtil.invokeErrorCallback(deploymentKeyError, queryError);
                 });
             }
         }
@@ -160,12 +156,12 @@ class CodePush {
             CodePushUtil.invokeErrorCallback(new Error("An error occurred while querying for updates." + CodePushUtil.getErrorMessage(e)), queryError);
         }
     }
-    sync(syncCallback, syncOptions, downloadProgress, syncErrback) {
+    async sync(syncOptions, downloadProgress) {
         if (CodePush.SyncInProgress) {
             CodePushUtil.logMessage("Sync already in progress.");
-            syncCallback && syncCallback(SyncStatus.IN_PROGRESS);
+            return SyncStatus.IN_PROGRESS;
         }
-        else {
+        return new Promise((resolve, reject) => {
             var syncCallbackAndUpdateSyncInProgress = (err, result) => {
                 switch (result) {
                     case SyncStatus.ERROR:
@@ -178,13 +174,13 @@ class CodePush {
                         break;
                 }
                 if (err) {
-                    syncErrback && syncErrback(err);
+                    reject(err);
                 }
-                syncCallback && syncCallback(result);
+                resolve(result);
             };
             CodePush.SyncInProgress = true;
             this.syncInternal(syncCallbackAndUpdateSyncInProgress, syncOptions, downloadProgress);
-        }
+        });
     }
     syncInternal(syncCallback, syncOptions, downloadProgress) {
         if (!syncOptions) {
@@ -203,17 +199,17 @@ class CodePush {
             var defaultOptions = this.getDefaultSyncOptions();
             CodePushUtil.copyUnassignedMembers(defaultOptions, syncOptions);
         }
-        window.codePush.notifyApplicationReady();
+        this.notifyApplicationReady();
         var onError = (error) => {
             CodePushUtil.logError("An error occurred during sync.", error);
             syncCallback && syncCallback(error, SyncStatus.ERROR);
         };
         var onInstallSuccess = (appliedWhen) => {
             switch (appliedWhen) {
-                case InstallMode.ON_NEXT_RESTART:
+                case installMode_1.default.ON_NEXT_RESTART:
                     CodePushUtil.logMessage("Update is installed and will be run on the next app restart.");
                     break;
-                case InstallMode.ON_NEXT_RESUME:
+                case installMode_1.default.ON_NEXT_RESUME:
                     if (syncOptions.minimumBackgroundDuration > 0) {
                         CodePushUtil.logMessage(`Update is installed and will be run after the app has been in the background for at least ${syncOptions.minimumBackgroundDuration} seconds.`);
                     }
@@ -226,11 +222,11 @@ class CodePush {
         };
         var onDownloadSuccess = (localPackage) => {
             syncCallback && syncCallback(null, SyncStatus.INSTALLING_UPDATE);
-            localPackage.install(onInstallSuccess, onError, syncOptions);
+            localPackage.install(syncOptions).then(onInstallSuccess, onError);
         };
         var downloadAndInstallUpdate = (remotePackage) => {
             syncCallback && syncCallback(null, SyncStatus.DOWNLOADING_PACKAGE);
-            remotePackage.download(onDownloadSuccess, onError, downloadProgress);
+            remotePackage.download(downloadProgress).then(onDownloadSuccess, onError);
         };
         var onUpdate = async (remotePackage) => {
             var updateShouldBeIgnored = remotePackage && (remotePackage.failedInstall && syncOptions.ignoreFailedUpdates);
@@ -281,15 +277,15 @@ class CodePush {
             }
         };
         syncCallback && syncCallback(null, SyncStatus.CHECKING_FOR_UPDATE);
-        window.codePush.checkForUpdate(onUpdate, onError, syncOptions.deploymentKey);
+        this.checkForUpdate(onUpdate, onError, syncOptions.deploymentKey);
     }
     getDefaultSyncOptions() {
         if (!CodePush.DefaultSyncOptions) {
             CodePush.DefaultSyncOptions = {
                 ignoreFailedUpdates: true,
-                installMode: InstallMode.ON_NEXT_RESTART,
+                installMode: installMode_1.default.ON_NEXT_RESTART,
                 minimumBackgroundDuration: 0,
-                mandatoryInstallMode: InstallMode.IMMEDIATE,
+                mandatoryInstallMode: installMode_1.default.IMMEDIATE,
                 updateDialog: false,
                 deploymentKey: undefined
             };

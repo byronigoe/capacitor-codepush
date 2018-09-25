@@ -13,63 +13,66 @@ const NativeAppInfo = require("./nativeAppInfo");
 const FileUtil = require("./fileUtil");
 const CodePushUtil = require("./codePushUtil");
 const Sdk = require("./sdk");
+const installMode_1 = require("./installMode");
 class LocalPackage extends Package {
-    install(installSuccess, errorCallback, installOptions) {
-        try {
-            CodePushUtil.logMessage("Installing update");
-            if (!installOptions) {
-                installOptions = LocalPackage.getDefaultInstallOptions();
-            }
-            else {
-                CodePushUtil.copyUnassignedMembers(LocalPackage.getDefaultInstallOptions(), installOptions);
-            }
-            var installError = (error) => {
-                CodePushUtil.invokeErrorCallback(error, errorCallback);
-                Sdk.reportStatusDeploy(this, AcquisitionStatus.DeploymentFailed, this.deploymentKey);
-            };
-            var newPackageLocation = LocalPackage.VersionsDir + "/" + this.packageHash;
-            var newPackageUnzipped = function (unzipError) {
-                if (unzipError) {
-                    installError && installError(new Error("Could not unzip package" + CodePushUtil.getErrorMessage(unzipError)));
+    async install(installOptions) {
+        return new Promise((resolve, reject) => {
+            try {
+                CodePushUtil.logMessage("Installing update");
+                if (!installOptions) {
+                    installOptions = LocalPackage.getDefaultInstallOptions();
                 }
                 else {
-                    LocalPackage.handleDeployment(newPackageLocation, CodePushUtil.getNodeStyleCallbackFor(donePackageFileCopy, installError));
+                    CodePushUtil.copyUnassignedMembers(LocalPackage.getDefaultInstallOptions(), installOptions);
                 }
-            };
-            var donePackageFileCopy = (deploymentResult) => {
-                this.verifyPackage(deploymentResult, installError, () => {
-                    packageVerified(deploymentResult.deployDir);
-                });
-            };
-            var packageVerified = (deployDir) => {
-                this.localPath = deployDir.fullPath;
-                this.finishInstall(deployDir, installOptions, installSuccess, installError);
-            };
-            FileUtil.getDataDirectory(LocalPackage.DownloadUnzipDir, false, (error, directoryEntry) => {
-                var unzipPackage = () => {
-                    FileUtil.getDataDirectory(LocalPackage.DownloadUnzipDir, true, (innerError, unzipDir) => {
-                        if (innerError) {
-                            installError && installError(innerError);
-                            return;
-                        }
-                        zip.unzip(this.localPath, unzipDir.toInternalURL(), newPackageUnzipped);
+                var installError = (error) => {
+                    CodePushUtil.invokeErrorCallback(error, reject);
+                    Sdk.reportStatusDeploy(this, AcquisitionStatus.DeploymentFailed, this.deploymentKey);
+                };
+                var newPackageLocation = LocalPackage.VersionsDir + "/" + this.packageHash;
+                var newPackageUnzipped = function (unzipError) {
+                    if (unzipError) {
+                        installError && installError(new Error("Could not unzip package" + CodePushUtil.getErrorMessage(unzipError)));
+                    }
+                    else {
+                        LocalPackage.handleDeployment(newPackageLocation, CodePushUtil.getNodeStyleCallbackFor(donePackageFileCopy, installError));
+                    }
+                };
+                var donePackageFileCopy = (deploymentResult) => {
+                    this.verifyPackage(deploymentResult, installError, () => {
+                        packageVerified(deploymentResult.deployDir);
                     });
                 };
-                if (!error && !!directoryEntry) {
-                    directoryEntry.removeRecursively(() => {
+                var packageVerified = (deployDir) => {
+                    this.localPath = deployDir.fullPath;
+                    this.finishInstall(deployDir, installOptions, resolve, installError);
+                };
+                FileUtil.getDataDirectory(LocalPackage.DownloadUnzipDir, false, (error, directoryEntry) => {
+                    var unzipPackage = () => {
+                        FileUtil.getDataDirectory(LocalPackage.DownloadUnzipDir, true, (innerError, unzipDir) => {
+                            if (innerError) {
+                                installError && installError(innerError);
+                                return;
+                            }
+                            zip.unzip(this.localPath, unzipDir.toInternalURL(), newPackageUnzipped);
+                        });
+                    };
+                    if (!error && !!directoryEntry) {
+                        directoryEntry.removeRecursively(() => {
+                            unzipPackage();
+                        }, (cleanupError) => {
+                            installError && installError(FileUtil.fileErrorToError(cleanupError));
+                        });
+                    }
+                    else {
                         unzipPackage();
-                    }, (cleanupError) => {
-                        installError && installError(FileUtil.fileErrorToError(cleanupError));
-                    });
-                }
-                else {
-                    unzipPackage();
-                }
-            });
-        }
-        catch (e) {
-            installError && installError(new Error("An error occured while installing the package. " + CodePushUtil.getErrorMessage(e)));
-        }
+                    }
+                });
+            }
+            catch (e) {
+                installError && installError(new Error("An error occured while installing the package. " + CodePushUtil.getErrorMessage(e)));
+            }
+        });
     }
     verifyPackage(deploymentResult, installError, successCallback) {
         var deployDir = deploymentResult.deployDir;
@@ -190,46 +193,42 @@ class LocalPackage extends Package {
         cordova.exec(decodeSignatureSuccess, decodeSignatureFail, "CodePush", "decodeSignature", [publicKey, signature]);
     }
     finishInstall(deployDir, installOptions, installSuccess, installError) {
-        function backupPackageInformationFileIfNeeded(backupIfNeededDone) {
-            NativeAppInfo.isPendingUpdate((pendingUpdate) => {
-                if (pendingUpdate) {
-                    backupIfNeededDone(null, null);
-                }
-                else {
-                    LocalPackage.backupPackageInformationFile(backupIfNeededDone);
-                }
-            });
+        async function backupPackageInformationFileIfNeeded(backupIfNeededDone) {
+            const pendingUpdate = await NativeAppInfo.isPendingUpdate();
+            if (pendingUpdate) {
+                backupIfNeededDone(null, null);
+            }
+            else {
+                LocalPackage.backupPackageInformationFile(backupIfNeededDone);
+            }
         }
-        LocalPackage.getCurrentOrDefaultPackage((oldPackage) => {
+        LocalPackage.getCurrentOrDefaultPackage().then((oldPackage) => {
             backupPackageInformationFileIfNeeded((backupError) => {
-                this.writeNewPackageMetadata(deployDir, (writeMetadataError) => {
-                    if (writeMetadataError) {
-                        installError && installError(writeMetadataError);
-                    }
-                    else {
-                        var invokeSuccessAndInstall = () => {
-                            CodePushUtil.logMessage("Install succeeded.");
-                            var installModeToUse = this.isMandatory ? installOptions.mandatoryInstallMode : installOptions.installMode;
-                            if (installModeToUse === InstallMode.IMMEDIATE) {
-                                installSuccess && installSuccess(installModeToUse);
-                                cordova.exec(() => { }, () => { }, "CodePush", "install", [deployDir.fullPath,
-                                    installModeToUse.toString(), installOptions.minimumBackgroundDuration.toString()]);
-                            }
-                            else {
-                                cordova.exec(() => { installSuccess && installSuccess(installModeToUse); }, () => { installError && installError(); }, "CodePush", "install", [deployDir.fullPath,
-                                    installModeToUse.toString(), installOptions.minimumBackgroundDuration.toString()]);
-                            }
-                        };
-                        var preInstallSuccess = () => {
-                            invokeSuccessAndInstall();
-                        };
-                        var preInstallFailure = (preInstallError) => {
-                            CodePushUtil.logError("Preinstall failure.", preInstallError);
-                            var error = new Error("An error has occured while installing the package. " + CodePushUtil.getErrorMessage(preInstallError));
-                            installError && installError(error);
-                        };
-                        cordova.exec(preInstallSuccess, preInstallFailure, "CodePush", "preInstall", [deployDir.fullPath]);
-                    }
+                this.writeNewPackageMetadata(deployDir).then(() => {
+                    var invokeSuccessAndInstall = () => {
+                        CodePushUtil.logMessage("Install succeeded.");
+                        var installModeToUse = this.isMandatory ? installOptions.mandatoryInstallMode : installOptions.installMode;
+                        if (installModeToUse === installMode_1.default.IMMEDIATE) {
+                            installSuccess && installSuccess(installModeToUse);
+                            cordova.exec(() => { }, () => { }, "CodePush", "install", [deployDir.fullPath,
+                                installModeToUse.toString(), installOptions.minimumBackgroundDuration.toString()]);
+                        }
+                        else {
+                            cordova.exec(() => { installSuccess && installSuccess(installModeToUse); }, () => { installError && installError(); }, "CodePush", "install", [deployDir.fullPath,
+                                installModeToUse.toString(), installOptions.minimumBackgroundDuration.toString()]);
+                        }
+                    };
+                    var preInstallSuccess = () => {
+                        invokeSuccessAndInstall();
+                    };
+                    var preInstallFailure = (preInstallError) => {
+                        CodePushUtil.logError("Preinstall failure.", preInstallError);
+                        var error = new Error("An error has occured while installing the package. " + CodePushUtil.getErrorMessage(preInstallError));
+                        installError && installError(error);
+                    };
+                    cordova.exec(preInstallSuccess, preInstallFailure, "CodePush", "preInstall", [deployDir.fullPath]);
+                }, (writeMetadataError) => {
+                    installError && installError(writeMetadataError);
                 });
             });
         }, installError);
@@ -248,27 +247,29 @@ class LocalPackage extends Package {
             });
         });
     }
-    writeNewPackageMetadata(deployDir, writeMetadataCallback) {
-        NativeAppInfo.getApplicationBuildTime((buildTimeError, timestamp) => {
-            NativeAppInfo.getApplicationVersion((appVersionError, appVersion) => {
-                buildTimeError && CodePushUtil.logError("Could not get application build time. " + buildTimeError);
-                appVersionError && CodePushUtil.logError("Could not get application version." + appVersionError);
-                var currentPackageMetadata = {
-                    nativeBuildTime: timestamp,
-                    localPath: this.localPath,
-                    appVersion: appVersion,
-                    deploymentKey: this.deploymentKey,
-                    description: this.description,
-                    isMandatory: this.isMandatory,
-                    packageSize: this.packageSize,
-                    label: this.label,
-                    packageHash: this.packageHash,
-                    isFirstRun: false,
-                    failedInstall: false,
-                    install: undefined
-                };
-                LocalPackage.writeCurrentPackageInformation(currentPackageMetadata, writeMetadataCallback);
-            });
+    async writeNewPackageMetadata(deployDir) {
+        const timestamp = await NativeAppInfo.getApplicationBuildTime().catch(buildTimeError => {
+            CodePushUtil.logError("Could not get application build time. " + buildTimeError);
+        });
+        const appVersion = await NativeAppInfo.getApplicationVersion().catch(appVersionError => {
+            CodePushUtil.logError("Could not get application version." + appVersionError);
+        });
+        const currentPackageMetadata = {
+            nativeBuildTime: timestamp,
+            localPath: this.localPath,
+            appVersion: appVersion,
+            deploymentKey: this.deploymentKey,
+            description: this.description,
+            isMandatory: this.isMandatory,
+            packageSize: this.packageSize,
+            label: this.label,
+            packageHash: this.packageHash,
+            isFirstRun: false,
+            failedInstall: false,
+            install: undefined
+        };
+        return new Promise((resolve, reject) => {
+            LocalPackage.writeCurrentPackageInformation(currentPackageMetadata, error => error ? reject(error) : resolve());
         });
     }
     static handleCleanDeployment(newPackageLocation, cleanDeployCallback) {
@@ -406,7 +407,7 @@ class LocalPackage extends Package {
                 else {
                     try {
                         var packageInfo = JSON.parse(content);
-                        LocalPackage.getLocalPackageFromMetadata(packageInfo, packageSuccess, packageError);
+                        LocalPackage.getLocalPackageFromMetadata(packageInfo).then(packageSuccess, packageError);
                     }
                     catch (e) {
                         handleError(e);
@@ -418,57 +419,55 @@ class LocalPackage extends Package {
             handleError(e);
         }
     }
-    static getLocalPackageFromMetadata(metadata, packageSuccess, packageError) {
+    static async getLocalPackageFromMetadata(metadata) {
         if (!metadata) {
-            packageError && packageError(new Error("Invalid package metadata."));
+            throw new Error("Invalid package metadata.");
         }
-        else {
-            NativeAppInfo.isFailedUpdate(metadata.packageHash, (installFailed) => {
-                NativeAppInfo.isFirstRun(metadata.packageHash, (isFirstRun) => {
-                    var localPackage = new LocalPackage();
-                    localPackage.appVersion = metadata.appVersion;
-                    localPackage.deploymentKey = metadata.deploymentKey;
-                    localPackage.description = metadata.description;
-                    localPackage.isMandatory = metadata.isMandatory;
-                    localPackage.failedInstall = installFailed;
-                    localPackage.isFirstRun = isFirstRun;
-                    localPackage.label = metadata.label;
-                    localPackage.localPath = metadata.localPath;
-                    localPackage.packageHash = metadata.packageHash;
-                    localPackage.packageSize = metadata.packageSize;
-                    packageSuccess && packageSuccess(localPackage);
-                });
-            });
-        }
+        const installFailed = await NativeAppInfo.isFailedUpdate(metadata.packageHash);
+        const isFirstRun = await NativeAppInfo.isFirstRun(metadata.packageHash);
+        const localPackage = new LocalPackage();
+        localPackage.appVersion = metadata.appVersion;
+        localPackage.deploymentKey = metadata.deploymentKey;
+        localPackage.description = metadata.description;
+        localPackage.isMandatory = metadata.isMandatory;
+        localPackage.failedInstall = installFailed;
+        localPackage.isFirstRun = isFirstRun;
+        localPackage.label = metadata.label;
+        localPackage.localPath = metadata.localPath;
+        localPackage.packageHash = metadata.packageHash;
+        localPackage.packageSize = metadata.packageSize;
+        return localPackage;
     }
-    static getCurrentOrDefaultPackage(packageSuccess, packageError) {
-        LocalPackage.getPackageInfoOrDefault(LocalPackage.PackageInfoFile, packageSuccess, packageError);
+    static getCurrentOrDefaultPackage() {
+        return LocalPackage.getPackageInfoOrDefault(LocalPackage.PackageInfoFile);
     }
-    static getOldOrDefaultPackage(packageSuccess, packageError) {
-        LocalPackage.getPackageInfoOrDefault(LocalPackage.OldPackageInfoFile, packageSuccess, packageError);
+    static async getOldOrDefaultPackage() {
+        return LocalPackage.getPackageInfoOrDefault(LocalPackage.OldPackageInfoFile);
     }
-    static getPackageInfoOrDefault(packageFile, packageSuccess, packageError) {
-        var packageFailure = (error) => {
-            NativeAppInfo.getApplicationVersion((appVersionError, appVersion) => {
-                if (appVersionError) {
+    static async getPackageInfoOrDefault(packageFile) {
+        return new Promise((resolve, reject) => {
+            const packageFailure = async () => {
+                let appVersion;
+                try {
+                    appVersion = await NativeAppInfo.getApplicationVersion();
+                }
+                catch (appVersionError) {
                     CodePushUtil.logError("Could not get application version." + appVersionError);
-                    packageError(appVersionError);
+                    reject(appVersionError);
                     return;
                 }
-                NativeAppInfo.getBinaryHash((binaryHashError, binaryHash) => {
-                    var defaultPackage = new LocalPackage();
-                    defaultPackage.appVersion = appVersion;
-                    if (binaryHashError) {
-                        CodePushUtil.logError("Could not get binary hash." + binaryHashError);
-                    }
-                    else {
-                        defaultPackage.packageHash = binaryHash;
-                    }
-                    packageSuccess(defaultPackage);
-                });
-            });
-        };
-        LocalPackage.getPackage(packageFile, packageSuccess, packageFailure);
+                const defaultPackage = new LocalPackage();
+                defaultPackage.appVersion = appVersion;
+                try {
+                    defaultPackage.packageHash = await NativeAppInfo.getBinaryHash();
+                }
+                catch (binaryHashError) {
+                    CodePushUtil.logError("Could not get binary hash." + binaryHashError);
+                }
+                resolve(defaultPackage);
+            };
+            LocalPackage.getPackage(packageFile, resolve, packageFailure);
+        });
     }
     static getPackageInfoOrNull(packageFile, packageSuccess, packageError) {
         LocalPackage.getPackage(packageFile, packageSuccess, packageSuccess.bind(null, null));
@@ -476,9 +475,9 @@ class LocalPackage extends Package {
     static getDefaultInstallOptions() {
         if (!LocalPackage.DefaultInstallOptions) {
             LocalPackage.DefaultInstallOptions = {
-                installMode: InstallMode.ON_NEXT_RESTART,
+                installMode: installMode_1.default.ON_NEXT_RESTART,
                 minimumBackgroundDuration: 0,
-                mandatoryInstallMode: InstallMode.IMMEDIATE
+                mandatoryInstallMode: installMode_1.default.IMMEDIATE
             };
         }
         return LocalPackage.DefaultInstallOptions;

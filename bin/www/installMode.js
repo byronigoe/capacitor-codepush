@@ -8,10 +8,11 @@
 
 
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var InstallMode;
 (function (InstallMode) {
     InstallMode[InstallMode["IMMEDIATE"] = 0] = "IMMEDIATE";
     InstallMode[InstallMode["ON_NEXT_RESTART"] = 1] = "ON_NEXT_RESTART";
     InstallMode[InstallMode["ON_NEXT_RESUME"] = 2] = "ON_NEXT_RESUME";
 })(InstallMode || (InstallMode = {}));
-module.exports = InstallMode;
+exports.default = InstallMode;

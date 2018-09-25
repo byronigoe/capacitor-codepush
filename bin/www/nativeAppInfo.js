@@ -8,59 +8,81 @@
 
 
 "use strict";
+const core_1 = require("@capacitor/core");
+const NativeCodePush = core_1.Plugins.CodePush;
 const DefaultServerUrl = "https://codepush.azurewebsites.net/";
 class NativeAppInfo {
-    static getApplicationBuildTime(callback) {
-        var timestampSuccess = (timestamp) => { callback(null, timestamp); };
-        var timestampError = () => { callback(new Error("Could not get application timestamp."), null); };
-        cordova.exec(timestampSuccess, timestampError, "CodePush", "getNativeBuildTime", []);
+    static async getApplicationBuildTime() {
+        try {
+            const result = await NativeCodePush.getNativeBuildTime();
+            return result.value;
+        }
+        catch (e) {
+            throw new Error("Could not get application timestamp.");
+        }
     }
-    static getApplicationVersion(callback) {
-        var versionSuccess = (version) => { callback(null, version); };
-        var versionError = () => { callback(new Error("Could not get application version."), null); };
-        cordova.exec(versionSuccess, versionError, "CodePush", "getAppVersion", []);
+    static async getApplicationVersion() {
+        try {
+            const result = await NativeCodePush.getAppVersion();
+            return result.value;
+        }
+        catch (e) {
+            throw new Error("Could not get application version.");
+        }
     }
-    static getBinaryHash(callback) {
-        var binaryHashSuccess = (binaryHash) => { callback(null, binaryHash); };
-        var binaryHashError = () => { callback(new Error("Could not get binary hash."), null); };
-        cordova.exec(binaryHashSuccess, binaryHashError, "CodePush", "getBinaryHash", []);
+    static async getBinaryHash() {
+        try {
+            const result = await NativeCodePush.getBinaryHash();
+            return result.value;
+        }
+        catch (e) {
+            throw new Error("Could not get binary hash.");
+        }
     }
-    static getServerURL(serverCallback) {
-        var serverSuccess = (serverURL) => { serverCallback(null, serverURL); };
-        var serverError = () => { serverCallback(null, DefaultServerUrl); };
-        cordova.exec(serverSuccess, serverError, "CodePush", "getServerURL", []);
+    static async getServerURL() {
+        try {
+            const result = await NativeCodePush.getServerURL();
+            return result.value;
+        }
+        catch (e) {
+            return DefaultServerUrl;
+        }
     }
-    static getDeploymentKey(deploymentKeyCallback) {
-        var deploymentSuccess = (deploymentKey) => { deploymentKeyCallback(null, deploymentKey); };
-        var deploymentError = () => { deploymentKeyCallback(new Error("Deployment key not found."), null); };
-        cordova.exec(deploymentSuccess, deploymentError, "CodePush", "getDeploymentKey", []);
+    static async getDeploymentKey() {
+        try {
+            const result = await NativeCodePush.getDeploymentKey();
+            return result.value;
+        }
+        catch (e) {
+            throw new Error("Deployment key not found.");
+        }
     }
-    static isFailedUpdate(packageHash, checkCallback) {
-        var win = (failed) => {
-            checkCallback && checkCallback(!!failed);
-        };
-        var fail = (e) => {
-            win(0);
-        };
-        cordova.exec(win, fail, "CodePush", "isFailedUpdate", [packageHash]);
+    static async isFailedUpdate(packageHash) {
+        try {
+            const result = await NativeCodePush.isFailedUpdate({ packageHash });
+            return result.value;
+        }
+        catch (e) {
+            return false;
+        }
     }
-    static isFirstRun(packageHash, firstRunCallback) {
-        var win = (firstRun) => {
-            firstRunCallback(!!firstRun);
-        };
-        var fail = () => {
-            firstRunCallback(false);
-        };
-        cordova.exec(win, fail, "CodePush", "isFirstRun", [packageHash]);
+    static async isFirstRun(packageHash) {
+        try {
+            const result = await NativeCodePush.isFirstRun({ packageHash });
+            return result.value;
+        }
+        catch (e) {
+            return false;
+        }
     }
-    static isPendingUpdate(callback) {
-        var win = (firstRun) => {
-            callback(!!firstRun);
-        };
-        var fail = () => {
-            callback(false);
-        };
-        cordova.exec(win, fail, "CodePush", "isPendingUpdate", []);
+    static async isPendingUpdate() {
+        try {
+            const result = await NativeCodePush.isPendingUpdate();
+            return result.value;
+        }
+        catch (e) {
+            return false;
+        }
     }
 }
 module.exports = NativeAppInfo;
