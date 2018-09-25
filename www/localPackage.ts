@@ -4,12 +4,15 @@
 
 declare var zip: any;
 
+import { Plugins } from '@capacitor/core';
+import InstallMode from "./installMode";
 import Package = require("./package");
 import NativeAppInfo = require("./nativeAppInfo");
 import FileUtil = require("./fileUtil");
 import CodePushUtil = require("./codePushUtil");
 import Sdk = require("./sdk");
-import InstallMode from "./installMode";
+
+const NativeCodePush: NativeCodePushPlugin = (Plugins as any).CodePush;
 
 /**
  * Defines a local package.
@@ -198,7 +201,7 @@ class LocalPackage extends Package implements ILocalPackage {
             callback(error, null);
         }
 
-        cordova.exec(success, fail,"CodePush","getPublicKey",[]);
+        NativeCodePush.getPublicKey().then(result => success(result.value), fail);
     }
 
     private getSignatureFromUpdate(deployDir: DirectoryEntry, callback: Callback<string>){
@@ -240,7 +243,7 @@ class LocalPackage extends Package implements ILocalPackage {
             errorCallback(new Error("Unable to compute hash for package: " + error));
         }
         CodePushUtil.logMessage("Verifying hash for folder path: " + deployDir.fullPath);
-        cordova.exec(packageHashSuccess, packageHashFail, "CodePush", "getPackageHash", [deployDir.fullPath]);
+        NativeCodePush.getPackageHash({path: deployDir.fullPath}).then(result => packageHashSuccess(result.value), packageHashFail);
     }
 
     private verifySignature(deployDir: DirectoryEntry, newUpdateHash: string, publicKey: string, signature: string, errorCallback: ErrorCallback, successCallback: SuccessCallback<void>){
@@ -257,7 +260,7 @@ class LocalPackage extends Package implements ILocalPackage {
             errorCallback(new Error("Unable to verify signature for package: " + error));
         }
         CodePushUtil.logMessage("Verifying signature for folder path: " + deployDir.fullPath);
-        cordova.exec(decodeSignatureSuccess, decodeSignatureFail, "CodePush", "decodeSignature", [publicKey, signature]);
+        NativeCodePush.decodeSignature({publicKey, signature}).then(result =>decodeSignatureSuccess(result.value), decodeSignatureFail);
     }    
 
     private finishInstall(deployDir: DirectoryEntry, installOptions: InstallOptions, installSuccess: SuccessCallback<InstallMode>, installError: ErrorCallback): void {
@@ -282,11 +285,17 @@ class LocalPackage extends Package implements ILocalPackage {
                             /* invoke success before navigating */
                             installSuccess && installSuccess(installModeToUse);
                             /* no need for callbacks, the javascript context will reload */
-                            cordova.exec(() => { }, () => { }, "CodePush", "install", [deployDir.fullPath,
-                                installModeToUse.toString(), installOptions.minimumBackgroundDuration.toString()]);
+                            NativeCodePush.install({
+                                startLocation: deployDir.fullPath,
+                                installMode: installModeToUse.toString(),
+                                minimumBackgroundDuration: installOptions.minimumBackgroundDuration
+                            })
                         } else {
-                            cordova.exec(() => { installSuccess && installSuccess(installModeToUse); }, () => { installError && installError(); }, "CodePush", "install", [deployDir.fullPath,
-                                installModeToUse.toString(), installOptions.minimumBackgroundDuration.toString()]);
+                            NativeCodePush.install({
+                                startLocation: deployDir.fullPath,
+                                installMode: installModeToUse.toString(),
+                                minimumBackgroundDuration: installOptions.minimumBackgroundDuration
+                            }).then(() => { installSuccess && installSuccess(installModeToUse); }, () => { installError && installError(); });
                         }
                     };
 
@@ -301,7 +310,7 @@ class LocalPackage extends Package implements ILocalPackage {
                         installError && installError(error);
                     };
 
-                    cordova.exec(preInstallSuccess, preInstallFailure, "CodePush", "preInstall", [deployDir.fullPath]);
+                    NativeCodePush.preInstall({startLocation: deployDir.fullPath}).then(preInstallSuccess, preInstallFailure);
                 }, (writeMetadataError: Error) => {
                     installError && installError(writeMetadataError);
                 });
