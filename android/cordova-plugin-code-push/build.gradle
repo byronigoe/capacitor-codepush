@@ -39,7 +39,6 @@ repositories {
     }
 }
 
-
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'ionic-team:capacitor-android:1+'
@@ -49,3 +48,31 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
 }
 
+task capCreateAssetManifest {
+    def inAssetsDir = rootProject.file("app/src/main/assets")
+
+    def outAssetsDir = inAssetsDir
+    def outFile = new File(outAssetsDir, "cdvasset.manifest")
+
+    doLast {
+        def contents = new HashMap()
+        def sizes = new HashMap()
+        contents[""] = inAssetsDir.list()
+        def tree = fileTree(dir: inAssetsDir)
+        tree.visit { fileDetails ->
+            if (fileDetails.isDirectory()) {
+                contents[fileDetails.relativePath.toString()] = fileDetails.file.list()
+            } else {
+                sizes[fileDetails.relativePath.toString()] = fileDetails.file.length()
+            }
+        }
+
+        outAssetsDir.mkdirs()
+        outFile.withObjectOutputStream { oos ->
+            oos.writeObject(contents)
+            oos.writeObject(sizes)
+        }
+    }
+}
+
+preBuild.dependsOn capCreateAssetManifest
