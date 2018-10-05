@@ -201,7 +201,7 @@ class LocalPackage extends Package implements ILocalPackage {
             callback(error, null);
         }
 
-        NativeCodePush.getPublicKey().then(result => success(result.value), fail);
+        NativeCodePush.getPublicKey().then(result => success(result.value || null), fail);
     }
 
     private getSignatureFromUpdate(deployDir: DirectoryEntry, callback: Callback<string>){
