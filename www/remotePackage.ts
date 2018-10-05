@@ -41,7 +41,7 @@ class RemotePackage extends Package implements IRemotePackage {
         const file = cordova.file.dataDirectory + LocalPackage.DownloadDir + "/" + LocalPackage.PackageUpdateFileName;
 
         try {
-            await FileTransfer.download({url: this.downloadUrl, file})
+            await FileTransfer.download({source: this.downloadUrl, target: file})
         } catch (e) {
             CodePushUtil.throwError(new Error("An error occured while downloading the package. " + (e && e.message) ? e.message : ""));
             return;
