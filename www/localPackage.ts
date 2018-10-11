@@ -287,13 +287,13 @@ class LocalPackage extends Package implements ILocalPackage {
                             /* no need for callbacks, the javascript context will reload */
                             NativeCodePush.install({
                                 startLocation: deployDir.fullPath,
-                                installMode: installModeToUse.toString(),
+                                installMode: installModeToUse,
                                 minimumBackgroundDuration: installOptions.minimumBackgroundDuration
                             })
                         } else {
                             NativeCodePush.install({
                                 startLocation: deployDir.fullPath,
-                                installMode: installModeToUse.toString(),
+                                installMode: installModeToUse,
                                 minimumBackgroundDuration: installOptions.minimumBackgroundDuration
                             }).then(() => { installSuccess && installSuccess(installModeToUse); }, () => { installError && installError(); });
                         }
