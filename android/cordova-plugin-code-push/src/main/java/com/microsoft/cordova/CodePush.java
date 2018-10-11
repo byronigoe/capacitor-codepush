@@ -288,7 +288,7 @@ public class CodePush extends Plugin {
                 call.error("Could not find the package start page.");
             }
         } catch (Exception e) {
-            call.error("Cound not read webview URL: " + e.getMessage());
+            call.error("Could not read webview URL: " + e.getMessage());
         }
     }
 
@@ -387,15 +387,7 @@ public class CodePush extends Plugin {
     private void navigateToLocalDeploymentIfExists() {
         CodePushPackageMetadata deployedPackageMetadata = this.codePushPackageManager.getCurrentPackageMetadata();
         if (deployedPackageMetadata != null && deployedPackageMetadata.localPath != null) {
-            File startPage = this.getStartPageForPackage(deployedPackageMetadata.localPath);
-            if (startPage != null) {
-                /* file exists */
-                try {
-                    navigateToFile(startPage);
-                } catch (MalformedURLException e) {
-                    /* empty - if there is an exception, the app will launch with the bundled content */
-                }
-            }
+            this.bridge.setServerBasePath(this.getBasePathForPackage(deployedPackageMetadata.localPath));
         }
     }
 
@@ -497,10 +489,18 @@ public class CodePush extends Plugin {
 
     private File getStartPageForPackage(String packageLocation) {
         if (packageLocation != null) {
-            File startPage = new File(this.bridge.getActivity().getFilesDir() + packageLocation, "www/" + getConfigStartPageName());
+            File startPage = new File(this.bridge.getActivity().getFilesDir() + packageLocation, "www/index.html");
             if (startPage.exists()) {
                 return startPage;
             }
+        }
+
+        return null;
+    }
+
+    private String getBasePathForPackage(String packageLocation) {
+        if (packageLocation != null) {
+            return new File(this.bridge.getActivity().getFilesDir() + packageLocation, "www").toString();
         }
 
         return null;
@@ -514,16 +514,6 @@ public class CodePush extends Plugin {
         }
 
         return result;
-    }
-
-    private String getConfigStartPageName() {
-        String launchUrl = this.getConfigLaunchUrl();
-        int launchUrlLength = launchUrl.length();
-        if (launchUrl.startsWith(CodePush.WWW_ASSET_PATH_PREFIX)) {
-            launchUrl = launchUrl.substring(CodePush.WWW_ASSET_PATH_PREFIX.length(), launchUrlLength);
-        }
-
-        return launchUrl;
     }
 
     private String getConfigLaunchUrl() {
