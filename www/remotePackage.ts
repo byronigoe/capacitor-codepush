@@ -4,13 +4,14 @@
 
 declare var cordova: Cordova;
 
-import { Plugins } from '@capacitor/core';
+import { FilesystemDirectory, Plugins } from '@capacitor/core';
 import LocalPackage = require("./localPackage");
 import Package = require("./package");
 import NativeAppInfo = require("./nativeAppInfo");
 import CodePushUtil = require("./codePushUtil");
 import Sdk = require("./sdk");
 
+const { Filesystem } = Plugins;
 const FileTransfer = (Plugins as any).FileTransfer;
 
 /**
@@ -38,7 +39,8 @@ class RemotePackage extends Package implements IRemotePackage {
             return;
         }
 
-        const file = cordova.file.dataDirectory + LocalPackage.DownloadDir + "/" + LocalPackage.PackageUpdateFileName;
+        const dataDirectory = await Filesystem.getUri({directory: FilesystemDirectory.Data, path: ""})
+        const file = dataDirectory.uri + "/" + LocalPackage.DownloadDir + "/" + LocalPackage.PackageUpdateFileName;
 
         try {
             await FileTransfer.download({source: this.downloadUrl, target: file})

@@ -1,17 +1,15 @@
 /// <reference path="../typings/codePush.d.ts" />
-/// <reference types="cordova-plugin-file" />
-/// <reference types="cordova" />
 
 "use strict";
 
-declare var cordova: Cordova;
+import { FilesystemDirectory } from "@capacitor/core";
 
 /**
  * File utilities for CodePush.
  */
 class FileUtil {
-    public static directoryExists(rootUri: string, path: string, callback: Callback<boolean>): void {
-        FileUtil.getDirectory(rootUri, path, false, (error: Error, dirEntry: DirectoryEntry) => {
+    public static directoryExists(fsDir: FilesystemDirectory, path: string, callback: Callback<boolean>): void {
+        FileUtil.getDirectory(fsDir, path, false, (error: Error, dirEntry: DirectoryEntry) => {
             var dirExists: boolean = !error && !!dirEntry;
             callback(null, dirExists);
         });
@@ -22,11 +20,11 @@ class FileUtil {
     }
 
     public static getDataDirectory(path: string, createIfNotExists: boolean, callback: Callback<DirectoryEntry>): void {
-        FileUtil.getDirectory(cordova.file.dataDirectory, path, createIfNotExists, callback);
+        FileUtil.getDirectory(FilesystemDirectory.Data, path, createIfNotExists, callback);
     }
 
     public static writeStringToDataFile(content: string, path: string, fileName: string, createIfNotExists: boolean, callback: Callback<void>): void {
-        FileUtil.writeStringToFile(content, cordova.file.dataDirectory, path, fileName, createIfNotExists, callback);
+        FileUtil.writeStringToFile(content, FilesystemDirectory.Data, path, fileName, createIfNotExists, callback);
     }
 
     public static getApplicationDirectory(path: string, callback: Callback<DirectoryEntry>): void {
@@ -50,8 +48,8 @@ class FileUtil {
         parent.getFile(path, { create: false, exclusive: false }, success, failFirst);
     }
 
-    public static getFile(rootUri: string, path: string, fileName: string, createIfNotExists: boolean, callback: Callback<FileEntry>): void {
-        FileUtil.getDirectory(rootUri, path, createIfNotExists, (error: Error, directoryEntry: DirectoryEntry) => {
+    public static getFile(fsDir: FilesystemDirectory, path: string, fileName: string, createIfNotExists: boolean, callback: Callback<FileEntry>): void {
+        FileUtil.getDirectory(fsDir, path, createIfNotExists, (error: Error, directoryEntry: DirectoryEntry) => {
             if (error) {
                 callback(error, null);
             } else {
@@ -63,11 +61,11 @@ class FileUtil {
     }
 
     public static getDataFile(path: string, fileName: string, createIfNotExists: boolean, callback: Callback<FileEntry>): void {
-        FileUtil.getFile(cordova.file.dataDirectory, path, fileName, createIfNotExists, callback);
+        FileUtil.getFile(FilesystemDirectory.Data, path, fileName, createIfNotExists, callback);
     }
 
-    public static fileExists(rootUri: string, path: string, fileName: string, callback: Callback<boolean>): void {
-        FileUtil.getFile(rootUri, path, fileName, false, (error: Error, fileEntry: FileEntry) => {
+    public static fileExists(fsDir: FilesystemDirectory, path: string, fileName: string, callback: Callback<boolean>): void {
+        FileUtil.getFile(fsDir, path, fileName, false, (error: Error, fileEntry: FileEntry) => {
             var exists: boolean = !error && !!fileEntry;
             callback(null, exists);
         });
@@ -76,7 +74,7 @@ class FileUtil {
     /**
      * Gets a DirectoryEntry based on a path.
      */
-    public static getDirectory(rootUri: string, path: string, createIfNotExists: boolean, callback: Callback<DirectoryEntry>): void {
+    public static getDirectory(fsDir: FilesystemDirectory, path: string, createIfNotExists: boolean, callback: Callback<DirectoryEntry>): void {
         var pathArray: string[] = path.split("/");
 
         var currentIndex = 0;
@@ -106,11 +104,12 @@ class FileUtil {
             }
         };
 
-        window.resolveLocalFileSystemURL(rootUri, rootDirSuccess, appDirError);
+        // TODO: implement me
+        //window.resolveLocalFileSystemURL(rootUri, rootDirSuccess, appDirError);
     }
 
     public static dataDirectoryExists(path: string, callback: Callback<boolean>): void {
-        FileUtil.directoryExists(cordova.file.dataDirectory, path, callback);
+        FileUtil.directoryExists(FilesystemDirectory.Data, path, callback);
     }
 
     public static copyDirectoryEntriesTo(sourceDir: DirectoryEntry, destinationDir: DirectoryEntry, ignoreList: string[], callback: Callback<void>): void {
@@ -250,7 +249,7 @@ class FileUtil {
     /**
      * Writes a string to a file.
      */
-    public static writeStringToFile(content: string, rootUri: string, path: string, fileName: string, createIfNotExists: boolean, callback: Callback<void>): void {
+    public static writeStringToFile(content: string, fsDir: FilesystemDirectory, path: string, fileName: string, createIfNotExists: boolean, callback: Callback<void>): void {
         var gotFile = (fileEntry: FileEntry) => {
             fileEntry.createWriter((writer: FileWriter) => {
                 writer.onwriteend = (ev: ProgressEvent) => {
@@ -267,7 +266,7 @@ class FileUtil {
             });
         };
 
-        FileUtil.getFile(rootUri, path, fileName, createIfNotExists, (error: Error, fileEntry: FileEntry) => {
+        FileUtil.getFile(fsDir, path, fileName, createIfNotExists, (error: Error, fileEntry: FileEntry) => {
             if (error) {
                 callback(error, null);
             } else {
@@ -283,7 +282,7 @@ class FileUtil {
                 callback(null, ev.target.result);
             };
 
-            fileReader.onerror = (ev: ErrorEvent) => {
+            fileReader.onerror = (ev: any) => {
                 callback(new Error("Could not get file. Error: " + ev.error), null);
             };
 
@@ -293,8 +292,8 @@ class FileUtil {
         });
     }
 
-    public static readFile(rootUri: string, path: string, fileName: string, callback: Callback<string>): void {
-        FileUtil.getFile(rootUri, path, fileName, false, (error: Error, fileEntry: FileEntry) => {
+    public static readFile(fsDir: FilesystemDirectory, path: string, fileName: string, callback: Callback<string>): void {
+        FileUtil.getFile(fsDir, path, fileName, false, (error: Error, fileEntry: FileEntry) => {
             if (error) {
                 callback(error, null);
             } else {
@@ -304,7 +303,7 @@ class FileUtil {
     }
 
     public static readDataFile(path: string, fileName: string, callback: Callback<string>): void {
-        FileUtil.readFile(cordova.file.dataDirectory, path, fileName, callback);
+        FileUtil.readFile(FilesystemDirectory.Data, path, fileName, callback);
     }
 
     private static getApplicationEntry<T extends Entry>(path: string, callback: Callback<T>): void {

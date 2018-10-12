@@ -4,7 +4,7 @@
 
 declare var zip: any;
 
-import { Plugins } from '@capacitor/core';
+import { FilesystemDirectory, Plugins } from '@capacitor/core';
 import InstallMode from "./installMode";
 import Package = require("./package");
 import NativeAppInfo = require("./nativeAppInfo");
@@ -206,18 +206,17 @@ class LocalPackage extends Package implements ILocalPackage {
 
     private getSignatureFromUpdate(deployDir: DirectoryEntry, callback: Callback<string>){
 
-        var rootUri = cordova.file.dataDirectory;
-        var path = deployDir.fullPath + '/www';
-        var fileName = '.codepushrelease';
+        const path = deployDir.fullPath + '/www';
+        const fileName = '.codepushrelease';
 
-        FileUtil.fileExists(rootUri, path, fileName, (error, result) => {
+        FileUtil.fileExists(FilesystemDirectory.Data, path, fileName, (error, result) => {
             if (!result) {
                 // signature absents in the bundle
                 callback(null, null);
                 return;
             }
 
-            FileUtil.readFile(rootUri, path, fileName, (error, signature) => {
+            FileUtil.readFile(FilesystemDirectory.Data, path, fileName, (error, signature) => {
                 if (error) {
                     //error reading signature file from bundle
                     callback(error, null);
