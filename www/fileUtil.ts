@@ -2,37 +2,37 @@
 
 "use strict";
 
-import { FilesystemDirectory } from "@capacitor/core";
+import { FilesystemDirectory, FilesystemEncoding, Plugins } from "@capacitor/core";
+
+const { Filesystem } = Plugins;
 
 /**
  * File utilities for CodePush.
  */
 class FileUtil {
-    public static directoryExists(fsDir: FilesystemDirectory, path: string, callback: Callback<boolean>): void {
-        FileUtil.getDirectory(fsDir, path, false, (error: Error, dirEntry: DirectoryEntry) => {
-            var dirExists: boolean = !error && !!dirEntry;
-            callback(null, dirExists);
-        });
+    public static async directoryExists(directory: FilesystemDirectory, path: string, callback: Callback<boolean>): Promise<void> {
+        try {
+            const statResult = await Filesystem.stat({directory, path});
+            callback(null, statResult.type === "directory");
+        } catch (error) {
+            callback(null, false);
+        }
     }
 
     public static fileErrorToError(fileError: FileError, message?: string): Error {
         return new Error((message ? message : "An error has occurred while performing the operation. ") + " Error code: " + fileError.code);
     }
 
-    public static getDataDirectory(path: string, createIfNotExists: boolean, callback: Callback<DirectoryEntry>): void {
+    public static getDataDirectory(path: string, createIfNotExists: boolean, callback: Callback<string>): void {
         FileUtil.getDirectory(FilesystemDirectory.Data, path, createIfNotExists, callback);
     }
 
-    public static writeStringToDataFile(content: string, path: string, fileName: string, createIfNotExists: boolean, callback: Callback<void>): void {
-        FileUtil.writeStringToFile(content, FilesystemDirectory.Data, path, fileName, createIfNotExists, callback);
+    public static writeStringToDataFile(content: string, path: string, createIfNotExists: boolean, callback: Callback<void>): void {
+        FileUtil.writeStringToFile(content, FilesystemDirectory.Data, path, createIfNotExists, callback);
     }
 
     public static getApplicationDirectory(path: string, callback: Callback<DirectoryEntry>): void {
         FileUtil.getApplicationEntry<DirectoryEntry>(path, callback);
-    }
-
-    public static getApplicationFile(path: string, callback: Callback<FileEntry>): void {
-        FileUtil.getApplicationEntry<FileEntry>(path, callback);
     }
 
     public static getOrCreateFile(parent: DirectoryEntry, path: string, createIfNotExists: boolean, success: (result: FileEntry) => void, fail: (error: FileError) => void): void {
@@ -64,48 +64,38 @@ class FileUtil {
         FileUtil.getFile(FilesystemDirectory.Data, path, fileName, createIfNotExists, callback);
     }
 
-    public static fileExists(fsDir: FilesystemDirectory, path: string, fileName: string, callback: Callback<boolean>): void {
-        FileUtil.getFile(fsDir, path, fileName, false, (error: Error, fileEntry: FileEntry) => {
-            var exists: boolean = !error && !!fileEntry;
-            callback(null, exists);
-        });
+    public static async fileExists(directory: FilesystemDirectory, path: string, callback: Callback<boolean>): Promise<void> {
+        try {
+            const statResult = await Filesystem.stat({directory, path});
+            callback(null, statResult.type === "file");
+        } catch (error) {
+            callback(null, false);
+        }
     }
 
     /**
      * Gets a DirectoryEntry based on a path.
      */
-    public static getDirectory(fsDir: FilesystemDirectory, path: string, createIfNotExists: boolean, callback: Callback<DirectoryEntry>): void {
-        var pathArray: string[] = path.split("/");
-
-        var currentIndex = 0;
-
-        var appDirError = (error: FileError): void => {
-            callback(new Error("Could not get application subdirectory. Error code: " + error.code), null);
-        };
-
-        var rootDirSuccess = (appDir: DirectoryEntry): void => {
+    public static async getDirectory(fsDir: FilesystemDirectory, path: string, createIfNotExists: boolean, callback: Callback<string>): Promise<void> {
+        try {
+            const appDir = await Filesystem.getUri({directory: fsDir, path});
+            callback(null, appDir.uri);
+            return;
+        } catch (error) {
             if (!createIfNotExists) {
-                appDir.getDirectory(path, { create: false, exclusive: false }, (directoryEntry: DirectoryEntry) => { callback(null, directoryEntry); }, appDirError);
-            } else {
-                if (currentIndex >= pathArray.length) {
-                    callback(null, appDir);
-                } else {
-                    var currentPath = pathArray[currentIndex];
-                    currentIndex++;
-
-                    if (currentPath) {
-                        /* Recursively call rootDirSuccess for all path segments */
-                        FileUtil.getOrCreateSubDirectory(appDir, currentPath, createIfNotExists, rootDirSuccess, appDirError);
-                    } else {
-                        /* Array has empty string elements, possibly due to leading or trailing slashes*/
-                        rootDirSuccess(appDir);
-                    }
-                }
+                callback(new Error("Could not get application subdirectory. Error code: " + error.code), null);
+                return;
             }
-        };
+        }
 
-        // TODO: implement me
-        //window.resolveLocalFileSystemURL(rootUri, rootDirSuccess, appDirError);
+        // directory does not exist so we need to create it
+        try {
+            await Filesystem.mkdir({directory: fsDir, path, createIntermediateDirectories: true})
+            const appDir = await Filesystem.getUri({directory: fsDir, path});
+            callback(null, appDir.uri);
+        } catch (error) {
+            callback(new Error("Could not create application subdirectory. Error code: " + error.code), null);
+        }
     }
 
     public static dataDirectoryExists(path: string, callback: Callback<boolean>): void {
@@ -196,16 +186,13 @@ class FileUtil {
     /**
      * Recursively deletes the contents of a directory.
      */
-    public static deleteDirectory(dirLocation: string, deleteDirCallback: Callback<void>) {
-        FileUtil.getDataDirectory(dirLocation, false, (oldDirError: Error, dirToDelete: DirectoryEntry) => {
-            if (oldDirError) {
-                deleteDirCallback(oldDirError, null);
-            } else {
-                var win = () => { deleteDirCallback(null, null); };
-                var fail = (e: FileError) => { deleteDirCallback(FileUtil.fileErrorToError(e), null); };
-                dirToDelete.removeRecursively(win, fail);
-            }
-        });
+    public static async deleteDirectory(path: string, deleteDirCallback: Callback<void>) {
+        try {
+            await Filesystem.rmdir({directory: FilesystemDirectory.Data, path})
+            deleteDirCallback(null, null);
+        } catch (error) {
+            deleteDirCallback(error, null);
+        }
     }
 
     /**
@@ -249,30 +236,13 @@ class FileUtil {
     /**
      * Writes a string to a file.
      */
-    public static writeStringToFile(content: string, fsDir: FilesystemDirectory, path: string, fileName: string, createIfNotExists: boolean, callback: Callback<void>): void {
-        var gotFile = (fileEntry: FileEntry) => {
-            fileEntry.createWriter((writer: FileWriter) => {
-                writer.onwriteend = (ev: ProgressEvent) => {
-                    callback(null, null);
-                };
-
-                writer.onerror = (ev: ProgressEvent) => {
-                    callback(writer.error, null);
-                };
-
-                writer.write(<any>content);
-            }, (error: FileError) => {
-                callback(new Error("Could write the current package information file. Error code: " + error.code), null);
-            });
-        };
-
-        FileUtil.getFile(fsDir, path, fileName, createIfNotExists, (error: Error, fileEntry: FileEntry) => {
-            if (error) {
-                callback(error, null);
-            } else {
-                gotFile(fileEntry);
-            }
-        });
+    public static async writeStringToFile(data: string, directory: FilesystemDirectory, path: string, createIfNotExists: boolean, callback: Callback<void>): Promise<void> {
+        try {
+            await Filesystem.writeFile({directory, path, data, encoding: FilesystemEncoding.UTF8})
+            callback(null, null);
+        } catch(error) {
+            callback(new Error("Could write the current package information file. Error code: " + error.code), null);
+        }
     }
 
     public static readFileEntry(fileEntry: FileEntry, callback: Callback<string>): void {
@@ -292,18 +262,17 @@ class FileUtil {
         });
     }
 
-    public static readFile(fsDir: FilesystemDirectory, path: string, fileName: string, callback: Callback<string>): void {
-        FileUtil.getFile(fsDir, path, fileName, false, (error: Error, fileEntry: FileEntry) => {
-            if (error) {
-                callback(error, null);
-            } else {
-                FileUtil.readFileEntry(fileEntry, callback);
-            }
-        });
+    public static async readFile(directory: FilesystemDirectory, path: string, callback: Callback<string>): Promise<void> {
+        try{
+            const result = await Filesystem.readFile({directory, path, encoding: FilesystemEncoding.UTF8});
+            callback(null, result.data);
+        } catch (error) {
+            callback(error, null);
+        }
     }
 
-    public static readDataFile(path: string, fileName: string, callback: Callback<string>): void {
-        FileUtil.readFile(FilesystemDirectory.Data, path, fileName, callback);
+    public static readDataFile(path: string, callback: Callback<string>): void {
+        FileUtil.readFile(FilesystemDirectory.Data, path, callback);
     }
 
     private static getApplicationEntry<T extends Entry>(path: string, callback: Callback<T>): void {
@@ -315,20 +284,8 @@ class FileUtil {
             callback(FileUtil.fileErrorToError(error), null);
         };
 
+        // TODO: implement me
         window.resolveLocalFileSystemURL(cordova.file.applicationDirectory + path, success, fail);
-    }
-
-    private static getOrCreateSubDirectory(parent: DirectoryEntry, path: string, createIfNotExists: boolean, success: (result: DirectoryEntry) => void, fail: (error: FileError) => void): void {
-        var failFirst = (error: FileError) => {
-            if (!createIfNotExists) {
-                fail(error);
-            } else {
-                parent.getDirectory(path, { create: true, exclusive: false }, success, fail);
-            }
-        };
-
-        /* check if the directory exists first */
-        parent.getDirectory(path, { create: false, exclusive: false }, success, failFirst);
     }
 }
 

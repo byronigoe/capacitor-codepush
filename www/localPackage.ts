@@ -206,17 +206,16 @@ class LocalPackage extends Package implements ILocalPackage {
 
     private getSignatureFromUpdate(deployDir: DirectoryEntry, callback: Callback<string>){
 
-        const path = deployDir.fullPath + '/www';
-        const fileName = '.codepushrelease';
+        const filePath = deployDir.fullPath + '/www/.codepushrelease';
 
-        FileUtil.fileExists(FilesystemDirectory.Data, path, fileName, (error, result) => {
+        FileUtil.fileExists(FilesystemDirectory.Data, filePath, (error, result) => {
             if (!result) {
                 // signature absents in the bundle
                 callback(null, null);
                 return;
             }
 
-            FileUtil.readFile(FilesystemDirectory.Data, path, fileName, (error, signature) => {
+            FileUtil.readFile(FilesystemDirectory.Data, filePath, (error, signature) => {
                 if (error) {
                     //error reading signature file from bundle
                     callback(error, null);
@@ -463,7 +462,7 @@ class LocalPackage extends Package implements ILocalPackage {
     */
     public static writeCurrentPackageInformation(packageInfoMetadata: IPackageInfoMetadata, callback: Callback<void>): void {
         var content = JSON.stringify(packageInfoMetadata);
-        FileUtil.writeStringToDataFile(content, LocalPackage.RootDir, LocalPackage.PackageInfoFile, true, callback);
+        FileUtil.writeStringToDataFile(content, LocalPackage.RootDir + "/" + LocalPackage.PackageInfoFile, true, callback);
     }
 
 	/**
@@ -527,7 +526,7 @@ class LocalPackage extends Package implements ILocalPackage {
         };
 
         try {
-            FileUtil.readDataFile(LocalPackage.RootDir, packageFile, (error: Error, content: string) => {
+            FileUtil.readDataFile(LocalPackage.RootDir + "/" + packageFile, (error: Error, content: string) => {
                 if (error) {
                     handleError(error);
                 } else {
