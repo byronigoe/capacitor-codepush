@@ -188,7 +188,7 @@ class FileUtil {
      */
     public static async deleteDirectory(path: string, deleteDirCallback: Callback<void>) {
         try {
-            await Filesystem.rmdir({directory: FilesystemDirectory.Data, path})
+            await Filesystem.rmdir({directory: FilesystemDirectory.Data, path, recursive: true})
             deleteDirCallback(null, null);
         } catch (error) {
             deleteDirCallback(error, null);
