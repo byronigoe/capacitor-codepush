@@ -428,6 +428,6 @@ interface DownloadProgress {
  * Defines the result of LocalPackage.handleDeployment execution.
  */
 interface DeploymentResult {
-    deployDir: DirectoryEntry,
+    deployDir: string,
     isDiffUpdate: boolean
 }
