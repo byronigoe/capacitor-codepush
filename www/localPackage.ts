@@ -2,9 +2,8 @@
 
 "use strict";
 
-declare var zip: any;
-
 import { FilesystemDirectory, GetUriOptions, Plugins } from '@capacitor/core';
+import { Zip } from 'capacitor-zip';
 import InstallMode from "./installMode";
 import Package = require("./package");
 import NativeAppInfo = require("./nativeAppInfo");
@@ -67,22 +66,6 @@ class LocalPackage extends Package implements ILocalPackage {
                     Sdk.reportStatusDeploy(this, AcquisitionStatus.DeploymentFailed, this.deploymentKey);
                 };
 
-                var newPackageUnzipped = async (unzipError: Error) => {
-                    if (unzipError) {
-                        installError(new Error("Could not unzip package" + CodePushUtil.getErrorMessage(unzipError)));
-                    } else {
-                        try {
-                            const newPackageLocation = LocalPackage.VersionsDir + "/" + this.packageHash;
-                            const deploymentResult = await LocalPackage.handleDeployment(newPackageLocation);
-                            await this.verifyPackage(deploymentResult);
-                            this.localPath = deploymentResult.deployDir;
-                            this.finishInstall(deploymentResult.deployDir, installOptions, resolve, installError);
-                        } catch (error) {
-                            installError(error);
-                        }
-                    }
-                };
-
                 let unzipDir;
                 try {
                     unzipDir = await FileUtil.cleanDataDirectory(LocalPackage.DownloadUnzipDir);
@@ -91,7 +74,23 @@ class LocalPackage extends Package implements ILocalPackage {
                     return;
                 }
 
-                zip.unzip(this.localPath, unzipDir, newPackageUnzipped);
+                try {
+                    const zip = new Zip();
+                    await zip.unZip({source: this.localPath, destination: unzipDir});
+                } catch(unzipError) {
+                    installError(new Error("Could not unzip package" + CodePushUtil.getErrorMessage(unzipError)));
+                    return;
+                }
+
+                try {
+                    const newPackageLocation = LocalPackage.VersionsDir + "/" + this.packageHash;
+                    const deploymentResult = await LocalPackage.handleDeployment(newPackageLocation);
+                    await this.verifyPackage(deploymentResult);
+                    this.localPath = deploymentResult.deployDir;
+                    this.finishInstall(deploymentResult.deployDir, installOptions, resolve, installError);
+                } catch (error) {
+                    installError(error);
+                }
             } catch (e) {
                 installError && installError(new Error("An error occured while installing the package. " + CodePushUtil.getErrorMessage(e)));
             }
