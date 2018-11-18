@@ -462,5 +462,6 @@ enum ReportStatus {
 }
 
 
+// TODO: continue from here; add NativeCodePush.addListener(...)
 var instance = new CodePush();
 export = instance;

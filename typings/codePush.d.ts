@@ -203,6 +203,8 @@ interface NativeCodePushPlugin {
     preInstall(options: NativeInstallOptions): Promise<void>
     getAppVersion(): Promise<PluginCallResponse<string>>
     getNativeBuildTime(): Promise<PluginCallResponse<string>>
+
+    addListener(eventName: 'codePushStatus', listenerFunc: (info: any) => void): void;
 }
 
 interface CodePushCapacitorPlugin {
