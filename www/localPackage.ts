@@ -245,7 +245,12 @@ class LocalPackage extends Package implements ILocalPackage {
                 // Don't back up the  currently installed update since it hasn't been "confirmed"
                 backupIfNeededDone(null, null);
             } else {
-                LocalPackage.backupPackageInformationFile(backupIfNeededDone);
+                try {
+                    await LocalPackage.backupPackageInformationFile();
+                    backupIfNeededDone(null, null);
+                } catch (err) {
+                    backupIfNeededDone(err, null);
+                }
             }
         }
 
@@ -383,43 +388,23 @@ class LocalPackage extends Package implements ILocalPackage {
         FileUtil.writeStringToDataFile(content, LocalPackage.RootDir + "/" + LocalPackage.PackageInfoFile, true, callback);
     }
 
-    // TODO: continue from here
 	/**
      * Backs up the current package information to the old package information file.
      * This file is used for recovery in case of an update going wrong.
      * @param callback In case of an error, this function will be called with the error as the fist parameter.
      */
-    public static backupPackageInformationFile(callback: Callback<void>): void {
-        var reportFileError = (error: FileError) => {
-            callback(FileUtil.fileErrorToError(error), null);
-        };
+    public static async backupPackageInformationFile(): Promise<void> {
+        const source: GetUriOptions = {
+            directory: FilesystemDirectory.Data,
+            path: LocalPackage.RootDir + "/" + LocalPackage.PackageInfoFile
+        }
 
-        var copyFile = (fileToCopy: FileEntry) => {
-            fileToCopy.getParent((parent: DirectoryEntry) => {
-                fileToCopy.copyTo(parent, LocalPackage.OldPackageInfoFile, () => {
-                    callback(null, null);
-                }, reportFileError);
-            }, reportFileError);
-        };
+        const destination: GetUriOptions = {
+            directory: FilesystemDirectory.Data,
+            path: LocalPackage.RootDir + "/" + LocalPackage.OldPackageInfoFile
+        }
 
-        var gotFile = (error: Error, currentPackageFile: FileEntry) => {
-            if (error) {
-                callback(error, null);
-            } else {
-                FileUtil.getDataFile(LocalPackage.RootDir, LocalPackage.OldPackageInfoFile, false, (error: Error, oldPackageFile: FileEntry) => {
-                    if (!error && !!oldPackageFile) {
-                        /* file already exists */
-                        oldPackageFile.remove(() => {
-                            copyFile(currentPackageFile);
-                        }, reportFileError);
-                    } else {
-                        copyFile(currentPackageFile);
-                    }
-                });
-            }
-        };
-
-        FileUtil.getDataFile(LocalPackage.RootDir, LocalPackage.PackageInfoFile, false, gotFile);
+        return FileUtil.copyFile(source, destination)
     }
 
     /**
