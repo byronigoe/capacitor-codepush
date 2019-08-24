@@ -1,5 +1,3 @@
-"use strict";
-
 /**
  * Class used to mock the codePush.checkForUpdate() response from the server.
  */

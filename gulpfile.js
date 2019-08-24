@@ -24,6 +24,7 @@ var compiledSourceWarningMessage = "\n \
 
 /* TypeScript compilation parameters */
 var tsCompileOptions = {
+    "alwaysStrict": true,
     "noImplicitAny": true,
     "noEmitOnError": true,
     "target": "ES2017",

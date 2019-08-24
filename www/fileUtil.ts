@@ -1,7 +1,5 @@
 /// <reference path="../typings/codePush.d.ts" />
 
-"use strict";
-
 import { FilesystemDirectory, FilesystemEncoding, GetUriOptions, Plugins } from "@capacitor/core";
 
 const { Filesystem } = Plugins;

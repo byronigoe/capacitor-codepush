@@ -1,7 +1,5 @@
 /// <reference path="../typings/codePush.d.ts" />
 
-"use strict";
-
 /**
  * XMLHttpRequest-based implementation of Http.Requester.
  */

@@ -1,8 +1,6 @@
 /// <reference types="mocha" />
 /// <reference types="node" />
 
-"use strict";
-
 import child_process = require("child_process");
 import os = require("os");
 import path = require("path");

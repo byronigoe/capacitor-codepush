@@ -1,7 +1,5 @@
 /// <reference path="../typings/codePush.d.ts" />
 
-"use strict";
-
 /**
  * Defines the possible result and intermediate statuses of the window.codePush.sync operation.
  * The result statuses are final, mutually exclusive statuses of the sync operation. The operation will end with only one of the possible result statuses.

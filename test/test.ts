@@ -3,8 +3,6 @@
 /// <reference types="power-assert" />
 /// <reference path="../typings/codePush.d.ts" />
 
-"use strict";
-
 // IMPORTS //
 
 import tm = require("./projectManager");

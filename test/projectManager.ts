@@ -4,8 +4,6 @@
 /// <reference path="../typings/replace.d.ts" />
 /// <reference types="mkdirp" />
 
-"use strict";
-
 import child_process = require("child_process");
 import replace = require("replace");
 import path = require("path");

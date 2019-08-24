@@ -1,7 +1,5 @@
 /// <reference path="../typings/codePush.d.ts" />
 
-"use strict";
-
 import NativeAppInfo = require("./nativeAppInfo");
 import HttpRequester = require("./httpRequester");
 import { Plugins } from "@capacitor/core";

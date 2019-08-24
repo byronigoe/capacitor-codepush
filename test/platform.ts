@@ -1,7 +1,5 @@
 /// <reference types="node" />
 
-"use strict";
-
 import path = require("path");
 import ProjectManager = require("./projectManager");
 import tu = require("./testUtil");

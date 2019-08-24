@@ -1,7 +1,5 @@
 /// <reference path="../typings/codePush.d.ts" />
 
-"use strict";
-
 import { Plugins } from "@capacitor/core";
 import InstallMode from "./installMode";
 import LocalPackage = require("./localPackage");

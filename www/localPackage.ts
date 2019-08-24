@@ -1,7 +1,5 @@
 /// <reference path="../typings/codePush.d.ts" />
 
-"use strict";
-
 import { FilesystemDirectory, GetUriOptions, Plugins } from "@capacitor/core";
 import { Zip } from "capacitor-zip";
 import InstallMode from "./installMode";
