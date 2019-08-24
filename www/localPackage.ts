@@ -9,7 +9,7 @@ import FileUtil = require("./fileUtil");
 import CodePushUtil = require("./codePushUtil");
 import Sdk = require("./sdk");
 
-const NativeCodePush: NativeCodePushPlugin = (Plugins as any).CodePush;
+const NativeCodePush = Plugins.CodePush as NativeCodePushPlugin;
 
 /**
  * Defines a local package.

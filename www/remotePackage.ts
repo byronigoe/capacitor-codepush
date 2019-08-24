@@ -9,8 +9,7 @@ import NativeAppInfo = require("./nativeAppInfo");
 import CodePushUtil = require("./codePushUtil");
 import Sdk = require("./sdk");
 
-const { Filesystem } = Plugins;
-const FileTransfer = (Plugins as any).FileTransfer;
+const { Filesystem, FileTransfer } = Plugins;
 
 /**
  * Defines a remote package, which represents an update package available for download.

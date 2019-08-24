@@ -10,7 +10,7 @@ import Sdk = require("./sdk");
 import SyncStatus = require("./syncStatus");
 
 const { Modals } = Plugins;
-const NativeCodePush: NativeCodePushPlugin = (Plugins as any).CodePush;
+const NativeCodePush = Plugins.CodePush as NativeCodePushPlugin;
 
 /**
  * This is the entry point to Cordova CodePush SDK.

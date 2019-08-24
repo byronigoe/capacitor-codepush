@@ -2,7 +2,7 @@
 
 import { Plugins } from "@capacitor/core";
 
-const NativeCodePush: NativeCodePushPlugin = (Plugins as any).CodePush;
+const NativeCodePush = Plugins.CodePush as NativeCodePushPlugin;
 
 const DefaultServerUrl: string = "https://codepush.azurewebsites.net/";
 
