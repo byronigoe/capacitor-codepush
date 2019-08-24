@@ -6,6 +6,7 @@
         "target": "ES2017",
         "module": "commonjs",
         "sourceMap": false,
+        "outDir": "bin",
         "removeComments": true
     },
     "include": [
