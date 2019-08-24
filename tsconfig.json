@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+        "noImplicitAny": true,
+        "noEmitOnError": true,
+        "target": "ES2017",
+        "module": "commonjs",
+        "sourceMap": false,
+        "removeComments": true
+    },
+    "include": [
+        "www/**/*.ts",
+        "test/**/*.ts"
+    ]
+}
