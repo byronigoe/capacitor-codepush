@@ -34,7 +34,7 @@ class CodePushUtil {
     }
     static logError(message, error) {
         const errorMessage = `${message || ""} ${CodePushUtil.getErrorMessage(error)}`;
-        const stackTrace = error && error.stack ? `. StackTrace: ${error.stack}` : '';
+        const stackTrace = error && error.stack ? `. StackTrace: ${error.stack}` : "";
         console.error(`${CodePushUtil.TAG} ${errorMessage}${stackTrace}`);
     }
 }

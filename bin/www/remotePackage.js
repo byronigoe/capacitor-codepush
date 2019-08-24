@@ -8,64 +8,47 @@
 
 
 "use strict";
+const core_1 = require("@capacitor/core");
 const LocalPackage = require("./localPackage");
 const Package = require("./package");
 const NativeAppInfo = require("./nativeAppInfo");
 const CodePushUtil = require("./codePushUtil");
 const Sdk = require("./sdk");
+const { Filesystem } = core_1.Plugins;
+const FileTransfer = core_1.Plugins.FileTransfer;
 class RemotePackage extends Package {
-    download(downloadProgress) {
+    async download(downloadProgress) {
+        CodePushUtil.logMessage("Downloading update");
+        if (!this.downloadUrl) {
+            CodePushUtil.throwError(new Error("The remote package does not contain a download URL."));
+            return;
+        }
+        const dataDirectory = await Filesystem.getUri({ directory: core_1.FilesystemDirectory.Data, path: "" });
+        const file = dataDirectory.uri + "/" + LocalPackage.DownloadDir + "/" + LocalPackage.PackageUpdateFileName;
         try {
-            CodePushUtil.logMessage("Downloading update");
-            if (!this.downloadUrl) {
-                CodePushUtil.throwError(new Error("The remote package does not contain a download URL."));
-            }
-            else {
-                this.currentFileTransfer = new FileTransfer();
-                return new Promise((resolve, reject) => {
-                    var downloadSuccess = (fileEntry) => {
-                        this.currentFileTransfer = null;
-                        fileEntry.file(async (file) => {
-                            const installFailed = await NativeAppInfo.isFailedUpdate(this.packageHash);
-                            var localPackage = new LocalPackage();
-                            localPackage.deploymentKey = this.deploymentKey;
-                            localPackage.description = this.description;
-                            localPackage.label = this.label;
-                            localPackage.appVersion = this.appVersion;
-                            localPackage.isMandatory = this.isMandatory;
-                            localPackage.packageHash = this.packageHash;
-                            localPackage.isFirstRun = false;
-                            localPackage.failedInstall = installFailed;
-                            localPackage.localPath = fileEntry.toInternalURL();
-                            CodePushUtil.logMessage("Package download success: " + JSON.stringify(localPackage));
-                            resolve(localPackage);
-                            Sdk.reportStatusDownload(localPackage, localPackage.deploymentKey);
-                        }, (fileError) => {
-                            CodePushUtil.invokeErrorCallback(new Error("Could not access local package. Error code: " + fileError.code), reject);
-                        });
-                    };
-                    var downloadError = (error) => {
-                        this.currentFileTransfer = null;
-                        CodePushUtil.invokeErrorCallback(new Error(error.body), reject);
-                    };
-                    this.currentFileTransfer.onprogress = (progressEvent) => {
-                        if (downloadProgress) {
-                            var dp = { receivedBytes: progressEvent.loaded, totalBytes: progressEvent.total };
-                            downloadProgress(dp);
-                        }
-                    };
-                    this.currentFileTransfer.download(this.downloadUrl, cordova.file.dataDirectory + LocalPackage.DownloadDir + "/" + LocalPackage.PackageUpdateFileName, downloadSuccess, downloadError, true);
-                });
-            }
+            await FileTransfer.download({ source: this.downloadUrl, target: file });
         }
         catch (e) {
             CodePushUtil.throwError(new Error("An error occured while downloading the package. " + (e && e.message) ? e.message : ""));
+            return;
         }
+        const installFailed = await NativeAppInfo.isFailedUpdate(this.packageHash);
+        const localPackage = new LocalPackage();
+        localPackage.deploymentKey = this.deploymentKey;
+        localPackage.description = this.description;
+        localPackage.label = this.label;
+        localPackage.appVersion = this.appVersion;
+        localPackage.isMandatory = this.isMandatory;
+        localPackage.packageHash = this.packageHash;
+        localPackage.isFirstRun = false;
+        localPackage.failedInstall = installFailed;
+        localPackage.localPath = file;
+        CodePushUtil.logMessage("Package download success: " + JSON.stringify(localPackage));
+        Sdk.reportStatusDownload(localPackage, localPackage.deploymentKey);
+        return localPackage;
     }
     async abortDownload() {
-        if (this.currentFileTransfer) {
-            this.currentFileTransfer.abort();
-        }
+        throw new Error("Not implemented");
     }
 }
 module.exports = RemotePackage;
