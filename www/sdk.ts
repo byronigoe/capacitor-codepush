@@ -4,10 +4,10 @@
 
 import NativeAppInfo = require("./nativeAppInfo");
 import HttpRequester = require("./httpRequester");
-import { Plugins } from '@capacitor/core';
-import { AcquisitionManager } from 'code-push/script/acquisition-sdk';
+import { Plugins } from "@capacitor/core";
+import { AcquisitionManager } from "code-push/script/acquisition-sdk";
 
-const { Device } = Plugins
+const { Device } = Plugins;
 
 /**
  * Interacts with the CodePush Acquisition SDK.
@@ -45,21 +45,21 @@ class Sdk {
         } else {
             let serverUrl = null;
             try {
-                serverUrl = await NativeAppInfo.getServerURL()
+                serverUrl = await NativeAppInfo.getServerURL();
             } catch (e) {
                 throw new Error("Could not get the CodePush configuration. Please check your config.xml file.");
             }
 
             let appVersion = null;
             try {
-                appVersion = await NativeAppInfo.getApplicationVersion()
+                appVersion = await NativeAppInfo.getApplicationVersion();
             } catch (e) {
                 throw new Error("Could not get the app version. Please check your config.xml file.");
             }
 
             let deploymentKey = null;
             try {
-                deploymentKey = await NativeAppInfo.getDeploymentKey()
+                deploymentKey = await NativeAppInfo.getDeploymentKey();
             } catch (e) {}
 
             const device = await Device.getInfo();
@@ -84,7 +84,7 @@ class Sdk {
      */
     public static async reportStatusDeploy(pkg?: IPackage, status?: string, currentDeploymentKey?: string, previousLabelOrAppVersion?: string, previousDeploymentKey?: string, callback?: Callback<void>) {
         try {
-            const acquisitionManager = await Sdk.getAcquisitionManager(currentDeploymentKey, "application/json")
+            const acquisitionManager = await Sdk.getAcquisitionManager(currentDeploymentKey, "application/json");
             acquisitionManager.reportStatusDeploy(pkg, status, previousLabelOrAppVersion, previousDeploymentKey, callback);
         } catch (e) {
             callback && callback(e, null);
@@ -96,7 +96,7 @@ class Sdk {
      */
     public static async reportStatusDownload(pkg: IPackage, deploymentKey?: string, callback?: Callback<void>) {
         try {
-            const acquisitionManager = await Sdk.getAcquisitionManager(deploymentKey, "application/json")
+            const acquisitionManager = await Sdk.getAcquisitionManager(deploymentKey, "application/json");
             acquisitionManager.reportStatusDownload(pkg, callback);
         } catch (e) {
             callback && callback(new Error("An error occured while reporting the download status. " + e), null);

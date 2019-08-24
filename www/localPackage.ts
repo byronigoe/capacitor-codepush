@@ -2,8 +2,8 @@
 
 "use strict";
 
-import { FilesystemDirectory, GetUriOptions, Plugins } from '@capacitor/core';
-import { Zip } from 'capacitor-zip';
+import { FilesystemDirectory, GetUriOptions, Plugins } from "@capacitor/core";
+import { Zip } from "capacitor-zip";
 import InstallMode from "./installMode";
 import Package = require("./package");
 import NativeAppInfo = require("./nativeAppInfo");
@@ -50,7 +50,7 @@ class LocalPackage extends Package implements ILocalPackage {
      *
      * @param installOptions Optional parameter used for customizing the installation behavior.
      */
-    public async install(installOptions?: InstallOptions) : Promise<InstallMode> {
+    public async install(installOptions?: InstallOptions): Promise<InstallMode> {
         return new Promise<InstallMode>(async (resolve, reject) => {
             try {
                 CodePushUtil.logMessage("Installing update");
@@ -77,7 +77,7 @@ class LocalPackage extends Package implements ILocalPackage {
                 try {
                     const zip = new Zip();
                     await zip.unZip({source: this.localPath, destination: unzipDir});
-                } catch(unzipError) {
+                } catch (unzipError) {
                     installError(new Error("Could not unzip package" + CodePushUtil.getErrorMessage(unzipError)));
                     return;
                 }
@@ -94,7 +94,7 @@ class LocalPackage extends Package implements ILocalPackage {
             } catch (e) {
                 installError && installError(new Error("An error occured while installing the package. " + CodePushUtil.getErrorMessage(e)));
             }
-        })
+        });
     }
 
     private verifyPackage(deploymentResult: DeploymentResult): Promise<void> {
@@ -126,18 +126,18 @@ class LocalPackage extends Package implements ILocalPackage {
                             "Please ensure that public key is properly configured within your application."
                         );
                             
-                        //verifyHash
+                        // verifyHash
                         this.verifyHash(deployDir, this.packageHash, verificationFail, resolve);
                     } else {
                         if (deploymentResult.isDiffUpdate){
-                            //verifyHash
+                            // verifyHash
                             this.verifyHash(deployDir, this.packageHash, verificationFail, resolve);
                         } else {
                             resolve();
                         }
                     }          
                 }
-            }
+            };
 
             if (deploymentResult.isDiffUpdate){
                 CodePushUtil.logMessage("Applying diff update");
@@ -168,25 +168,25 @@ class LocalPackage extends Package implements ILocalPackage {
                     verify(isSignatureVerificationEnabled, isSignatureAppearedInBundle, publicKey, signature);
                 });
             });
-        })
+        });
     }
 
     private getPublicKey(callback: Callback<string>) {
     
         var success = (publicKey: string) => {
             callback(null, publicKey);
-        }
+        };
 
         var fail = (error: Error) => {
             callback(error, null);
-        }
+        };
 
         NativeCodePush.getPublicKey().then(result => success(result.value || null), fail);
     }
 
     private async getSignatureFromUpdate(deployDir: string, callback: Callback<string>){
 
-        const filePath = deployDir + '/www/.codepushrelease';
+        const filePath = deployDir + "/www/.codepushrelease";
 
         if (!await FileUtil.fileExists(FilesystemDirectory.Data, filePath)) {
             // signature absents in the bundle
@@ -198,7 +198,7 @@ class LocalPackage extends Package implements ILocalPackage {
             const signature = await FileUtil.readFile(FilesystemDirectory.Data, filePath);
             callback(null, signature);
         } catch (error) {
-            //error reading signature file from bundle
+            // error reading signature file from bundle
             callback(error, null);
         }
     }
@@ -212,10 +212,10 @@ class LocalPackage extends Package implements ILocalPackage {
 
             CodePushUtil.logMessage("The update contents succeeded the data integrity check.");
             successCallback();
-        }
+        };
         var packageHashFail = (error: Error) => {
             errorCallback(new Error("Unable to compute hash for package: " + error));
-        }
+        };
         CodePushUtil.logMessage("Verifying hash for folder path: " + deployDir);
         NativeCodePush.getPackageHash({path: deployDir}).then(result => packageHashSuccess(result.value), packageHashFail);
     }
@@ -229,10 +229,10 @@ class LocalPackage extends Package implements ILocalPackage {
 
             CodePushUtil.logMessage("The update contents succeeded the code signing check.");
             successCallback();
-        }
+        };
         var decodeSignatureFail = (error: Error) => {
             errorCallback(new Error("Unable to verify signature for package: " + error));
-        }
+        };
         CodePushUtil.logMessage("Verifying signature for folder path: " + deployDir);
         NativeCodePush.decodeSignature({publicKey, signature}).then(result => decodeSignatureSuccess(result.value), decodeSignatureFail);
     }    
@@ -268,7 +268,7 @@ class LocalPackage extends Package implements ILocalPackage {
                                 startLocation: deployDir,
                                 installMode: installModeToUse,
                                 minimumBackgroundDuration: installOptions.minimumBackgroundDuration
-                            })
+                            });
                         } else {
                             NativeCodePush.install({
                                 startLocation: deployDir,
@@ -338,15 +338,15 @@ class LocalPackage extends Package implements ILocalPackage {
 
         return new Promise<void>((resolve, reject) => {
             LocalPackage.writeCurrentPackageInformation(currentPackageMetadata, error => error ? reject(error) : resolve());
-        })
+        });
     }
 
     private static async handleCleanDeployment(newPackageLocation: string): Promise<void> {
         // no diff manifest
-        const source: GetUriOptions = {directory: FilesystemDirectory.Data, path: LocalPackage.DownloadUnzipDir}
-        const target: GetUriOptions = {directory: FilesystemDirectory.Data, path: newPackageLocation}
+        const source: GetUriOptions = {directory: FilesystemDirectory.Data, path: LocalPackage.DownloadUnzipDir};
+        const target: GetUriOptions = {directory: FilesystemDirectory.Data, path: newPackageLocation};
         // TODO: create destination directory if it doesn't exist
-        return FileUtil.copyDirectoryEntriesTo(source, target)
+        return FileUtil.copyDirectoryEntriesTo(source, target);
     }
 
     private static async copyCurrentPackage(newPackageLocation: string, ignoreList: string[]): Promise<void> {
@@ -369,11 +369,11 @@ class LocalPackage extends Package implements ILocalPackage {
             await LocalPackage.handleCleanDeployment(newPackageLocation);
 
             /* delete files mentioned in the manifest */
-            const content = await FileUtil.readFile(diffManifest.directory, diffManifest.path)
+            const content = await FileUtil.readFile(diffManifest.directory, diffManifest.path);
             manifest = JSON.parse(content);
             await FileUtil.deleteEntriesFromDataDirectory(newPackageLocation, manifest.deletedFiles);
         } catch (error) {
-            throw new Error("Cannot perform diff-update.")
+            throw new Error("Cannot perform diff-update.");
         }
     }
 
@@ -387,7 +387,7 @@ class LocalPackage extends Package implements ILocalPackage {
         FileUtil.writeStringToDataFile(content, LocalPackage.RootDir + "/" + LocalPackage.PackageInfoFile, true, callback);
     }
 
-	/**
+    /**
      * Backs up the current package information to the old package information file.
      * This file is used for recovery in case of an update going wrong.
      * @param callback In case of an error, this function will be called with the error as the fist parameter.
@@ -396,14 +396,14 @@ class LocalPackage extends Package implements ILocalPackage {
         const source: GetUriOptions = {
             directory: FilesystemDirectory.Data,
             path: LocalPackage.RootDir + "/" + LocalPackage.PackageInfoFile
-        }
+        };
 
         const destination: GetUriOptions = {
             directory: FilesystemDirectory.Data,
             path: LocalPackage.RootDir + "/" + LocalPackage.OldPackageInfoFile
-        }
+        };
 
-        return FileUtil.copyFile(source, destination)
+        return FileUtil.copyFile(source, destination);
     }
 
     /**
@@ -429,7 +429,7 @@ class LocalPackage extends Package implements ILocalPackage {
         };
 
         try {
-            const content = await FileUtil.readDataFile(LocalPackage.RootDir + "/" + packageFile)
+            const content = await FileUtil.readDataFile(LocalPackage.RootDir + "/" + packageFile);
             const packageInfo: IPackageInfoMetadata = JSON.parse(content);
             LocalPackage.getLocalPackageFromMetadata(packageInfo).then(packageSuccess, packageError);
         } catch (e) {
@@ -442,8 +442,8 @@ class LocalPackage extends Package implements ILocalPackage {
             throw new Error("Invalid package metadata.");
         }
 
-        const installFailed = await NativeAppInfo.isFailedUpdate(metadata.packageHash)
-        const isFirstRun = await NativeAppInfo.isFirstRun(metadata.packageHash)
+        const installFailed = await NativeAppInfo.isFailedUpdate(metadata.packageHash);
+        const isFirstRun = await NativeAppInfo.isFirstRun(metadata.packageHash);
         const localPackage = new LocalPackage();
 
         localPackage.appVersion = metadata.appVersion;
@@ -486,7 +486,7 @@ class LocalPackage extends Package implements ILocalPackage {
                 const defaultPackage: LocalPackage = new LocalPackage();
                 defaultPackage.appVersion = appVersion;
                 try {
-                    defaultPackage.packageHash = await NativeAppInfo.getBinaryHash()
+                    defaultPackage.packageHash = await NativeAppInfo.getBinaryHash();
                 } catch (binaryHashError) {
                     CodePushUtil.logError("Could not get binary hash." + binaryHashError);
                 }
@@ -495,7 +495,7 @@ class LocalPackage extends Package implements ILocalPackage {
             };
 
             LocalPackage.getPackage(packageFile, resolve as any, packageFailure);
-        })
+        });
     }
 
     public static getPackageInfoOrNull(packageFile: string, packageSuccess: SuccessCallback<LocalPackage>, packageError?: ErrorCallback): void {

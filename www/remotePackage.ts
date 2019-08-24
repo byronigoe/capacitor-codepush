@@ -4,7 +4,7 @@
 
 declare var cordova: Cordova;
 
-import { FilesystemDirectory, Plugins } from '@capacitor/core';
+import { FilesystemDirectory, Plugins } from "@capacitor/core";
 import LocalPackage = require("./localPackage");
 import Package = require("./package");
 import NativeAppInfo = require("./nativeAppInfo");
@@ -39,17 +39,17 @@ class RemotePackage extends Package implements IRemotePackage {
             return;
         }
 
-        const dataDirectory = await Filesystem.getUri({directory: FilesystemDirectory.Data, path: ""})
+        const dataDirectory = await Filesystem.getUri({directory: FilesystemDirectory.Data, path: ""});
         const file = dataDirectory.uri + "/" + LocalPackage.DownloadDir + "/" + LocalPackage.PackageUpdateFileName;
 
         try {
-            await FileTransfer.download({source: this.downloadUrl, target: file})
+            await FileTransfer.download({source: this.downloadUrl, target: file});
         } catch (e) {
             CodePushUtil.throwError(new Error("An error occured while downloading the package. " + (e && e.message) ? e.message : ""));
             return;
         }
 
-        const installFailed = await NativeAppInfo.isFailedUpdate(this.packageHash)
+        const installFailed = await NativeAppInfo.isFailedUpdate(this.packageHash);
         const localPackage = new LocalPackage();
         localPackage.deploymentKey = this.deploymentKey;
         localPackage.description = this.description;

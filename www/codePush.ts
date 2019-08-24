@@ -2,8 +2,8 @@
 
 "use strict";
 
-import { Plugins } from '@capacitor/core';
-import InstallMode from './installMode';
+import { Plugins } from "@capacitor/core";
+import InstallMode from "./installMode";
 import LocalPackage = require("./localPackage");
 import RemotePackage = require("./remotePackage");
 import CodePushUtil = require("./codePushUtil");
@@ -88,10 +88,10 @@ class CodePush implements CodePushCapacitorPlugin {
 
             if (error) {
                 CodePushUtil.logError(`An error occurred while reporting status: ${JSON.stringify(reportArgs)}`, error);
-                NativeCodePush.reportFailed({statusReport: reportArgs})
+                NativeCodePush.reportFailed({statusReport: reportArgs});
             } else {
                 CodePushUtil.logMessage(`Reported status: ${JSON.stringify(reportArgs)}`);
-                NativeCodePush.reportSucceeded({statusReport: reportArgs})
+                NativeCodePush.reportSucceeded({statusReport: reportArgs});
             }
         };
 
@@ -126,12 +126,12 @@ class CodePush implements CodePushCapacitorPlugin {
      * This happends only after a package has been installed using ON_NEXT_RESTART or ON_NEXT_RESUME mode, but the application was not restarted/resumed yet.
      */
     public async getPendingPackage(): Promise<ILocalPackage> {
-        const pendingUpdate = await NativeAppInfo.isPendingUpdate()
+        const pendingUpdate = await NativeAppInfo.isPendingUpdate();
         if (!pendingUpdate) return null;
 
         return new Promise<ILocalPackage>((resolve, reject) => {
             LocalPackage.getPackageInfoOrNull(LocalPackage.PackageInfoFile, resolve as any, reject);
-        })
+        });
     }
 
     /**
@@ -163,7 +163,7 @@ class CodePush implements CodePushCapacitorPlugin {
                         } else {
                             /* There is an update available for the current version. */
                             var remotePackage: RemotePackage = <RemotePackage>remotePackageOrUpdateNotification;
-                            const installFailed = await NativeAppInfo.isFailedUpdate(remotePackage.packageHash)
+                            const installFailed = await NativeAppInfo.isFailedUpdate(remotePackage.packageHash);
                             var result: RemotePackage = new RemotePackage();
                             result.appVersion = remotePackage.appVersion;
                             result.deploymentKey = deploymentKey; // server does not send back the deployment key
@@ -186,10 +186,10 @@ class CodePush implements CodePushCapacitorPlugin {
 
             var queryUpdate = async () => {
                 try {
-                    const acquisitionManager = await Sdk.getAcquisitionManager(deploymentKey)
+                    const acquisitionManager = await Sdk.getAcquisitionManager(deploymentKey);
                     LocalPackage.getCurrentOrDefaultPackage().then(async (localPackage: LocalPackage) => {
                         try {
-                            const currentBinaryVersion = await NativeAppInfo.getApplicationVersion()
+                            const currentBinaryVersion = await NativeAppInfo.getApplicationVersion();
                             localPackage.appVersion = currentBinaryVersion;
                         } catch (e) {}
                         CodePushUtil.logMessage("Checking for update.");

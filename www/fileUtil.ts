@@ -40,7 +40,7 @@ class FileUtil {
             await FileUtil.deleteDataDirectory(path);
         }
 
-        await Filesystem.mkdir({directory: FilesystemDirectory.Data, path, createIntermediateDirectories: true})
+        await Filesystem.mkdir({directory: FilesystemDirectory.Data, path, createIntermediateDirectories: true});
         const appDir = await Filesystem.getUri({directory: FilesystemDirectory.Data, path});
         return appDir.uri;
     }
@@ -70,7 +70,7 @@ class FileUtil {
         }
 
         // TODO: implement recursive directory copy natively in capacitor
-        return null
+        return null;
     }
 
     public static async copyFile(source: GetUriOptions, destination: GetUriOptions): Promise<void> {
@@ -107,9 +107,9 @@ class FileUtil {
      */
     public static async writeStringToFile(data: string, directory: FilesystemDirectory, path: string, createIfNotExists: boolean, callback: Callback<void>): Promise<void> {
         try {
-            await Filesystem.writeFile({directory, path, data, encoding: FilesystemEncoding.UTF8})
+            await Filesystem.writeFile({directory, path, data, encoding: FilesystemEncoding.UTF8});
             callback(null, null);
-        } catch(error) {
+        } catch (error) {
             callback(new Error("Could write the current package information file. Error code: " + error.code), null);
         }
     }

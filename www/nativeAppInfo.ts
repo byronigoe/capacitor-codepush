@@ -2,7 +2,7 @@
 
 "use strict";
 
-import { Plugins } from '@capacitor/core';
+import { Plugins } from "@capacitor/core";
 
 const NativeCodePush: NativeCodePushPlugin = (Plugins as any).CodePush;
 
@@ -45,7 +45,7 @@ class NativeAppInfo {
             const result = await NativeCodePush.getBinaryHash();
             return result.value;
         } catch (e) {
-            throw new Error("Could not get binary hash.")
+            throw new Error("Could not get binary hash.");
         }
     }
     
@@ -80,8 +80,8 @@ class NativeAppInfo {
      */
     public static async isFailedUpdate(packageHash: string): Promise<boolean> {
         try {
-            const result = await NativeCodePush.isFailedUpdate({packageHash})
-            return result.value
+            const result = await NativeCodePush.isFailedUpdate({packageHash});
+            return result.value;
         } catch (e) {
             /* In case of an error, return false. */
             return false;
@@ -97,8 +97,8 @@ class NativeAppInfo {
      */
     public static async isFirstRun(packageHash: string): Promise<boolean> {
         try {
-            const result = await NativeCodePush.isFirstRun({packageHash})
-            return result.value
+            const result = await NativeCodePush.isFirstRun({packageHash});
+            return result.value;
         } catch (e) {
             /* In case of an error, return false. */
             return false;
@@ -110,8 +110,8 @@ class NativeAppInfo {
      */
     public static async isPendingUpdate(): Promise<boolean> {
         try {
-            const result = await NativeCodePush.isPendingUpdate()
-            return result.value
+            const result = await NativeCodePush.isPendingUpdate();
+            return result.value;
         } catch (e) {
             /* In case of an error, return false. */
             return false;
