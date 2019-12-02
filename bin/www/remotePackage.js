@@ -14,8 +14,7 @@ const Package = require("./package");
 const NativeAppInfo = require("./nativeAppInfo");
 const CodePushUtil = require("./codePushUtil");
 const Sdk = require("./sdk");
-const { Filesystem } = core_1.Plugins;
-const FileTransfer = core_1.Plugins.FileTransfer;
+const { Filesystem, FileTransfer } = core_1.Plugins;
 class RemotePackage extends Package {
     async download(downloadProgress) {
         CodePushUtil.logMessage("Downloading update");

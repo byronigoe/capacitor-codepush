@@ -1,7 +1,5 @@
 /// <reference path="../typings/codePush.d.ts" />
 
-declare var cordova: Cordova;
-
 import { FilesystemDirectory, Plugins } from "@capacitor/core";
 import LocalPackage = require("./localPackage");
 import Package = require("./package");

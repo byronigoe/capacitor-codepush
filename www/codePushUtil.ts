@@ -1,7 +1,5 @@
 /// <reference path="../typings/codePush.d.ts" />
 
-declare var zip: any;
-
 /**
  * Callback / error / logging utilities.
  */
