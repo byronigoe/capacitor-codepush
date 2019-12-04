@@ -44,7 +44,7 @@
     "q": "^1.5.1",
     "replace": "^1.1.1",
     "run-sequence": "^2.2.1",
-    "semantic-release": "^15.13.31",
+    "semantic-release": "^16.0.0-beta.41",
     "tslint": "^5.19.0",
     "typescript": "^3.7.2"
   },

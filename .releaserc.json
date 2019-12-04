@@ -1,3 +1,9 @@
 {
-  "branch": "capacitor"
+  "branches": [
+    "master",
+    {
+      "name": "capacitor",
+      "prerelease": true
+    }
+  ]
 }
