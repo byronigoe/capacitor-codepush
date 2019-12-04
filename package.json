@@ -44,6 +44,7 @@
     "q": "^1.5.1",
     "replace": "^1.1.1",
     "run-sequence": "^2.2.1",
+    "semantic-release": "^15.13.31",
     "tslint": "^5.19.0",
     "typescript": "^3.7.2"
   },
@@ -62,6 +63,6 @@
   "husky": {
     "hooks": {
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
-    }  
+    }
   }
 }
