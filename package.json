@@ -1,6 +1,6 @@
 {
   "name": "@areo/capacitor-codepush",
-  "version": "1.0.0-capacitor.2",
+  "version": "1.0.0-capacitor.3",
   "description": "CodePush Plugin for Capacitor",
   "main": "bin/www/codePush.js",
   "repository": "github:areo/capacitor-codepush",
