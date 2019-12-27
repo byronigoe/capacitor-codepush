@@ -1,7 +1,6 @@
 /// <reference types="mocha" />
 /// <reference types="node" />
 /// <reference types="power-assert" />
-/// <reference path="../typings/codePush.d.ts" />
 
 // IMPORTS //
 
@@ -12,6 +11,7 @@ import platform = require("./platform");
 import path = require("path");
 import assert = require("assert");
 import Q = require("q");
+import { IRemotePackage } from "../www/package";
 
 // GLOBALS //
 

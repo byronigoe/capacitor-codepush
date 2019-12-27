@@ -1,4 +1,3 @@
-/// <reference path="../typings/codePush.d.ts" />
 /// <reference types="q" />
 /// <reference types="node" />
 /// <reference path="../typings/replace.d.ts" />

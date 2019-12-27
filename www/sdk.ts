@@ -1,16 +1,16 @@
-/// <reference path="../typings/codePush.d.ts" />
-
-import NativeAppInfo = require("./nativeAppInfo");
-import HttpRequester = require("./httpRequester");
 import { Plugins } from "@capacitor/core";
-import { AcquisitionManager } from "code-push/script/acquisition-sdk";
+import { AcquisitionManager, Configuration } from "code-push/script/acquisition-sdk";
+import { Callback } from "./callbackUtil";
+import { HttpRequester } from "./httpRequester";
+import { NativeAppInfo } from "./nativeAppInfo";
+import { IPackage } from "./package";
 
 const { Device } = Plugins;
 
 /**
  * Interacts with the CodePush Acquisition SDK.
  */
-class Sdk {
+export class Sdk {
 
     private static DefaultAcquisitionManager: AcquisitionManager;
     private static DefaultConfiguration: Configuration;
@@ -101,5 +101,3 @@ class Sdk {
         }
     }
 }
-
-export = Sdk;

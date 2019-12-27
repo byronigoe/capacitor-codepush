@@ -1,6 +1,5 @@
-/// <reference path="../typings/codePush.d.ts" />
-
 import { Plugins } from "@capacitor/core";
+import { NativeCodePushPlugin } from "./nativeCodePushPlugin";
 
 const NativeCodePush = Plugins.CodePush as NativeCodePushPlugin;
 
@@ -9,7 +8,7 @@ const DefaultServerUrl: string = "https://codepush.azurewebsites.net/";
 /**
  * Provides information about the native app.
  */
-class NativeAppInfo {
+export class NativeAppInfo {
     
     /**
      * Gets the application build timestamp.
@@ -116,5 +115,3 @@ class NativeAppInfo {
         }
     }
 }
-
-export = NativeAppInfo;

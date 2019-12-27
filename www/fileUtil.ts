@@ -1,13 +1,12 @@
-/// <reference path="../typings/codePush.d.ts" />
-
 import { FilesystemDirectory, FilesystemEncoding, GetUriOptions, Plugins } from "@capacitor/core";
+import { Callback } from "./callbackUtil";
 
 const { Filesystem } = Plugins;
 
 /**
  * File utilities for CodePush.
  */
-class FileUtil {
+export class FileUtil {
     public static async directoryExists(directory: FilesystemDirectory, path: string): Promise<boolean> {
         try {
             const statResult = await Filesystem.stat({directory, path});
@@ -121,5 +120,3 @@ class FileUtil {
         return FileUtil.readFile(FilesystemDirectory.Data, path);
     }
 }
-
-export = FileUtil;

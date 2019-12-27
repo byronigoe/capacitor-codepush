@@ -1,9 +1,9 @@
-/// <reference path="../typings/codePush.d.ts" />
+import { Callback, ErrorCallback, SuccessCallback } from "./callbackUtil";
 
 /**
  * Callback / error / logging utilities.
  */
-class CodePushUtil {
+export class CodePushUtil {
 
     /**
      * Tag used for logging to the console.
@@ -75,5 +75,3 @@ class CodePushUtil {
         console.error(`${CodePushUtil.TAG} ${errorMessage}${stackTrace}`);
     }
 }
-
-export = CodePushUtil;

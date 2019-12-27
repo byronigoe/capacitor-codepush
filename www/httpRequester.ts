@@ -1,9 +1,11 @@
-/// <reference path="../typings/codePush.d.ts" />
+import { Http } from "code-push/script/acquisition-sdk";
+import { Callback } from "./callbackUtil";
+
 
 /**
  * XMLHttpRequest-based implementation of Http.Requester.
  */
-class HttpRequester implements Http.Requester {
+export class HttpRequester implements Http.Requester {
 
     private contentType: string;
 
@@ -71,5 +73,3 @@ class HttpRequester implements Http.Requester {
         }
     }
 }
-
-export = HttpRequester;

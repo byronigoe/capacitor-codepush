@@ -1,22 +1,40 @@
-/// <reference path="../typings/codePush.d.ts" />
-
 import { FilesystemDirectory, GetUriOptions, Plugins } from "@capacitor/core";
 import { Zip } from "capacitor-zip";
+import { AcquisitionStatus } from "code-push/script/acquisition-sdk";
+import { Callback, ErrorCallback, SuccessCallback } from "./callbackUtil";
+import { CodePushUtil } from "./codePushUtil";
+import { FileUtil } from "./fileUtil";
 import InstallMode from "./installMode";
-import Package = require("./package");
-import NativeAppInfo = require("./nativeAppInfo");
-import FileUtil = require("./fileUtil");
-import CodePushUtil = require("./codePushUtil");
-import Sdk = require("./sdk");
+import { InstallOptions } from "./installOptions";
+import { NativeAppInfo } from "./nativeAppInfo";
+import { NativeCodePushPlugin } from "./nativeCodePushPlugin";
+import { ILocalPackage, IPackageInfoMetadata, Package } from "./package";
+import { Sdk } from "./sdk";
 
 const NativeCodePush = Plugins.CodePush as NativeCodePushPlugin;
+
+
+/**
+ * Defines the JSON format of the package diff manifest file.
+ */
+interface IDiffManifest {
+    deletedFiles: string[];
+}
+
+/**
+ * Defines the result of LocalPackage.handleDeployment execution.
+ */
+interface DeploymentResult {
+    deployDir: string;
+    isDiffUpdate: boolean;
+}
 
 /**
  * Defines a local package.
  *
  * !! THIS TYPE IS READ FROM NATIVE CODE AS WELL. ANY CHANGES TO THIS INTERFACE NEEDS TO BE UPDATED IN NATIVE CODE !!
  */
-class LocalPackage extends Package implements ILocalPackage {
+export class LocalPackage extends Package implements ILocalPackage {
     public static RootDir: string = "codepush";
 
     public static DownloadDir: string = LocalPackage.RootDir + "/download";
@@ -516,5 +534,3 @@ class LocalPackage extends Package implements ILocalPackage {
         return LocalPackage.DefaultInstallOptions;
     }
 }
-
-export = LocalPackage;

@@ -1,18 +1,17 @@
-/// <reference path="../typings/codePush.d.ts" />
-
 import { FilesystemDirectory, Plugins } from "@capacitor/core";
-import LocalPackage = require("./localPackage");
-import Package = require("./package");
-import NativeAppInfo = require("./nativeAppInfo");
-import CodePushUtil = require("./codePushUtil");
-import Sdk = require("./sdk");
+import { SuccessCallback } from "./callbackUtil";
+import { CodePushUtil } from "./codePushUtil";
+import { LocalPackage } from "./localPackage";
+import { NativeAppInfo } from "./nativeAppInfo";
+import { DownloadProgress, ILocalPackage, IRemotePackage, Package } from "./package";
+import { Sdk } from "./sdk";
 
 const { Filesystem, FileTransfer } = Plugins;
 
 /**
  * Defines a remote package, which represents an update package available for download.
  */
-class RemotePackage extends Package implements IRemotePackage {
+export class RemotePackage extends Package implements IRemotePackage {
 
     /**
      * The URL at which the package is available for download.
@@ -70,5 +69,3 @@ class RemotePackage extends Package implements IRemotePackage {
         throw new Error("Not implemented");
     }
 }
-
-export = RemotePackage;

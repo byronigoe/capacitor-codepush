@@ -1,5 +1,3 @@
-/// <reference path="../typings/codePush.d.ts" />
-
 /**
  * Defines the possible result and intermediate statuses of the window.codePush.sync operation.
  * The result statuses are final, mutually exclusive statuses of the sync operation. The operation will end with only one of the possible result statuses.
@@ -9,7 +7,7 @@
  *       Also, don't forget to change the TestMessage module in ServerUtils!
  *       AND THE codePush.d.ts (typings) file!!!
  */
-enum SyncStatus {
+export enum SyncStatus {
     /**
      * Result status - the application is up to date.
      */
@@ -57,5 +55,3 @@ enum SyncStatus {
      */
     INSTALLING_UPDATE
 }
-
-export = SyncStatus;
