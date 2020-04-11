@@ -324,8 +324,7 @@ export class LocalPackage extends Package implements ILocalPackage {
                 ? LocalPackage.handleDiffDeployment(newPackageLocation, manifestFile)
                 : LocalPackage.handleCleanDeployment(newPackageLocation);
 
-        const deployDir = await FileUtil.getDataUri(newPackageLocation);
-        return {deployDir, isDiffUpdate};
+        return {deployDir: newPackageLocation, isDiffUpdate};
     }
 
     private async writeNewPackageMetadata(): Promise<void> {

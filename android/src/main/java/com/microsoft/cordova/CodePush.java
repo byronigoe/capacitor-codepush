@@ -510,7 +510,7 @@ public class CodePush extends Plugin {
 
     private File getStartPageForPackage(String packageLocation) {
         if (packageLocation != null) {
-            File startPage = new File(this.bridge.getActivity().getFilesDir() + packageLocation, "www/index.html");
+            File startPage = new File(this.bridge.getActivity().getFilesDir() + "/" + packageLocation, "www/index.html");
             if (startPage.exists()) {
                 return startPage;
             }
@@ -521,7 +521,7 @@ public class CodePush extends Plugin {
 
     private String getBasePathForPackage(String packageLocation) {
         if (packageLocation != null) {
-            return new File(this.bridge.getActivity().getFilesDir() + packageLocation, "www").toString();
+            return new File(this.bridge.getActivity().getFilesDir() + "/" + packageLocation, "www").toString();
         }
 
         return null;
@@ -539,7 +539,7 @@ public class CodePush extends Plugin {
 
     private String getConfigLaunchUrl() {
         // TODO: implement me
-        return "https://localhost:8080";
+        return "https://localhost";
     }
 
     /**
