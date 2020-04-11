@@ -1,6 +1,7 @@
 package com.microsoft.cordova;
 
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Base64;
 import android.webkit.WebView;
@@ -18,6 +19,7 @@ import org.json.JSONException;
 
 import java.io.File;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.security.KeyFactory;
 import java.security.PublicKey;
 import java.security.interfaces.RSAPublicKey;
@@ -191,6 +193,25 @@ public class CodePush extends Plugin {
                     call.success(jsObjectValue(binaryHash));
                 } catch (Exception e) {
                     call.error("An error occurred when trying to get the hash of the binary contents. " + e.getMessage());
+                }
+
+                return null;
+            }
+        }.execute();
+    }
+
+    @PluginMethod()
+    public void unzip(final PluginCall call) {
+        new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(Void... params) {
+                try {
+                    File zipFile = new File(new URI(call.getString("zipFile")));
+                    File targetDirectory = new File(new URI(call.getString("targetDirectory")));
+                    Utilities.unzip(zipFile, targetDirectory);
+                    call.resolve();
+                } catch (Exception e) {
+                    call.error("An error occurred when trying to unzip package. " + e.getMessage());
                 }
 
                 return null;

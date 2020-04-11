@@ -37,6 +37,11 @@ interface NativeInstallOptions extends InstallOptions {
     startLocation: string;
 }
 
+interface NativeUnzipOptions extends InstallOptions {
+    zipFile: string;
+    targetDirectory: string;
+}
+
 interface NativeStatusReportOptions {
     statusReport: StatusReport;
 }
@@ -59,6 +64,7 @@ export interface NativeCodePushPlugin {
     preInstall(options: NativeInstallOptions): Promise<void>;
     getAppVersion(): Promise<PluginCallResponse<string>>;
     getNativeBuildTime(): Promise<PluginCallResponse<string>>;
+    unzip(options: NativeUnzipOptions): Promise<void>;
 
     addListener(eventName: "codePushStatus", listenerFunc: (info: any) => void): void;
 }

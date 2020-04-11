@@ -50,7 +50,6 @@
     "typescript": "^3.7.2"
   },
   "dependencies": {
-    "capacitor-zip": "^1.0.4",
     "code-push": "^3.0.1"
   },
   "capacitor": {

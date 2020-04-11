@@ -1,5 +1,4 @@
 import { FilesystemDirectory, GetUriOptions, Plugins } from "@capacitor/core";
-import { Zip } from "capacitor-zip";
 import { AcquisitionStatus } from "code-push/script/acquisition-sdk";
 import { Callback, ErrorCallback, SuccessCallback } from "./callbackUtil";
 import { CodePushUtil } from "./codePushUtil";
@@ -91,8 +90,7 @@ export class LocalPackage extends Package implements ILocalPackage {
                 }
 
                 try {
-                    const zip = new Zip();
-                    await zip.unZip({source: this.localPath, destination: unzipDir});
+                    await NativeCodePush.unzip({zipFile: this.localPath, targetDirectory: unzipDir});
                 } catch (unzipError) {
                     installError(new Error("Could not unzip package" + CodePushUtil.getErrorMessage(unzipError)));
                     return;
@@ -141,7 +139,7 @@ export class LocalPackage extends Package implements ILocalPackage {
                             "Warning! JWT signature exists in codepush update but code integrity check couldn't be performed because there is no public key configured. " +
                             "Please ensure that public key is properly configured within your application."
                         );
-                            
+
                         // verifyHash
                         this.verifyHash(deployDir, this.packageHash, verificationFail, resolve);
                     } else {
