@@ -11,6 +11,7 @@ import { ILocalPackage, IPackageInfoMetadata, Package } from "./package";
 import { Sdk } from "./sdk";
 
 const NativeCodePush = Plugins.CodePush as NativeCodePushPlugin;
+const { Filesystem } = Plugins;
 
 
 /**
@@ -318,7 +319,7 @@ export class LocalPackage extends Package implements ILocalPackage {
         };
         const isDiffUpdate = await FileUtil.fileExists(manifestFile.directory, manifestFile.path);
 
-        // TODO: create directory if it doesn't exist
+        await Filesystem.mkdir({path: LocalPackage.VersionsDir, directory: FilesystemDirectory.Data, recursive: true});
         await isDiffUpdate
                 ? LocalPackage.handleDiffDeployment(newPackageLocation, manifestFile)
                 : LocalPackage.handleCleanDeployment(newPackageLocation);
@@ -417,7 +418,7 @@ export class LocalPackage extends Package implements ILocalPackage {
             path: LocalPackage.RootDir + "/" + LocalPackage.OldPackageInfoFile
         };
 
-        return FileUtil.copyFile(source, destination);
+        return FileUtil.copy(source, destination);
     }
 
     /**

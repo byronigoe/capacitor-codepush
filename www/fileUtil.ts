@@ -37,7 +37,7 @@ export class FileUtil {
             await FileUtil.deleteDataDirectory(path);
         }
 
-        await Filesystem.mkdir({directory: FilesystemDirectory.Data, path, createIntermediateDirectories: true});
+        await Filesystem.mkdir({directory: FilesystemDirectory.Data, path, recursive: true});
         const appDir = await Filesystem.getUri({directory: FilesystemDirectory.Data, path});
         return appDir.uri;
     }
@@ -66,12 +66,11 @@ export class FileUtil {
             ignoreList.push("__MACOSX");
         }
 
-        // TODO: implement recursive directory copy natively in capacitor
-        return null;
+        return FileUtil.copy(sourceDir, destinationDir);
     }
 
-    public static async copyFile(source: GetUriOptions, destination: GetUriOptions): Promise<void> {
-        // TODO: implement file copy natively in capacitor
+    public static async copy(source: GetUriOptions, destination: GetUriOptions): Promise<void> {
+        await Filesystem.copy({directory: source.directory, from: source.path, to: destination.path, toDirectory: destination.directory});
     }
 
     /**
