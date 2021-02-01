@@ -29,7 +29,7 @@ import java.util.Map;
 /**
  * Native Android CodePush Capacitor Plugin.
  */
-@CapacitorPlugin()
+@CapacitorPlugin(name="CodePush")
 public class CodePush extends Plugin {
 
     private static final String DEPLOYMENT_KEY_PREFERENCE = "ANDROID_DEPLOY_KEY";

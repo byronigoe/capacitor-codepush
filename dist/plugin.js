@@ -367,6 +367,7 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, devi
     class Package {
     }
 
+    const { Http: NativeHttp } = core.Plugins;
     /**
      * XMLHttpRequest-based implementation of Http.Requester.
      */
@@ -377,30 +378,36 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, devi
         request(verb, url, callbackOrRequestBody, callback) {
             var requestBody;
             var requestCallback = callback;
+            // request(verb, url, callback)
             if (!requestCallback && typeof callbackOrRequestBody === "function") {
                 requestCallback = callbackOrRequestBody;
             }
+            // request(verb, url, requestBody, callback)
             if (typeof callbackOrRequestBody === "string") {
                 requestBody = callbackOrRequestBody;
             }
-            var xhr = new XMLHttpRequest();
             var methodName = this.getHttpMethodName(verb);
             if (methodName === null)
-                return;
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState === 4) {
-                    var response = { statusCode: xhr.status, body: xhr.responseText };
-                    requestCallback && requestCallback(null, response);
-                }
+                return requestCallback(new Error("Method Not Allowed"), null);
+            const headers = {
+                "X-CodePush-Plugin-Name": "capacitor-plugin-code-push",
+                "X-CodePush-Plugin-Version": "1.11.13",
+                "X-CodePush-SDK-Version": "3.1.5"
             };
-            xhr.open(methodName, url, true);
             if (this.contentType) {
-                xhr.setRequestHeader("Content-Type", this.contentType);
+                headers["Content-Type"] = this.contentType;
             }
-            xhr.setRequestHeader("X-CodePush-Plugin-Name", "capacitor-plugin-code-push");
-            xhr.setRequestHeader("X-CodePush-Plugin-Version", "1.11.13");
-            xhr.setRequestHeader("X-CodePush-SDK-Version", "2.0.6");
-            xhr.send(requestBody);
+            NativeHttp.request({
+                method: methodName,
+                data: requestBody,
+                url,
+                headers
+            }).then((nativeRes) => {
+                if (typeof nativeRes.data === "object")
+                    nativeRes.data = JSON.stringify(nativeRes.data);
+                var response = { statusCode: nativeRes.status, body: nativeRes.data };
+                requestCallback && requestCallback(null, response);
+            });
         }
         /**
          * Gets the HTTP method name as a string.
@@ -1020,7 +1027,7 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, devi
             step((generator = generator.apply(thisArg, _arguments || [])).next());
         });
     };
-    const { FileTransfer } = core.Plugins;
+    const { Http } = core.Plugins;
     /**
      * Defines a remote package, which represents an update package available for download.
      */
@@ -1042,10 +1049,19 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, devi
                     CodePushUtil.throwError(new Error("The remote package does not contain a download URL."));
                 }
                 this.isDownloading = true;
-                const dataDirectory = yield filesystem.Filesystem.getUri({ directory: filesystem.Directory.Data, path: "" });
-                const file = dataDirectory.uri + "/" + LocalPackage.DownloadDir + "/" + LocalPackage.PackageUpdateFileName;
+                const file = LocalPackage.DownloadDir + "/" + LocalPackage.PackageUpdateFileName;
+                const fullPath = yield filesystem.Filesystem.getUri({ directory: filesystem.Directory.Data, path: file });
                 try {
-                    yield FileTransfer.download({ source: this.downloadUrl, target: file });
+                    yield filesystem.Filesystem.mkdir({
+                        path: LocalPackage.DownloadDir,
+                        directory: filesystem.Directory.Data,
+                        recursive: true,
+                    });
+                    yield Http.downloadFile({
+                        url: this.downloadUrl,
+                        filePath: file,
+                        fileDirectory: filesystem.Directory.Data
+                    });
                 }
                 catch (e) {
                     CodePushUtil.throwError(new Error("An error occured while downloading the package. " + (e && e.message) ? e.message : ""));
@@ -1063,7 +1079,7 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, devi
                 localPackage.packageHash = this.packageHash;
                 localPackage.isFirstRun = false;
                 localPackage.failedInstall = installFailed;
-                localPackage.localPath = file;
+                localPackage.localPath = fullPath.uri;
                 CodePushUtil.logMessage("Package download success: " + JSON.stringify(localPackage));
                 Sdk.reportStatusDownload(localPackage, localPackage.deploymentKey);
                 return localPackage;

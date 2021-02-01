@@ -7,7 +7,7 @@ import { DownloadProgress, ILocalPackage, IRemotePackage, Package } from "./pack
 import { Sdk } from "./sdk";
 import { Directory, Filesystem } from "@capacitor/filesystem";
 
-const { FileTransfer } = Plugins;
+const { Http } = Plugins;
 
 /**
  * Defines a remote package, which represents an update package available for download.
@@ -35,11 +35,20 @@ export class RemotePackage extends Package implements IRemotePackage {
 
         this.isDownloading = true;
 
-        const dataDirectory = await Filesystem.getUri({directory: Directory.Data, path: ""});
-        const file = dataDirectory.uri + "/" + LocalPackage.DownloadDir + "/" + LocalPackage.PackageUpdateFileName;
-
+        const file = LocalPackage.DownloadDir + "/" + LocalPackage.PackageUpdateFileName;
+        const fullPath = await Filesystem.getUri({directory: Directory.Data, path: file});
         try {
-            await FileTransfer.download({source: this.downloadUrl, target: file});
+            await Filesystem.mkdir({
+                path: LocalPackage.DownloadDir,
+                directory: Directory.Data,
+                recursive: true,
+            });
+
+            await Http.downloadFile({
+                url: this.downloadUrl,
+                filePath: file,
+                fileDirectory: Directory.Data
+            });
         } catch (e) {
             CodePushUtil.throwError(new Error("An error occured while downloading the package. " + (e && e.message) ? e.message : ""));
         } finally {
@@ -56,7 +65,7 @@ export class RemotePackage extends Package implements IRemotePackage {
         localPackage.packageHash = this.packageHash;
         localPackage.isFirstRun = false;
         localPackage.failedInstall = installFailed;
-        localPackage.localPath = file;
+        localPackage.localPath = fullPath.uri;
 
         CodePushUtil.logMessage("Package download success: " + JSON.stringify(localPackage));
         Sdk.reportStatusDownload(localPackage, localPackage.deploymentKey);

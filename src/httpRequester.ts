@@ -1,6 +1,8 @@
 import { Http } from "code-push/script/acquisition-sdk";
 import { Callback } from "./callbackUtil";
+import { Plugins } from "@capacitor/core";
 
+const { Http: NativeHttp } = Plugins;
 
 /**
  * XMLHttpRequest-based implementation of Http.Requester.
@@ -18,33 +20,36 @@ export class HttpRequester implements Http.Requester {
         var requestBody: string;
         var requestCallback: Callback<Http.Response> = callback!;
 
+        // request(verb, url, callback)
         if (!requestCallback && typeof callbackOrRequestBody === "function") {
             requestCallback = <Callback<Http.Response>>callbackOrRequestBody;
         }
 
+        // request(verb, url, requestBody, callback)
         if (typeof callbackOrRequestBody === "string") {
             requestBody = <string>callbackOrRequestBody;
         }
 
-        var xhr = new XMLHttpRequest();
         var methodName = this.getHttpMethodName(verb);
-        if (methodName === null) return;
-
-        xhr.onreadystatechange = function(): void {
-            if (xhr.readyState === 4) {
-                var response: Http.Response = { statusCode: xhr.status, body: xhr.responseText };
-                requestCallback && requestCallback(null, response);
-            }
+        if (methodName === null) return requestCallback(new Error("Method Not Allowed"), null);
+        const headers = {
+            "X-CodePush-Plugin-Name": "capacitor-plugin-code-push",
+            "X-CodePush-Plugin-Version": "1.11.13",
+            "X-CodePush-SDK-Version": "3.1.5"
         };
-        xhr.open(methodName, url, true);
         if (this.contentType) {
-            xhr.setRequestHeader("Content-Type", this.contentType);
+            headers["Content-Type"] = this.contentType;
         }
-
-        xhr.setRequestHeader("X-CodePush-Plugin-Name", "capacitor-plugin-code-push");
-        xhr.setRequestHeader("X-CodePush-Plugin-Version", "1.11.13");
-        xhr.setRequestHeader("X-CodePush-SDK-Version", "2.0.6");
-        xhr.send(requestBody);
+        NativeHttp.request({
+            method: methodName,
+            data: requestBody,
+            url,
+            headers
+        }).then((nativeRes) => {
+            if (typeof nativeRes.data === "object") nativeRes.data = JSON.stringify(nativeRes.data);
+            var response: Http.Response = { statusCode: nativeRes.status, body: nativeRes.data };
+            requestCallback && requestCallback(null, response);
+        });
     }
 
     /**
