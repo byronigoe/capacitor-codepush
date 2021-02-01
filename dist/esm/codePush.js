@@ -10,7 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { Plugins } from "@capacitor/core";
 import { AcquisitionStatus } from "code-push/script/acquisition-sdk";
 import { CodePushUtil } from "./codePushUtil";
-import InstallMode from "./installMode";
+import { InstallMode } from "./installMode";
 import { LocalPackage } from "./localPackage";
 import { NativeAppInfo } from "./nativeAppInfo";
 import { RemotePackage } from "./remotePackage";

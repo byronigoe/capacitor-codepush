@@ -1,5 +1,5 @@
 import { Callback, ErrorCallback, SuccessCallback } from "./callbackUtil";
-import InstallMode from "./installMode";
+import { InstallMode } from "./installMode";
 import { InstallOptions } from "./installOptions";
 import { ILocalPackage, IPackageInfoMetadata, Package } from "./package";
 /**

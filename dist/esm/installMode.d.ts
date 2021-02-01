@@ -1,7 +1,7 @@
 /**
  * Defines the available install modes for updates.
  */
-declare enum InstallMode {
+export declare enum InstallMode {
     /**
      * The update will be applied to the running application immediately. The application will be reloaded with the new content immediately.
      */
@@ -15,4 +15,3 @@ declare enum InstallMode {
      */
     ON_NEXT_RESUME = 2
 }
-export default InstallMode;

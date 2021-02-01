@@ -73,7 +73,6 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, devi
     /**
      * Defines the available install modes for updates.
      */
-    var InstallMode;
     (function (InstallMode) {
         /**
          * The update will be applied to the running application immediately. The application will be reloaded with the new content immediately.
@@ -87,8 +86,7 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, devi
          * The udpate is downloaded but not installed immediately. The new content will be available the next time the application is resumed or restarted, whichever event happends first.
          */
         InstallMode[InstallMode["ON_NEXT_RESUME"] = 2] = "ON_NEXT_RESUME";
-    })(InstallMode || (InstallMode = {}));
-    var InstallMode$1 = InstallMode;
+    })(exports.InstallMode || (exports.InstallMode = {}));
 
     var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
         function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -755,7 +753,7 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, devi
                         var invokeSuccessAndInstall = () => {
                             CodePushUtil.logMessage("Install succeeded.");
                             var installModeToUse = this.isMandatory ? installOptions.mandatoryInstallMode : installOptions.installMode;
-                            if (installModeToUse === InstallMode$1.IMMEDIATE) {
+                            if (installModeToUse === exports.InstallMode.IMMEDIATE) {
                                 /* invoke success before navigating */
                                 installSuccess && installSuccess(installModeToUse);
                                 /* no need for callbacks, the javascript context will reload */
@@ -995,9 +993,9 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, devi
         static getDefaultInstallOptions() {
             if (!LocalPackage.DefaultInstallOptions) {
                 LocalPackage.DefaultInstallOptions = {
-                    installMode: InstallMode$1.ON_NEXT_RESTART,
+                    installMode: exports.InstallMode.ON_NEXT_RESTART,
                     minimumBackgroundDuration: 0,
-                    mandatoryInstallMode: InstallMode$1.IMMEDIATE
+                    mandatoryInstallMode: exports.InstallMode.IMMEDIATE
                 };
             }
             return LocalPackage.DefaultInstallOptions;
@@ -1433,10 +1431,10 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, devi
             };
             var onInstallSuccess = (appliedWhen) => {
                 switch (appliedWhen) {
-                    case InstallMode$1.ON_NEXT_RESTART:
+                    case exports.InstallMode.ON_NEXT_RESTART:
                         CodePushUtil.logMessage("Update is installed and will be run on the next app restart.");
                         break;
-                    case InstallMode$1.ON_NEXT_RESUME:
+                    case exports.InstallMode.ON_NEXT_RESUME:
                         if (syncOptions.minimumBackgroundDuration > 0) {
                             CodePushUtil.logMessage(`Update is installed and will be run after the app has been in the background for at least ${syncOptions.minimumBackgroundDuration} seconds.`);
                         }
@@ -1519,9 +1517,9 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, devi
             if (!CodePush.DefaultSyncOptions) {
                 CodePush.DefaultSyncOptions = {
                     ignoreFailedUpdates: true,
-                    installMode: InstallMode$1.ON_NEXT_RESTART,
+                    installMode: exports.InstallMode.ON_NEXT_RESTART,
                     minimumBackgroundDuration: 0,
-                    mandatoryInstallMode: InstallMode$1.IMMEDIATE,
+                    mandatoryInstallMode: exports.InstallMode.IMMEDIATE,
                     updateDialog: false,
                     deploymentKey: undefined
                 };

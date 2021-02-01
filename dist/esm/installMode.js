@@ -1,7 +1,7 @@
 /**
  * Defines the available install modes for updates.
  */
-var InstallMode;
+export var InstallMode;
 (function (InstallMode) {
     /**
      * The update will be applied to the running application immediately. The application will be reloaded with the new content immediately.
@@ -16,5 +16,4 @@ var InstallMode;
      */
     InstallMode[InstallMode["ON_NEXT_RESUME"] = 2] = "ON_NEXT_RESUME";
 })(InstallMode || (InstallMode = {}));
-export default InstallMode;
 //# sourceMappingURL=installMode.js.map

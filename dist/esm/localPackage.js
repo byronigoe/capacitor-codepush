@@ -12,7 +12,7 @@ import { Directory, Filesystem } from '@capacitor/filesystem';
 import { AcquisitionStatus } from "code-push/script/acquisition-sdk";
 import { CodePushUtil } from "./codePushUtil";
 import { FileUtil } from "./fileUtil";
-import InstallMode from "./installMode";
+import { InstallMode } from "./installMode";
 import { NativeAppInfo } from "./nativeAppInfo";
 import { Package } from "./package";
 import { Sdk } from "./sdk";

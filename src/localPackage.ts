@@ -1,10 +1,10 @@
 import { Plugins } from "@capacitor/core";
-import { Directory, Filesystem, FilesystemDirectory, GetUriOptions } from '@capacitor/filesystem';
+import { Directory, Filesystem, GetUriOptions } from '@capacitor/filesystem';
 import { AcquisitionStatus } from "code-push/script/acquisition-sdk";
 import { Callback, ErrorCallback, SuccessCallback } from "./callbackUtil";
 import { CodePushUtil } from "./codePushUtil";
 import { FileUtil } from "./fileUtil";
-import InstallMode from "./installMode";
+import { InstallMode } from "./installMode";
 import { InstallOptions } from "./installOptions";
 import { NativeAppInfo } from "./nativeAppInfo";
 import { NativeCodePushPlugin } from "./nativeCodePushPlugin";

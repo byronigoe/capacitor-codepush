@@ -1,4 +1,4 @@
-import InstallMode from "./installMode";
+import { InstallMode } from "./installMode";
 
 /**
  * Defines the install operation options.
