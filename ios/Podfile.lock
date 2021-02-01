@@ -1,0 +1,29 @@
+PODS:
+  - Capacitor (3.0.0-beta.1):
+    - CapacitorCordova
+  - CapacitorCordova (3.0.0-beta.1)
+  - naveridlogin-sdk-ios (4.1.3)
+
+DEPENDENCIES:
+  - "Capacitor (from `../node_modules/@capacitor/ios`)"
+  - "CapacitorCordova (from `../node_modules/@capacitor/ios`)"
+  - naveridlogin-sdk-ios (= 4.1.3)
+
+SPEC REPOS:
+  trunk:
+    - naveridlogin-sdk-ios
+
+EXTERNAL SOURCES:
+  Capacitor:
+    :path: "../node_modules/@capacitor/ios"
+  CapacitorCordova:
+    :path: "../node_modules/@capacitor/ios"
+
+SPEC CHECKSUMS:
+  Capacitor: 6cc2d51ca434c0ec2371c813f08d8dddf7905ef1
+  CapacitorCordova: 226d15069f4d3c8caa639b5aaa7ad14ffdc4f06e
+  naveridlogin-sdk-ios: b9d7c20677981177ed994ecb1c8c2b49f223277d
+
+PODFILE CHECKSUM: 7724088071fbeb8a7b4001fcc1d903a203616cef
+
+COCOAPODS: 1.9.3

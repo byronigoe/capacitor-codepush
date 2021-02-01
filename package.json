@@ -1,5 +1,5 @@
 {
-  "name": "@mapiacompany/capacitor-codepush",
+  "name": "capacitor-codepush",
   "version": "1.0.0",
   "description": "CodePush Plugin for Capacitor",
   "main": "bin/www/codePush.js",
@@ -54,14 +54,6 @@
   },
   "dependencies": {
     "code-push": "^3.1.5"
-  },
-  "capacitor": {
-    "ios": {
-      "src": "ios"
-    },
-    "android": {
-      "src": "android"
-    }
   },
   "husky": {
     "hooks": {
