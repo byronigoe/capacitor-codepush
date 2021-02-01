@@ -11,7 +11,7 @@ import platform = require("./platform");
 import path = require("path");
 import assert = require("assert");
 import Q = require("q");
-import { IRemotePackage } from "../www/package";
+import { IRemotePackage } from "../src/package";
 
 // GLOBALS //
 
@@ -97,7 +97,7 @@ function createTestProject(directory: string): Q.Promise<string> {
     return projectManager.setupProject(directory, templatePath, TestAppName, TestNamespace)
     .then(() => {
         var promises: Q.Promise<string>[] = [];
-        
+
         targetPlatforms.forEach(platform => {
             promises.push(projectManager.addPlatform(directory, platform));
         });
@@ -250,7 +250,7 @@ function runTests(targetPlatform: platform.IPlatform, useWkWebView: boolean): vo
         before(() => {
             setupServer();
             return projectManager.uninstallApplication(TestNamespace, targetPlatform)
-            .then(() => { 
+            .then(() => {
                 return useWkWebView ? projectManager.addPlugin(testRunDirectory, WkWebViewEnginePluginName).then(() => { return projectManager.addPlugin(updatesDirectory, WkWebViewEnginePluginName); }) : null;
             });
         });

@@ -83,7 +83,7 @@ export class Sdk {
             const acquisitionManager = await Sdk.getAcquisitionManager(currentDeploymentKey, "application/json");
             acquisitionManager.reportStatusDeploy(pkg, status, previousLabelOrAppVersion, previousDeploymentKey, callback);
         } catch (e) {
-            callback && callback(e, null);
+            callback && callback(e);
         }
     }
 
@@ -95,7 +95,7 @@ export class Sdk {
             const acquisitionManager = await Sdk.getAcquisitionManager(deploymentKey, "application/json");
             acquisitionManager.reportStatusDownload(pkg, callback);
         } catch (e) {
-            callback && callback(new Error("An error occured while reporting the download status. " + e), null);
+            callback && callback(new Error("An error occured while reporting the download status. " + e));
         }
     }
 }

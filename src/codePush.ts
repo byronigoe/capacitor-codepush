@@ -11,7 +11,7 @@ import { RemotePackage } from "./remotePackage";
 import { Sdk } from "./sdk";
 import { SyncOptions, UpdateDialogOptions } from "./syncOptions";
 import { SyncStatus } from "./syncStatus";
-import { Dialog } from '@capacitor/dialog'
+import { Dialog } from "@capacitor/dialog";
 
 const NativeCodePush = Plugins.CodePush as NativeCodePushPlugin;
 
@@ -325,6 +325,7 @@ class CodePush implements CodePushCapacitorPlugin {
                     case SyncStatus.UPDATE_INSTALLED:
                         /* The sync has completed */
                         CodePush.SyncInProgress = false;
+                        break;
 
                     default:
                         /* The sync is not yet complete, so do nothing */

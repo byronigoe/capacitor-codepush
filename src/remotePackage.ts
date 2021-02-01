@@ -5,7 +5,7 @@ import { LocalPackage } from "./localPackage";
 import { NativeAppInfo } from "./nativeAppInfo";
 import { DownloadProgress, ILocalPackage, IRemotePackage, Package } from "./package";
 import { Sdk } from "./sdk";
-import { Directory, Filesystem } from '@capacitor/filesystem';
+import { Directory, Filesystem } from "@capacitor/filesystem";
 
 const { FileTransfer } = Plugins;
 
@@ -31,7 +31,6 @@ export class RemotePackage extends Package implements IRemotePackage {
         CodePushUtil.logMessage("Downloading update");
         if (!this.downloadUrl) {
             CodePushUtil.throwError(new Error("The remote package does not contain a download URL."));
-            return;
         }
 
         this.isDownloading = true;
@@ -43,7 +42,6 @@ export class RemotePackage extends Package implements IRemotePackage {
             await FileTransfer.download({source: this.downloadUrl, target: file});
         } catch (e) {
             CodePushUtil.throwError(new Error("An error occured while downloading the package. " + (e && e.message) ? e.message : ""));
-            return;
         } finally {
             this.isDownloading = false;
         }
@@ -71,7 +69,7 @@ export class RemotePackage extends Package implements IRemotePackage {
      */
     public async abortDownload(): Promise<void> {
         // TODO: implement download abort
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             this.isDownloading = false;
             resolve();
         });

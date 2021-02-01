@@ -20,7 +20,7 @@ export class CodePushUtil {
             }
         }
     }
-    
+
     /**
      * Given two Cordova style callbacks for success and error, this function returns a node.js
      * style callback where the error is the first parameter and the result the second.
@@ -34,11 +34,11 @@ export class CodePushUtil {
             }
         };
     }
-    
+
     /**
      * Gets the message of an error, if any. Otherwise it returns the empty string.
      */
-    public static getErrorMessage(e: Error): string {
+    public static getErrorMessage(e: Error | undefined): string {
         return e && e.message || e && e.toString() || "";
     }
 
@@ -65,7 +65,7 @@ export class CodePushUtil {
     public static logMessage(msg: string): void {
         console.log(CodePushUtil.TAG + " " + msg);
     }
-    
+
     /**
      * Logs an error message using the CodePush tag.
      */

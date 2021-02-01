@@ -4,7 +4,7 @@ var gulp = require("gulp");
 var path = require("path");
 var Q = require("q");
 
-var sourcePath = "./www";
+var sourcePath = "./src";
 var testPath = "./test";
 var binPath = "./bin";
 var tsFiles = "/**/*.ts";

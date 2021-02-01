@@ -364,7 +364,7 @@ export class LocalPackage extends Package implements ILocalPackage {
     }
 
     private static async copyCurrentPackage(newPackageLocation: string, ignoreList: string[]): Promise<void> {
-        const currentPackagePath = await new Promise<string>(resolve => {
+        const currentPackagePath = await new Promise<string | void>(resolve => {
             LocalPackage.getPackage(LocalPackage.PackageInfoFile, (currentPackage: LocalPackage) => resolve(currentPackage.localPath), () => resolve());
         });
 
@@ -378,7 +378,7 @@ export class LocalPackage extends Package implements ILocalPackage {
     }
 
     private static async handleDiffDeployment(newPackageLocation: string, diffManifest: GetUriOptions): Promise<void> {
-        let manifest: IDiffManifest = null;
+        let manifest: IDiffManifest;
         try {
             await LocalPackage.copyCurrentPackage(newPackageLocation, [".codepushrelease"]);
             await LocalPackage.handleCleanDeployment(newPackageLocation);

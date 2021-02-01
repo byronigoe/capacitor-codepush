@@ -8,15 +8,15 @@ import { Callback } from "./callbackUtil";
 export class HttpRequester implements Http.Requester {
     // TODO: use @capacitor-community/http
 
-    private contentType: string;
+    private contentType: string | undefined;
 
-    constructor(contentType?: string) {
+    constructor(contentType?: string | undefined) {
         this.contentType = contentType;
     }
 
     public request(verb: Http.Verb, url: string, callbackOrRequestBody: Callback<Http.Response> | string, callback?: Callback<Http.Response>): void {
         var requestBody: string;
-        var requestCallback: Callback<Http.Response> = callback;
+        var requestCallback: Callback<Http.Response> = callback!;
 
         if (!requestCallback && typeof callbackOrRequestBody === "function") {
             requestCallback = <Callback<Http.Response>>callbackOrRequestBody;
@@ -28,6 +28,8 @@ export class HttpRequester implements Http.Requester {
 
         var xhr = new XMLHttpRequest();
         var methodName = this.getHttpMethodName(verb);
+        if (methodName === null) return;
+
         xhr.onreadystatechange = function(): void {
             if (xhr.readyState === 4) {
                 var response: Http.Response = { statusCode: xhr.status, body: xhr.responseText };
@@ -49,7 +51,7 @@ export class HttpRequester implements Http.Requester {
      * Gets the HTTP method name as a string.
      * The reason for which this is needed is because the Http.Verb enum corresponds to integer values from native runtime.
      */
-    private getHttpMethodName(verb: Http.Verb): string {
+    private getHttpMethodName(verb: Http.Verb): string | null {
         switch (verb) {
             case Http.Verb.GET:
                 return "GET";
