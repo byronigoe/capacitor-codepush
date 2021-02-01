@@ -11,6 +11,7 @@ import com.getcapacitor.NativePlugin;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
+import com.getcapacitor.annotation.CapacitorPlugin;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.nimbusds.jwt.SignedJWT;
@@ -30,7 +31,7 @@ import java.util.Map;
 /**
  * Native Android CodePush Capacitor Plugin.
  */
-@NativePlugin()
+@CapacitorPlugin()
 public class CodePush extends Plugin {
 
     private static final String DEPLOYMENT_KEY_PREFERENCE = "codepushdeploymentkey";
@@ -81,7 +82,7 @@ public class CodePush extends Plugin {
     @PluginMethod()
     public void getPublicKey(PluginCall call) {
         String publicKey = (String) getConfigValue(PUBLIC_KEY_PREFERENCE);
-        call.success(jsObjectValue(publicKey));
+        call.resolve(jsObjectValue(publicKey));
     }
 
     @PluginMethod()
@@ -97,7 +98,7 @@ public class CodePush extends Plugin {
                     try {
                         publicKey = parsePublicKey(stringPublicKey);
                     } catch (CodePushException e) {
-                        call.error("Error occurred while creating the a public key" + e.getMessage());
+                        call.reject("Error occurred while creating the a public key" + e.getMessage());
                         return null;
                     }
 
@@ -108,19 +109,19 @@ public class CodePush extends Plugin {
                     try {
                         claims = verifyAndDecodeJWT(signature, publicKey);
                     } catch (CodePushException e) {
-                        call.error("The update could not be verified because it was not signed by a trusted party. " + e.getMessage());
+                        call.reject("The update could not be verified because it was not signed by a trusted party. " + e.getMessage());
                         return null;
                     }
 
                     final String contentHash = (String) claims.get("contentHash");
                     if (contentHash == null) {
-                        call.error("The update could not be verified because the signature did not specify a content hash.");
+                        call.reject("The update could not be verified because the signature did not specify a content hash.");
                         return null;
                     }
-                    call.success(jsObjectValue(contentHash));
+                    call.resolve(jsObjectValue(contentHash));
 
                 } catch (Exception e) {
-                    call.error("Unknown error occurred during signature decoding. " + e.getMessage());
+                    call.reject("Unknown error occurred during signature decoding. " + e.getMessage());
                 }
 
                 return null;
@@ -169,16 +170,16 @@ public class CodePush extends Plugin {
                     try {
                         String binaryHash = UpdateHashUtils.getBinaryHash(bridge.getActivity());
                         codePushPackageManager.saveBinaryHash(binaryHash);
-                        call.success(jsObjectValue(binaryHash));
+                        call.resolve(jsObjectValue(binaryHash));
                     } catch (Exception e) {
-                        call.error("An error occurred when trying to get the hash of the binary contents. " + e.getMessage());
+                        call.reject("An error occurred when trying to get the hash of the binary contents. " + e.getMessage());
                     }
 
                     return null;
                 }
             }.execute();
         } else {
-            call.success(jsObjectValue(cachedBinaryHash));
+            call.resolve(jsObjectValue(cachedBinaryHash));
         }
     }
 
@@ -190,9 +191,9 @@ public class CodePush extends Plugin {
                 try {
                     // TODO: fix client side
                     String binaryHash = UpdateHashUtils.getHashForPath(bridge.getActivity(), call.getString("path") + "/www");
-                    call.success(jsObjectValue(binaryHash));
+                    call.resolve(jsObjectValue(binaryHash));
                 } catch (Exception e) {
-                    call.error("An error occurred when trying to get the hash of the binary contents. " + e.getMessage());
+                    call.reject("An error occurred when trying to get the hash of the binary contents. " + e.getMessage());
                 }
 
                 return null;
@@ -211,7 +212,7 @@ public class CodePush extends Plugin {
                     Utilities.unzip(zipFile, targetDirectory);
                     call.resolve();
                 } catch (Exception e) {
-                    call.error("An error occurred when trying to unzip package. " + e.getMessage());
+                    call.reject("An error occurred when trying to unzip package. " + e.getMessage());
                 }
 
                 return null;
@@ -247,7 +248,7 @@ public class CodePush extends Plugin {
         // Mark the update as confirmed and not requiring a rollback
         this.codePushPackageManager.clearInstallNeedsConfirmation();
         this.cleanOldPackageSilently();
-        call.success();
+        call.resolve();
     }
 
     @PluginMethod()
@@ -263,16 +264,16 @@ public class CodePush extends Plugin {
                     && packageHash.equals(currentPackageMetadata.packageHash)
                     && didUpdate);
         }
-        call.success(jsObjectValue(isFirstRun));
+        call.resolve(jsObjectValue(isFirstRun));
     }
 
     @PluginMethod()
     public void isPendingUpdate(PluginCall call) {
         try {
             InstallOptions pendingInstall = this.codePushPackageManager.getPendingInstall();
-            call.success(jsObjectValue(pendingInstall != null));
+            call.resolve(jsObjectValue(pendingInstall != null));
         } catch (Exception e) {
-            call.error("An error occurred. " + e.getMessage());
+            call.reject("An error occurred. " + e.getMessage());
         }
     }
 
@@ -281,7 +282,7 @@ public class CodePush extends Plugin {
         // TODO: fix client side
         final String packageHash = call.getString("packageHash");
         boolean isFailedUpdate = this.codePushPackageManager.isFailedUpdate(packageHash);
-        call.success(jsObjectValue(isFailedUpdate));
+        call.resolve(jsObjectValue(isFailedUpdate));
     }
 
     @PluginMethod()
@@ -304,12 +305,12 @@ public class CodePush extends Plugin {
                     this.codePushPackageManager.savePendingInstall(pendingInstall);
                 }
 
-                call.success();
+                call.resolve();
             } else {
-                call.error("Could not find the package start page.");
+                call.reject("Could not find the package start page.");
             }
         } catch (Exception e) {
-            call.error("Could not read webview URL: " + e.getMessage());
+            call.reject("Could not read webview URL: " + e.getMessage());
         }
     }
 
@@ -341,13 +342,13 @@ public class CodePush extends Plugin {
             /* check if we have a deployed package already */
             CodePushPackageMetadata deployedPackageMetadata = this.codePushPackageManager.getCurrentPackageMetadata();
             if (deployedPackageMetadata != null) {
-                call.success();
+                call.resolve();
                 didStartApp = false;
                 handleOnStart();
             } else {
                 final String configLaunchUrl = this.getConfigLaunchUrl();
                 if (!this.pluginDestroyed) {
-                    call.success();
+                    call.resolve();
                     this.bridge.getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -357,7 +358,7 @@ public class CodePush extends Plugin {
                 }
             }
         } catch (Exception e) {
-            call.error("An error occurred while restarting the application." + e.getMessage());
+            call.reject("An error occurred while restarting the application." + e.getMessage());
         }
     }
 
@@ -421,12 +422,12 @@ public class CodePush extends Plugin {
             File startPage = this.getStartPageForPackage(startLocation);
             if (startPage != null) {
                 /* start page exists */
-                call.success();
+                call.resolve();
             } else {
-                call.error("Could not get the package start page");
+                call.reject("Could not get the package start page");
             }
         } catch (Exception e) {
-            call.error("Could not get the package start page");
+            call.reject("Could not get the package start page");
         }
     }
 
@@ -434,9 +435,9 @@ public class CodePush extends Plugin {
     public void getAppVersion(PluginCall call) {
         try {
             String appVersionName = Utilities.getAppVersionName(this.bridge.getActivity());
-            call.success(jsObjectValue(appVersionName));
+            call.resolve(jsObjectValue(appVersionName));
         } catch (PackageManager.NameNotFoundException e) {
-            call.error("Cannot get application version.");
+            call.reject("Cannot get application version.");
         }
     }
 
@@ -444,19 +445,19 @@ public class CodePush extends Plugin {
     public void getNativeBuildTime(PluginCall call) {
         long millis = Utilities.getApkBuildTime(this.bridge.getActivity());
         if (millis == -1) {
-            call.error("Could not get the application buildstamp.");
+            call.reject("Could not get the application buildstamp.");
         } else {
             String result = String.valueOf(millis);
-            call.success(jsObjectValue(result));
+            call.resolve(jsObjectValue(result));
         }
     }
 
     private void returnStringPreference(String preferenceName, PluginCall call) {
         String result = (String) getConfigValue(preferenceName);
         if (result != null) {
-            call.success(jsObjectValue(result));
+            call.resolve(jsObjectValue(result));
         } else {
-            call.error("Could not get preference: " + preferenceName);
+            call.reject("Could not get preference: " + preferenceName);
         }
     }
 
