@@ -25,7 +25,7 @@ const NativeCodePush = Plugins.CodePush;
  * - notifying the plugin that the application loaded successfully after an update
  * - getting information about the currently deployed package
  */
-class CodePush {
+export class CodePush {
     /**
      * Notifies the plugin that the update operation succeeded and that the application is ready.
      * Calling this function is required on the first run after an update. On every subsequent application run, calling this function is a noop.
@@ -177,7 +177,8 @@ class CodePush {
                             const currentBinaryVersion = yield NativeAppInfo.getApplicationVersion();
                             localPackage.appVersion = currentBinaryVersion;
                         }
-                        catch (e) { }
+                        catch (e) {
+                        }
                         CodePushUtil.logMessage("Checking for update.");
                         acquisitionManager.queryUpdateWithCurrentPackage(localPackage, callback);
                     }), (error) => {
@@ -432,7 +433,4 @@ var ReportStatus;
     ReportStatus[ReportStatus["UPDATE_CONFIRMED"] = 1] = "UPDATE_CONFIRMED";
     ReportStatus[ReportStatus["UPDATE_ROLLED_BACK"] = 2] = "UPDATE_ROLLED_BACK";
 })(ReportStatus || (ReportStatus = {}));
-// TODO: continue from here; add NativeCodePush.addListener(...)
-var instance = new CodePush();
-export default instance;
 //# sourceMappingURL=codePush.js.map
