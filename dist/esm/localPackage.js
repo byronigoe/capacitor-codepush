@@ -266,7 +266,8 @@ export class LocalPackage extends Package {
                 path: LocalPackage.DownloadUnzipDir + "/" + LocalPackage.DiffManifestFile
             };
             const isDiffUpdate = yield FileUtil.fileExists(manifestFile.directory, manifestFile.path);
-            yield Filesystem.mkdir({ path: LocalPackage.VersionsDir, directory: Directory.Data, recursive: true });
+            // do not throw error on already directory exists.
+            Filesystem.mkdir({ path: LocalPackage.VersionsDir, directory: Directory.Data, recursive: true }).then(() => null);
             (yield isDiffUpdate)
                 ? LocalPackage.handleDiffDeployment(newPackageLocation, manifestFile)
                 : LocalPackage.handleCleanDeployment(newPackageLocation);
