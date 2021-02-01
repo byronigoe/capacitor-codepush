@@ -48,9 +48,9 @@ public class CodePush extends Plugin {
 
     @Override
     public void load() {
-        CodePushPreferences codePushPreferences = new CodePushPreferences(bridge.getContext());
-        codePushPackageManager = new CodePushPackageManager(bridge.getContext(), codePushPreferences);
-        codePushReportingManager = new CodePushReportingManager(bridge.getActivity(), codePushPreferences);
+        CodePushPreferences codePushPreferences = new CodePushPreferences(getContext());
+        codePushPackageManager = new CodePushPackageManager(getContext(), codePushPreferences);
+        codePushReportingManager = new CodePushReportingManager(getActivity(), codePushPreferences);
     }
 
     @PluginMethod()
@@ -79,7 +79,7 @@ public class CodePush extends Plugin {
 
     @PluginMethod()
     public void getPublicKey(PluginCall call) {
-        String publicKey = (String) getConfigValue(PUBLIC_KEY_PREFERENCE);
+        String publicKey = getConfig().getString(PUBLIC_KEY_PREFERENCE);
         call.resolve(jsObjectValue(publicKey));
     }
 
@@ -166,7 +166,7 @@ public class CodePush extends Plugin {
                 @Override
                 protected Void doInBackground(Void... params) {
                     try {
-                        String binaryHash = UpdateHashUtils.getBinaryHash(bridge.getActivity());
+                        String binaryHash = UpdateHashUtils.getBinaryHash(getActivity());
                         codePushPackageManager.saveBinaryHash(binaryHash);
                         call.resolve(jsObjectValue(binaryHash));
                     } catch (Exception e) {
@@ -188,7 +188,7 @@ public class CodePush extends Plugin {
             protected Void doInBackground(Void... params) {
                 try {
                     // TODO: fix client side
-                    String binaryHash = UpdateHashUtils.getHashForPath(bridge.getActivity(), call.getString("path") + "/www");
+                    String binaryHash = UpdateHashUtils.getHashForPath(getActivity(), call.getString("path") + "/www");
                     call.resolve(jsObjectValue(binaryHash));
                 } catch (Exception e) {
                     call.reject("An error occurred when trying to get the hash of the binary contents. " + e.getMessage());
@@ -225,7 +225,7 @@ public class CodePush extends Plugin {
             this.codePushPackageManager.saveBinaryFirstRunFlag();
             try {
                 String appVersion = Utilities.getAppVersionName(bridge.getContext());
-                codePushReportingManager.reportStatus(new StatusReport(ReportingStatus.STORE_VERSION, null, appVersion, (String) getConfigValue(DEPLOYMENT_KEY_PREFERENCE)), bridge.getWebView());
+                codePushReportingManager.reportStatus(new StatusReport(ReportingStatus.STORE_VERSION, null, appVersion, getConfig().getString(DEPLOYMENT_KEY_PREFERENCE)), bridge.getWebView());
             } catch (PackageManager.NameNotFoundException e) {
                 // Should not happen unless the appVersion is not specified, in which case we can't report anything anyway.
                 e.printStackTrace();
@@ -347,7 +347,7 @@ public class CodePush extends Plugin {
                 final String configLaunchUrl = this.getConfigLaunchUrl();
                 if (!this.pluginDestroyed) {
                     call.resolve();
-                    this.bridge.getActivity().runOnUiThread(new Runnable() {
+                    getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             navigateToURL(configLaunchUrl);
@@ -482,7 +482,7 @@ public class CodePush extends Plugin {
                 final String finalURL = url;
 
                 if (!this.pluginDestroyed) {
-                    this.bridge.getActivity().runOnUiThread(new Runnable() {
+                    getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             navigateToURL(finalURL);
