@@ -6,6 +6,7 @@ import { Callback } from "./callbackUtil";
  * XMLHttpRequest-based implementation of Http.Requester.
  */
 export class HttpRequester implements Http.Requester {
+    // TODO: use @capacitor-community/http
 
     private contentType: string;
 
@@ -46,20 +47,16 @@ export class HttpRequester implements Http.Requester {
 
     /**
      * Gets the HTTP method name as a string.
-     * The reason for which this is needed is because the Http.Verb enum is defined as a constant => Verb[Verb.METHOD_NAME] is not defined in the compiled JS.
+     * The reason for which this is needed is because the Http.Verb enum corresponds to integer values from native runtime.
      */
     private getHttpMethodName(verb: Http.Verb): string {
         switch (verb) {
             case Http.Verb.GET:
                 return "GET";
-            case Http.Verb.CONNECT:
-                return "CONNECT";
             case Http.Verb.DELETE:
                 return "DELETE";
             case Http.Verb.HEAD:
                 return "HEAD";
-            case Http.Verb.OPTIONS:
-                return "OPTIONS";
             case Http.Verb.PATCH:
                 return "PATCH";
             case Http.Verb.POST:
@@ -67,7 +64,8 @@ export class HttpRequester implements Http.Requester {
             case Http.Verb.PUT:
                 return "PUT";
             case Http.Verb.TRACE:
-                return "TRACE";
+            case Http.Verb.OPTIONS:
+            case Http.Verb.CONNECT:
             default:
                 return null;
         }

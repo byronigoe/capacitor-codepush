@@ -1,11 +1,9 @@
-import { Plugins } from "@capacitor/core";
 import { AcquisitionManager, Configuration } from "code-push/script/acquisition-sdk";
 import { Callback } from "./callbackUtil";
 import { HttpRequester } from "./httpRequester";
 import { NativeAppInfo } from "./nativeAppInfo";
 import { IPackage } from "./package";
-
-const { Device } = Plugins;
+import { Device } from '@capacitor/device';
 
 /**
  * Interacts with the CodePush Acquisition SDK.

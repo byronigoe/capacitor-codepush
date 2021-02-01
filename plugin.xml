@@ -1,11 +1,11 @@
 ﻿<?xml version="1.0" encoding="UTF-8" ?>
-    <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" id="cordova-plugin-code-push" version="1.11.13">
+    <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" id="cordova-plugin-code-push" version="2.0.0">
         <name>CodePush</name>
         <description>This plugin allows you to push code updates to your apps instantly using the CodePush service</description>
         <license>MIT</license>
         <keywords>cordova,code,push</keywords>
         <repo>https://github.com/Microsoft/cordova-plugin-code-push.git</repo>
- 
+
         <dependency id="code-push" version="3.0.1" />
 
         <js-module src="bin/www/codePush.js" name="codePush">
@@ -92,6 +92,7 @@
             <source-file src="src/ios/UpdateHashUtils.m" />
             <header-file src="src/ios/Utilities.h" />
             <source-file src="src/ios/Utilities.m" />
+            <source-file src="src/ios/CDVWKWebViewEngine+CodePush.m" />
 
             <!-- JWT -->
             <source-file src="src/ios/JWT/Core/Algorithms/Base/CodePushJWTAlgorithmFactory.m" />

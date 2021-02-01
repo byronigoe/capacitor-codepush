@@ -222,7 +222,7 @@ public class CodePush extends Plugin {
     @PluginMethod()
     public void notifyApplicationReady(PluginCall call) {
         if (this.codePushPackageManager.isBinaryFirstRun()) {
-            // Report first run of a store version app
+            // Report first run of a binary version app
             this.codePushPackageManager.saveBinaryFirstRunFlag();
             try {
                 String appVersion = Utilities.getAppVersionName(bridge.getActivity());

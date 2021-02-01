@@ -3,7 +3,7 @@ import { NativeCodePushPlugin } from "./nativeCodePushPlugin";
 
 const NativeCodePush = Plugins.CodePush as NativeCodePushPlugin;
 
-const DefaultServerUrl: string = "https://codepush.azurewebsites.net/";
+const DefaultServerUrl: string = "https://codepush.appcenter.ms/";
 
 /**
  * Provides information about the native app.

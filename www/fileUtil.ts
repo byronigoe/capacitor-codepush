@@ -1,13 +1,12 @@
-import { FilesystemDirectory, FilesystemEncoding, GetUriOptions, Plugins } from "@capacitor/core";
+import { Directory, GetUriOptions, Filesystem, Encoding } from '@capacitor/filesystem';
 import { Callback } from "./callbackUtil";
 
-const { Filesystem } = Plugins;
 
 /**
  * File utilities for CodePush.
  */
 export class FileUtil {
-    public static async directoryExists(directory: FilesystemDirectory, path: string): Promise<boolean> {
+    public static async directoryExists(directory: Directory, path: string): Promise<boolean> {
         try {
             const statResult = await Filesystem.stat({directory, path});
             return statResult.type === "directory";
@@ -17,10 +16,10 @@ export class FileUtil {
     }
 
     public static writeStringToDataFile(content: string, path: string, createIfNotExists: boolean, callback: Callback<void>): void {
-        FileUtil.writeStringToFile(content, FilesystemDirectory.Data, path, createIfNotExists, callback);
+        FileUtil.writeStringToFile(content, Directory.Data, path, createIfNotExists, callback);
     }
 
-    public static async fileExists(directory: FilesystemDirectory, path: string): Promise<boolean> {
+    public static async fileExists(directory: Directory, path: string): Promise<boolean> {
         try {
             const statResult = await Filesystem.stat({directory, path});
             return statResult.type === "file";
@@ -37,22 +36,22 @@ export class FileUtil {
             await FileUtil.deleteDataDirectory(path);
         }
 
-        await Filesystem.mkdir({directory: FilesystemDirectory.Data, path, recursive: true});
-        const appDir = await Filesystem.getUri({directory: FilesystemDirectory.Data, path});
+        await Filesystem.mkdir({directory: Directory.Data, path, recursive: true});
+        const appDir = await Filesystem.getUri({directory: Directory.Data, path});
         return appDir.uri;
     }
 
-    public static async getUri(fsDir: FilesystemDirectory, path: string): Promise<string> {
+    public static async getUri(fsDir: Directory, path: string): Promise<string> {
         const result = await Filesystem.getUri({directory: fsDir, path});
         return result.uri;
     }
 
     public static getDataUri(path: string): Promise<string> {
-        return FileUtil.getUri(FilesystemDirectory.Data, path);
+        return FileUtil.getUri(Directory.Data, path);
     }
 
     public static dataDirectoryExists(path: string): Promise<boolean> {
-        return FileUtil.directoryExists(FilesystemDirectory.Data, path);
+        return FileUtil.directoryExists(Directory.Data, path);
     }
 
     public static async copyDirectoryEntriesTo(sourceDir: GetUriOptions, destinationDir: GetUriOptions, ignoreList: string[] = []): Promise<void> {
@@ -77,7 +76,7 @@ export class FileUtil {
      * Recursively deletes the contents of a directory.
      */
     public static async deleteDataDirectory(path: string): Promise<void> {
-        return Filesystem.rmdir({directory: FilesystemDirectory.Data, path, recursive: true}).then(() => null);
+        return Filesystem.rmdir({directory: Directory.Data, path, recursive: true}).then(() => null);
     }
 
     /**
@@ -86,11 +85,11 @@ export class FileUtil {
     public static async deleteEntriesFromDataDirectory(dirPath: string, filesToDelete: string[]): Promise<void> {
         for (const file of filesToDelete) {
             const path = dirPath + "/" + file;
-            const fileExists = await FileUtil.fileExists(FilesystemDirectory.Data, path);
+            const fileExists = await FileUtil.fileExists(Directory.Data, path);
             if (!fileExists) continue;
 
             try {
-                await Filesystem.deleteFile({directory: FilesystemDirectory.Data, path});
+                await Filesystem.deleteFile({directory: Directory.Data, path});
             } catch (error) {
                 /* If delete fails, silently continue */
                 console.log("Could not delete file: " + path);
@@ -101,21 +100,21 @@ export class FileUtil {
     /**
      * Writes a string to a file.
      */
-    public static async writeStringToFile(data: string, directory: FilesystemDirectory, path: string, createIfNotExists: boolean, callback: Callback<void>): Promise<void> {
+    public static async writeStringToFile(data: string, directory: Directory, path: string, createIfNotExists: boolean, callback: Callback<void>): Promise<void> {
         try {
-            await Filesystem.writeFile({directory, path, data, encoding: FilesystemEncoding.UTF8});
+            await Filesystem.writeFile({directory, path, data, encoding: Encoding.UTF8});
             callback(null, null);
         } catch (error) {
             callback(new Error("Could write the current package information file. Error code: " + error.code), null);
         }
     }
 
-    public static async readFile(directory: FilesystemDirectory, path: string): Promise<string> {
-        const result = await Filesystem.readFile({directory, path, encoding: FilesystemEncoding.UTF8});
+    public static async readFile(directory: Directory, path: string): Promise<string> {
+        const result = await Filesystem.readFile({directory, path, encoding: Encoding.UTF8});
         return result.data;
     }
 
     public static readDataFile(path: string): Promise<string> {
-        return FileUtil.readFile(FilesystemDirectory.Data, path);
+        return FileUtil.readFile(Directory.Data, path);
     }
 }

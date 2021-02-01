@@ -1,13 +1,16 @@
 [![appcenterbanner](https://user-images.githubusercontent.com/31293287/32969262-3cc5d48a-cb99-11e7-91bf-fa57c67a371c.png)](http://microsoft.github.io/code-push/)
 
+#### [Sign up With App Center](https://appcenter.ms/signup?utm_source=CodePush&utm_medium=Azure) to use CodePush
+
 # Apache Cordova Plugin for CodePush
 
-This plugin provides client-side integration for the [CodePush service](http://codepush.tools), allowing you to easily add a dynamic update experience to your Cordova app(s).
+This plugin provides client-side integration for the [CodePush service](https://microsoft.github.io/code-push/), allowing you to easily add a dynamic update experience to your Cordova app(s).
 
-<!-- Cordova Catelog -->
+<!-- Cordova Catalog -->
 
 * [How does it work?](#how-does-it-work)
 * [Supported Cordova Platforms](#supported-cordova-platforms)
+* [Deprecating old versions](#deprecating-old-versions)
 * [Getting Started](#getting-started)
 * [Plugin Usage](#plugin-usage)
 * [Releasing Updates](#releasing-updates)
@@ -15,7 +18,7 @@ This plugin provides client-side integration for the [CodePush service](http://c
 * [PhoneGap Build](#phonegap-build)
 * [Example Apps](#example-apps)
 
-<!-- Cordova Catelog -->
+<!-- Cordova Catalog -->
 
 ## How does it work?
 
@@ -29,10 +32,14 @@ In order to ensure that your end users always have a functioning version of your
 
 ## Supported Cordova Platforms
 
-Cordova 5.0.0+ is fully supported, along with the following asociated platforms:
+Cordova 5.0.0+ is fully supported, along with the following associated platforms:
 
-* Android ([cordova-android](https://github.com/apache/cordova-android) 4.0.0+) - *Including CrossWalk!* 
-* iOS ([cordova-ios](https://github.com/apache/cordova-ios) 3.9.0+) - *Note: In order to use CodePush along with the [`cordova-plugin-wkwebview-engine`](https://github.com/apache/cordova-plugin-wkwebview-engine) plugin, you need to install `v1.5.1-beta+` version of `cordova-plugin-code-push`, which includes full support for apps using either WebView.*
+* Android ([cordova-android](https://github.com/apache/cordova-android) 4.0.0+) - *Including CrossWalk!* *Note: Only on TLS 1.2 compatible devices*
+* iOS ([cordova-ios](https://github.com/apache/cordova-ios) 3.9.0+) - please see notes below.
+
+> Note: Starting with v2.0.0 `cordova-plugin-code-push` doesn't support apps using UIWebView due to [Apple officially deprecated it and discourage developers from using it](https://developer.apple.com/news/?id=12232019b). Prior versions of the plugin still support UIWebView but be aware that the App Store will no longer accept new apps using UIWebView as of April 2020 and app updates using UIWebView as of December 2020.
+
+> Note: In order to use CodePush along with the [`cordova-plugin-wkwebview-engine`](https://github.com/apache/cordova-plugin-wkwebview-engine) plugin, you need to install `v1.5.1-beta+` version of `cordova-plugin-code-push`, which includes full support for apps using either WebView. Please see [Using WKWebView](#using-wkwebview) section for more information of how to confiure your app to use `cordova-plugin-wkwebview-engine`.
 
 To check which versions of each Cordova platform you are currently using, you can run the following command and inspect the `Installed platforms` list:
 
@@ -40,12 +47,18 @@ To check which versions of each Cordova platform you are currently using, you ca
 cordova platform ls
 ```
 
-If you're running an older Android and/or iOS platform than is mentioned above, and would be open to upgrading, you can easily do so by running the following commands (omitting a platform if it isn't neccessary):
+If you're running an older Android and/or iOS platform than is mentioned above, and would be open to upgrading, you can easily do so by running the following commands (omitting a platform if it isn't necessary):
 
 ```shell
 cordova platform update android
 cordova platform update ios
 ```
+
+## Deprecating old versions
+
+Since CodePush is migrating to a new service all versions of cordova-plugin-code-push lower than **[1.12.0](https://github.com/microsoft/cordova-plugin-code-push/releases/tag/v1.12.0)** will not work in the nearest future.
+
+You can find more information in our [documentation](https://github.com/microsoft/code-push/blob/master/migration-notice.md).
 
 ## Getting Started
 
@@ -67,10 +80,10 @@ With the CodePush plugin installed, configure your app to use it via the followi
         <preference name="CodePushDeploymentKey" value="YOUR-IOS-DEPLOYMENT-KEY" />
     </platform>
     ```
-    
-    As a reminder, these keys are generated for you when you created your CodePush app via the CLI. If you need to retrieve them, you can simply run `code-push deployment ls APP_NAME -k`, and grab the key for the specific deployment you want to use (e.g. `Staging`, `Production`). 
-    
-    *NOTE: You [must](https://docs.microsoft.com/en-us/appcenter/distribution/codepush/cli#releasing-updates) create a separate CodePush app for iOS and Android, which is why the above sample illustrates declaring seperate keys for Android and iOS. If you're only developing for a single platform, then you only need to specify the deployment key for either Android or iOS, so you don't need to add the additional `<platform>` element as illustrated above.*
+
+    As a reminder, these keys are generated for you when you created your CodePush app via the CLI. If you need to retrieve them, you can simply run `appcenter codepush deployment list <ownerName>/<appName> --displayKeys`, and grab the key for the specific deployment you want to use (e.g. `Staging`, `Production`).
+
+    *NOTE: You [must](https://docs.microsoft.com/en-us/appcenter/distribution/codepush/cli#releasing-updates) create a separate CodePush app for iOS and Android, which is why the above sample illustrates declaring separate keys for Android and iOS. If you're only developing for a single platform, then you only need to specify the deployment key for either Android or iOS, so you don't need to add the additional `<platform>` element as illustrated above.*
 
     Beginning from version **1.10.0** you can sign your update bundles (for more information about code signing please refer to relevant documentation [section](https://github.com/Microsoft/code-push/blob/master/cli/README.md#code-signing)). In order to enable code signing for Cordova application you should setup public key to verify bundles signature by providing following `preference` setting in `config.xml`:
 
@@ -85,34 +98,44 @@ With the CodePush plugin installed, configure your app to use it via the followi
     </platform>
     ```
     You can use the same private/public key pair for each platform.
-    
+
 2. If you're using an `<access origin="*" />` element in your `config.xml` file, then your app is already allowed to communicate with the CodePush servers and you can safely skip this step. Otherwise, add the following additional `<access />` elements:
- 
+
     ```xml
-    <access origin="https://codepush.azurewebsites.net" />
+    <access origin="https://codepush.appcenter.ms" />
     <access origin="https://codepush.blob.core.windows.net" />
     <access origin="https://codepushupdates.azureedge.net" />
     ```
-    
-3. To ensure that your app can access the CodePush server on [CSP](https://developer.mozilla.org/en-US/docs/Web/Security/CSP/Introducing_Content_Security_Policy)-compliant platforms, add `https://codepush.azurewebsites.net` to the `Content-Security-Policy` `meta` tag in your `index.html` file:
-  
+
+3. To ensure that your app can access the CodePush server on [CSP](https://developer.mozilla.org/en-US/docs/Web/Security/CSP/Introducing_Content_Security_Policy)-compliant platforms, add `https://codepush.appcenter.ms` to the `Content-Security-Policy` `meta` tag in your `index.html` file:
+
     ```xml
-    <meta http-equiv="Content-Security-Policy" content="default-src https://codepush.azurewebsites.net 'self' data: gap: https://ssl.gstatic.com 'unsafe-eval'; style-src 'self' 'unsafe-inline'; media-src *" />
+    <meta http-equiv="Content-Security-Policy" content="default-src https://codepush.appcenter.ms 'self' data: gap: https://ssl.gstatic.com 'unsafe-eval'; style-src 'self' 'unsafe-inline'; media-src *" />
     ```
-   
+
 4. Finally, double-check that you already have the [`cordova-plugin-whitelist`](https://github.com/apache/cordova-plugin-whitelist) plugin installed (most apps will). To check this, simply run the following command:
 
     ```shell
     cordova plugin ls
     ```
-    
+
     If `cordova-plugin-whitelist` is in the list, then you are good to go. Otherwise, simply run the following command to add it:
-    
+
     ```shell
     cordova plugin add cordova-plugin-whitelist
     ```
- 
+
 You are now ready to use the plugin in the application code. See the [sample applications](/samples) for examples and the API documentation for more details.
+
+### Using WKWebView
+
+For cordova-ios v4-v5 there is a possibility to specify WebView engine on the plugin build phase. By default UIWebView engine is used. To use WKWebView engine please do the following:
+
+* Install [cordova-plugin-wkwebview-engine](https://github.com/apache/cordova-plugin-wkwebview-engine#installation)
+* [Configure your app](https://github.com/apache/cordova-plugin-wkwebview-engine#required-permissions) to use WKWebView
+
+> Note: `cordova-plugin-wkwebview-engine` is just a workaround for cordova-ios v4-v5 users to be able to use WKWebView in their apps to avoid stop accepting updates via AppStore as of December 2020.
+Cordova-ios v6+ has full support for native WKWebView and doesn't require `cordova-plugin-wkwebview-engine`.
 
 ## Plugin Usage
 
@@ -144,45 +167,47 @@ Additionally, if you would like to display an update confirmation dialog (an "ac
 
 ## Releasing Updates
 
-Once your app has been configured and distributed to your users, and you've made some code and/or asset changes, it's time to instantly release them! The simplest (and recommended) way to do this is to use the `release-cordova` comand in the CodePush CLI, which will handle preparing and releasing your update to the CodePush server. 
+Once your app has been configured and distributed to your users, and you've made some code and/or asset changes, it's time to instantly release them! The simplest (and recommended) way to do this is to use the `release-cordova` command in the App Center CLI, which will handle preparing and releasing your update to the CodePush server.
 
-In it's most basic form, this command only requires two parameters: your app name and the platform you are creating the update for (either `ios` or `android`).
+*NOTE: Before you can start releasing updates, please log into App Center by running the `appcenter login` command*
+
+In it's the most basic form, this command only requires one parameter: your owner name + "/" + app name.
 
 ```shell
-code-push release-cordova <appName> <platform>
+appcenter codepush release-cordova -a <ownerName>/<appName>
 
-code-push release-cordova MyApp-ios ios
-code-push release-cordova MyApp-Android android
+appcenter codepush release-cordova -a <ownerName>/MyApp-ios
+appcenter codepush release-cordova -a <ownerName>/MyApp-Android
 ```
 
-*NOTE: When releasing updates to CodePush, you do not need to bump your app's version in the `config.xml` file, since you aren't modifying the app store version at all. You only need to bump this version when you upgrade Cordova and/or one of your plugins, at which point, you need to release an update to the native store(s). CodePush will automatically generate a "label" for each release you make (e.g. `v3`) in order to help identify it within your release history.*
+*NOTE: When releasing updates to CodePush, you do not need to bump your app's version in the `config.xml` file, since you aren't modifying the binary version at all. You only need to bump this version when you upgrade Cordova and/or one of your plugins, at which point, you need to release an update to the native store(s). CodePush will automatically generate a "label" for each release you make (e.g. `v3`) in order to help identify it within your release history.*
 
-The `release-cordova` command enables such a simple workflow because it understands the standard layout of a Cordova app, and therefore, can generate your update and know exactly which files to upload. Additionally, in order to support flexible release strategies, the `release-cordova` command exposes numerous optional parameters that let you customize how the update should be distributed to your end users (e.g. Which binary versions are compatible with it? Should the release be viewed as mandatory?).  
+The `release-cordova` command enables such a simple workflow because it understands the standard layout of a Cordova app, and therefore, can generate your update and know exactly which files to upload. Additionally, in order to support flexible release strategies, the `release-cordova` command exposes numerous optional parameters that let you customize how the update should be distributed to your end users (e.g. Which binary versions are compatible with it? Should the release be viewed as mandatory?).
 
 ```shell
 # Release a mandatory update with a changelog
-code-push release-cordova MyApp-ios ios -m --description "Modified the header color"
+appcenter codepush release-cordova -a <ownerName>/MyApp-ios -m --description "Modified the header color"
 
 # Release a dev Android build to just 1/4 of your end users
-code-push release-cordova MyApp-Android android --rollout 25%
+appcenter codepush release-cordova -a <ownerName>/MyApp-android --rollout 25
 
 # Release an update that targets users running any 1.1.* binary, as opposed to
 # limiting the update to exact version name in the config.xml file
-code-push release-cordova MyApp-Android android --targetBinaryVersion "~1.1.0"
+appcenter codepush release-cordova -a <ownerName>/MyApp-android --target-binary-version "~1.1.0"
 
 # Release an update now but mark it as disabled
 # so that no users can download it yet
-code-push release-cordova MyApp-ios ios -x
+appcenter codepush release-cordova -a <ownerName>/MyApp-ios -x
 
 # Release an update signed by private key (public key should be configured for application)
-code-push release-cordova MyApp-Android --privateKeyPath ~/rsa/private_key.pem
+appcenter codepush release-cordova -a <ownerName>/MyApp-android --private-key-path ~/rsa/private_key.pem
 ```
 
 The CodePush client supports differential updates, so even though you are releasing your app code on every update, your end users will only actually download the files they need. The service handles this automatically so that you can focus on creating awesome apps and we can worry about optimizing end user downloads.
 
 *NOTE: for **Ionic** apps you need to run `ionic build` before running `cordova-release` or `release` command in order to build web assets.*
 
-For more details about how the `release-cordova` command works, as well as the various parameters it exposes, refer to the [CLI docs](https://github.com/Microsoft/code-push/tree/master/cli#releasing-updates-cordova). Additionally, if you would prefer to handle running the `cordova prepare` command yourself, and therefore, want an even more flexible solution than `release-cordova`, refer to the [`release` command](https://github.com/Microsoft/code-push/tree/master/cli#releasing-updates-general) for more details.
+For more details about how the `release-cordova` command works, as well as the various parameters it exposes, refer to the [CLI docs](https://docs.microsoft.com/en-us/appcenter/distribution/codepush/cli#releasing-updates-cordova). Additionally, if you would prefer to handle running the `cordova prepare` command yourself, and therefore, want an even more flexible solution than `release-cordova`, refer to the [`release` command](https://docs.microsoft.com/en-us/appcenter/distribution/codepush/cli#releasing-updates-general) for more details.
 
 If you run into any issues, or have any questions/comments/feedback, you can [e-mail us](mailto:codepushfeed@microsoft.com) and/or open a new issue on this repo and we'll respond ASAP!
 
@@ -225,7 +250,7 @@ When the update check completes, it will trigger the `onUpdateCheck` callback wi
 1. `null` if there is no update available. This occurs in the following scenarios:
 
     1. The configured deployment doesn't contain any releases, and therefore, nothing to update.
-    
+
     2. The latest release within the configured deployment is targeting a different binary version than what you're currently running (either older or newer).
 
     3. The currently running app already has the latest release from the configured deployment, and therefore, doesn't need it again.
@@ -265,9 +290,9 @@ When the update retrieval completes, it will trigger the `onSuccess` callback wi
 1. `null` if the app is currently running the HTML start page from the binary and not a CodePush update. This occurs in the following scenarios:
 
     1. The end-user installed the app binary and has yet to install a CodePush update
-    
+
     2. The end-user installed an update of the binary (e.g. from the store), which cleared away the old CodePush updates, and gave precedence back to the binary.
-    
+
 2. A `LocalPackage` instance which represents the metadata for the currently running CodePush update.
 
 Parameters:
@@ -284,7 +309,7 @@ codePush.getCurrentPackage(function (update) {
         console.log("No updates have been installed");
         return;
     }
-    
+
     // If the current app "session" represents the first time
     // this update has run, and it had a description provided
     // with it upon release, let's show it to the end user
@@ -305,7 +330,7 @@ Gets the metadata for the currently pending update (if one exists). An update is
 When the update retrieval completes, it will trigger the `onSuccess` callback with one of two possible values:
 
 1. `null` if the app doesn't currently have a pending update (e.g. the app is already running the latest available version).
-    
+
 2. A `LocalPackage` instance which represents the metadata for the currently pending CodePush update.
 
 Parameters:
@@ -371,7 +396,7 @@ Example Usage:
 
 ```javascript
 // Fully silent update which keeps the app in
-// sync with the server, without ever 
+// sync with the server, without ever
 // interrupting the end user
 codePush.sync();
 
@@ -392,7 +417,7 @@ While the sync method tries to make it easy to perform silent and active updates
 - __downloadProgress__: Called periodically when an available update is being downloaded from the CodePush server. The method is called with a `DownloadProgress` object, which contains the following two properties:
 
     - __totalBytes__ *(Number)* - The total number of bytes expected to be received for this update (i.e. the size of the set of files which changed from the previous release).
-    
+
     - __receivedBytes__ *(Number)* - The number of bytes downloaded thus far, which can be used to track download progress.
 
 #### SyncOptions
@@ -450,14 +475,14 @@ codePush.sync(null, { updateDialog: { updateTitle: "An update is available!" } }
 codePush.sync(null, {
    updateDialog: {
     appendReleaseDescription: true,
-    descriptionPrefix: "\n\nChange log:\n"   
+    descriptionPrefix: "\n\nChange log:\n"
    },
    installMode: InstallMode.IMMEDIATE
 });
 
 // Silently check for the update, but
 // display a custom downloading UI
-// via the SyncStatus and DowloadProgress callbacks
+// via the SyncStatus and DownloadProgress callbacks
 codePush.sync(syncStatus, null, downloadProgress);
 
 function syncStatus(status) {
@@ -483,7 +508,7 @@ The `sync` method can be called anywhere you'd like to check for an update. That
 
 ### Package objects
 
-The `checkForUpdate` and `getCurrentPackage` methods invoke success callbacks, that when triggered, provide acces to "package" objects. The package represents your code update as well as any extra metadata (e.g. description, mandatory?). The CodePush API has the distinction between the following types of packages:
+The `checkForUpdate` and `getCurrentPackage` methods invoke success callbacks, that when triggered, provide access to "package" objects. The package represents your code update as well as any extra metadata (e.g. description, mandatory?). The CodePush API has the distinction between the following types of packages:
 
 1. `LocalPackage`: Represents a downloaded update that is either already running, or has been installed and is pending an app restart.
 
@@ -545,7 +570,7 @@ var onUpdateCheck = function (remotePackage) {
     if (!remotePackage) {
         console.log("The application is up to date.");
     } else {
-        // The hash of each previously reverted package is stored for later use. 
+        // The hash of each previously reverted package is stored for later use.
         // This way, we avoid going into an infinite bad update/revert loop.
         if (!remotePackage.failedInstall) {
             console.log("A CodePush update is available. Package hash: " + remotePackage.packageHash);
@@ -595,7 +620,7 @@ The optional `downloadProgress` callback is invoked several times during the dow
 
     Defines the format of the DownloadProgress object, used to send periodical update notifications on the progress of the update download.
 
-    ####### Properties
+    Properties
 
     - __totalBytes__: The size of the downloading update package, in bytes. (Number)
     - __receivedBytes__: The number of bytes already downloaded. (Number)
@@ -651,8 +676,8 @@ Defines the possible statuses of the [sync](#codepushsync) operation. There are 
 - __UPDATE_INSTALLED__: An available update has been installed and will be run either immediately after the callback function returns or the next time the app resumes/restarts, depending on the `InstallMode` specified in `SyncOptions`.
 
 - __UPDATE_IGNORED__: The app has an optional update, which the end user chose to ignore. *(This is only applicable when the `updateDialog` is used)*
- 
-- __ERROR__: An error occured during the `sync` operation. This might be an error while communicating with the server, downloading or unziping the update. The console logs should contain more information about what happened. No update has been applied in this case.
+
+- __ERROR__: An error occurred during the `sync` operation. This might be an error while communicating with the server, downloading or unzipping the update. The console logs should contain more information about what happened. No update has been applied in this case.
 
 - __IN_PROGRESS__: Another sync is already running, so this attempt to sync has been aborted.
 

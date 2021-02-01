@@ -1,4 +1,5 @@
-import { FilesystemDirectory, GetUriOptions, Plugins } from "@capacitor/core";
+import { Plugins } from "@capacitor/core";
+import { Directory, Filesystem, FilesystemDirectory, GetUriOptions } from '@capacitor/filesystem';
 import { AcquisitionStatus } from "code-push/script/acquisition-sdk";
 import { Callback, ErrorCallback, SuccessCallback } from "./callbackUtil";
 import { CodePushUtil } from "./codePushUtil";
@@ -11,7 +12,6 @@ import { ILocalPackage, IPackageInfoMetadata, Package } from "./package";
 import { Sdk } from "./sdk";
 
 const NativeCodePush = Plugins.CodePush as NativeCodePushPlugin;
-const { Filesystem } = Plugins;
 
 
 /**
@@ -127,7 +127,7 @@ export class LocalPackage extends Package implements ILocalPackage {
                             this.verifySignature(deployDir, this.packageHash, publicKey, signature, verificationFail, resolve);
                         });
                     } else {
-                        var errorMessage = 
+                        var errorMessage =
                         "Error! Public key was provided but there is no JWT signature within app bundle to verify. " +
                         "Possible reasons, why that might happen: \n" +
                         "1. You've been released CodePush bundle update using version of CodePush CLI that is not support code signing.\n" +
@@ -150,7 +150,7 @@ export class LocalPackage extends Package implements ILocalPackage {
                         } else {
                             resolve();
                         }
-                    }          
+                    }
                 }
             };
 
@@ -170,7 +170,7 @@ export class LocalPackage extends Package implements ILocalPackage {
                 }
 
                 publicKey = publicKeyResult;
-                isSignatureVerificationEnabled = (publicKey !== null);
+                isSignatureVerificationEnabled = !!publicKey;
 
                 this.getSignatureFromUpdate(deploymentResult.deployDir, (error, signature) => {
                     if (error) {
@@ -178,7 +178,7 @@ export class LocalPackage extends Package implements ILocalPackage {
                         return;
                     }
 
-                    isSignatureAppearedInBundle = (signature !== null);
+                    isSignatureAppearedInBundle = !!signature;
 
                     verify(isSignatureVerificationEnabled, isSignatureAppearedInBundle, publicKey, signature);
                 });
@@ -187,7 +187,7 @@ export class LocalPackage extends Package implements ILocalPackage {
     }
 
     private getPublicKey(callback: Callback<string>) {
-    
+
         var success = (publicKey: string) => {
             callback(null, publicKey);
         };
@@ -203,14 +203,14 @@ export class LocalPackage extends Package implements ILocalPackage {
 
         const filePath = deployDir + "/www/.codepushrelease";
 
-        if (!await FileUtil.fileExists(FilesystemDirectory.Data, filePath)) {
+        if (!await FileUtil.fileExists(Directory.Data, filePath)) {
             // signature absents in the bundle
             callback(null, null);
             return;
         }
 
         try {
-            const signature = await FileUtil.readFile(FilesystemDirectory.Data, filePath);
+            const signature = await FileUtil.readFile(Directory.Data, filePath);
             callback(null, signature);
         } catch (error) {
             // error reading signature file from bundle
@@ -250,7 +250,7 @@ export class LocalPackage extends Package implements ILocalPackage {
         };
         CodePushUtil.logMessage("Verifying signature for folder path: " + deployDir);
         NativeCodePush.decodeSignature({publicKey, signature}).then(result => decodeSignatureSuccess(result.value), decodeSignatureFail);
-    }    
+    }
 
     private finishInstall(deployDir: string, installOptions: InstallOptions, installSuccess: SuccessCallback<InstallMode>, installError: ErrorCallback): void {
         async function backupPackageInformationFileIfNeeded(backupIfNeededDone: Callback<void>) {
@@ -314,12 +314,12 @@ export class LocalPackage extends Package implements ILocalPackage {
 
     private static async handleDeployment(newPackageLocation: string): Promise<DeploymentResult> {
         const manifestFile: GetUriOptions = {
-            directory: FilesystemDirectory.Data,
+            directory: Directory.Data,
             path: LocalPackage.DownloadUnzipDir + "/" + LocalPackage.DiffManifestFile
         };
         const isDiffUpdate = await FileUtil.fileExists(manifestFile.directory, manifestFile.path);
 
-        await Filesystem.mkdir({path: LocalPackage.VersionsDir, directory: FilesystemDirectory.Data, recursive: true});
+        await Filesystem.mkdir({path: LocalPackage.VersionsDir, directory: Directory.Data, recursive: true});
         await isDiffUpdate
                 ? LocalPackage.handleDiffDeployment(newPackageLocation, manifestFile)
                 : LocalPackage.handleCleanDeployment(newPackageLocation);
@@ -357,8 +357,8 @@ export class LocalPackage extends Package implements ILocalPackage {
 
     private static async handleCleanDeployment(newPackageLocation: string): Promise<void> {
         // no diff manifest
-        const source: GetUriOptions = {directory: FilesystemDirectory.Data, path: LocalPackage.DownloadUnzipDir};
-        const target: GetUriOptions = {directory: FilesystemDirectory.Data, path: newPackageLocation};
+        const source: GetUriOptions = {directory: Directory.Data, path: LocalPackage.DownloadUnzipDir};
+        const target: GetUriOptions = {directory: Directory.Data, path: newPackageLocation};
         // TODO: create destination directory if it doesn't exist
         return FileUtil.copyDirectoryEntriesTo(source, target);
     }
@@ -370,8 +370,9 @@ export class LocalPackage extends Package implements ILocalPackage {
 
         newPackageLocation = currentPackagePath ? newPackageLocation : newPackageLocation + "/www";
 
-        const source: GetUriOptions = currentPackagePath ? {directory: FilesystemDirectory.Data, path: currentPackagePath} : {directory: FilesystemDirectory.Application, path: "www"};
-        const target: GetUriOptions = {directory: FilesystemDirectory.Data, path: newPackageLocation};
+        // https://github.com/ionic-team/capacitor/pull/2514 Directory.Application variable was removed. (TODO - for check)
+        const source: GetUriOptions = currentPackagePath ? {directory: Directory.Data, path: currentPackagePath} : {directory: Directory.Data, path: "www"};
+        const target: GetUriOptions = {directory: Directory.Data, path: newPackageLocation};
 
         return FileUtil.copyDirectoryEntriesTo(source, target, ignoreList);
     }
@@ -408,12 +409,12 @@ export class LocalPackage extends Package implements ILocalPackage {
      */
     public static async backupPackageInformationFile(): Promise<void> {
         const source: GetUriOptions = {
-            directory: FilesystemDirectory.Data,
+            directory: Directory.Data,
             path: LocalPackage.RootDir + "/" + LocalPackage.PackageInfoFile
         };
 
         const destination: GetUriOptions = {
-            directory: FilesystemDirectory.Data,
+            directory: Directory.Data,
             path: LocalPackage.RootDir + "/" + LocalPackage.OldPackageInfoFile
         };
 

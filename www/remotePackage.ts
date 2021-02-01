@@ -1,29 +1,30 @@
-import { FilesystemDirectory, Plugins } from "@capacitor/core";
+import { Plugins } from "@capacitor/core";
 import { SuccessCallback } from "./callbackUtil";
 import { CodePushUtil } from "./codePushUtil";
 import { LocalPackage } from "./localPackage";
 import { NativeAppInfo } from "./nativeAppInfo";
 import { DownloadProgress, ILocalPackage, IRemotePackage, Package } from "./package";
 import { Sdk } from "./sdk";
+import { Directory, Filesystem } from '@capacitor/filesystem';
 
-const { Filesystem, FileTransfer } = Plugins;
+const { FileTransfer } = Plugins;
 
 /**
  * Defines a remote package, which represents an update package available for download.
  */
 export class RemotePackage extends Package implements IRemotePackage {
 
+    private isDownloading: boolean = false;
+
     /**
      * The URL at which the package is available for download.
      */
     public downloadUrl: string;
-    
+
     /**
      * Downloads the package update from the CodePush service.
      * TODO: implement download progress
-     * 
-     * @param downloadSuccess Called with one parameter, the downloaded package information, once the download completed successfully.
-     * @param downloadError Optional callback invoked in case of an error.
+     *
      * @param downloadProgress Optional callback invoked during the download process. It is called several times with one DownloadProgress parameter.
      */
     public async download(downloadProgress?: SuccessCallback<DownloadProgress>): Promise<ILocalPackage> {
@@ -33,7 +34,9 @@ export class RemotePackage extends Package implements IRemotePackage {
             return;
         }
 
-        const dataDirectory = await Filesystem.getUri({directory: FilesystemDirectory.Data, path: ""});
+        this.isDownloading = true;
+
+        const dataDirectory = await Filesystem.getUri({directory: Directory.Data, path: ""});
         const file = dataDirectory.uri + "/" + LocalPackage.DownloadDir + "/" + LocalPackage.PackageUpdateFileName;
 
         try {
@@ -41,6 +44,8 @@ export class RemotePackage extends Package implements IRemotePackage {
         } catch (e) {
             CodePushUtil.throwError(new Error("An error occured while downloading the package. " + (e && e.message) ? e.message : ""));
             return;
+        } finally {
+            this.isDownloading = false;
         }
 
         const installFailed = await NativeAppInfo.isFailedUpdate(this.packageHash);
@@ -60,12 +65,15 @@ export class RemotePackage extends Package implements IRemotePackage {
 
         return localPackage;
     }
-    
+
     /**
      * Aborts the current download session, previously started with download().
      */
     public async abortDownload(): Promise<void> {
         // TODO: implement download abort
-        throw new Error("Not implemented");
+        return new Promise((resolve, reject) => {
+            this.isDownloading = false;
+            resolve();
+        });
     }
 }

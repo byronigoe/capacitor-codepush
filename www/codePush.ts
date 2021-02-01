@@ -11,15 +11,15 @@ import { RemotePackage } from "./remotePackage";
 import { Sdk } from "./sdk";
 import { SyncOptions, UpdateDialogOptions } from "./syncOptions";
 import { SyncStatus } from "./syncStatus";
+import { Dialog } from '@capacitor/dialog'
 
-const { Modals } = Plugins;
 const NativeCodePush = Plugins.CodePush as NativeCodePushPlugin;
 
 interface CodePushCapacitorPlugin {
 
     /**
      * Get the current package information.
-     * 
+     *
      * @returns The currently deployed package information.
      */
     getCurrentPackage(): Promise<ILocalPackage>;
@@ -435,7 +435,7 @@ class CodePush implements CodePushCapacitorPlugin {
                     var message = dlgOpts.appendReleaseDescription ?
                         dlgOpts.mandatoryUpdateMessage + dlgOpts.descriptionPrefix + remotePackage.description
                         : dlgOpts.mandatoryUpdateMessage;
-                    await Modals.alert({
+                    await Dialog.alert({
                         message,
                         title: dlgOpts.updateTitle,
                         buttonTitle: dlgOpts.mandatoryContinueButtonLabel
@@ -447,7 +447,7 @@ class CodePush implements CodePushCapacitorPlugin {
                         dlgOpts.optionalUpdateMessage + dlgOpts.descriptionPrefix + remotePackage.description
                         : dlgOpts.optionalUpdateMessage;
 
-                    const confirmResult = await Modals.confirm({
+                    const confirmResult = await Dialog.confirm({
                         message,
                         title: dlgOpts.updateTitle,
                         okButtonTitle: dlgOpts.optionalInstallButtonLabel,

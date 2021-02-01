@@ -1,5 +1,7 @@
 #import <Cordova/CDV.h>
 #import <Cordova/CDVConfigParser.h>
+#import <Cordova/CDVWebViewEngineProtocol.h>
+#import <Cordova/NSDictionary+CordovaPreferences.h>
 #import "CodePush.h"
 #import "CodePushPackageMetadata.h"
 #import "CodePushPackageManager.h"
@@ -13,6 +15,7 @@
 
 @implementation CodePush
 
+static NSString *specifiedServerPath = @"";
 bool didUpdate = false;
 bool pendingInstall = false;
 NSDate* lastResignedDate;
@@ -127,7 +130,7 @@ StatusReport* rollbackStatusReport = nil;
             CodePushPackageMetadata* currentMetadata = [CodePushPackageManager getCurrentPackageMetadata];
             bool revertSuccess = (nil != currentMetadata && [self loadPackage:currentMetadata.localPath]);
             if (!revertSuccess) {
-                /* first update failed, go back to store version */
+                /* first update failed, go back to binary version */
                 [self loadStoreVersion];
             }
         }
@@ -137,7 +140,7 @@ StatusReport* rollbackStatusReport = nil;
 - (void)notifyApplicationReady:(CDVInvokedUrlCommand *)command {
     [self.commandDelegate runInBackground:^{
         if ([CodePushPackageManager isBinaryFirstRun]) {
-            // Report first run of a store version app
+            // Report first run of a binary version app
             [CodePushPackageManager markBinaryFirstRunFlag];
             NSString* appVersion = [Utilities getApplicationVersion];
             NSString* deploymentKey = ((CDVViewController *)self.viewController).settings[DeploymentKeyPreference];
@@ -339,6 +342,11 @@ StatusReport* rollbackStatusReport = nil;
 - (void)navigateToLocalDeploymentIfExists {
     CodePushPackageMetadata* deployedPackageMetadata = [CodePushPackageManager getCurrentPackageMetadata];
     if (deployedPackageMetadata && deployedPackageMetadata.localPath) {
+        NSString* startPage = ((CDVViewController *)self.viewController).startPage;
+        NSURL* URL = [self getStartPageURLForLocalPackage:deployedPackageMetadata.localPath];
+        if (![URL.path containsString:startPage]) {
+            return;
+        }
         [self redirectStartPageToURL: deployedPackageMetadata.localPath];
     }
 }
@@ -395,15 +403,48 @@ StatusReport* rollbackStatusReport = nil;
 }
 
 - (void)loadURL:(NSURL*)url {
-    // In order to make use of the "modern" Cordova platform, while still
-    // maintaining back-compat with Cordova iOS 3.9.0, we need to conditionally
-    // use the WebViewEngine for performing navigations only if the host app
-    // is running 4.0.0+, and fallback to directly using the WebView otherwise.
-#ifdef __CORDOVA_4_0_0
-    [self.webViewEngine loadRequest:[NSURLRequest requestWithURL:url]];
+#if WK_WEB_VIEW_ONLY && defined(__CORDOVA_4_0_0)
+    BOOL useUiWebView = NO;
 #else
-    [(UIWebView*)self.webView loadRequest:[NSURLRequest requestWithURL:url]];
+    BOOL useUiWebView = YES;
 #endif
+    if([Utilities CDVWebViewEngineAvailable] || !useUiWebView)
+    {
+        [self.webViewEngine loadRequest:[NSURLRequest requestWithURL:url]];
+    } else {
+        CPLog(@"Current version of CodePush plugin doesn't support UIWebView anymore. Please consider using version of the plugin below v2.0.0 or migrating to WkWebView. For more info please see https://developer.apple.com/news/?id=12232019b.");
+    }
+}
+
++ (Boolean) hasIonicWebViewEngine:(id<CDVWebViewEngineProtocol>) webViewEngine {
+    NSString * webViewEngineClass = NSStringFromClass([webViewEngine class]);
+    SEL setServerBasePath = NSSelectorFromString(@"setServerBasePath:");
+    if ([webViewEngineClass  isEqual: @"CDVWKWebViewEngine"] && [webViewEngine respondsToSelector:setServerBasePath]) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
++ (NSString*) getCurrentServerBasePath {
+    return specifiedServerPath;
+}
+
++ (void) setServerBasePath:(NSString*)serverPath webView:(id<CDVWebViewEngineProtocol>) webViewEngine {
+    if ([CodePush hasIonicWebViewEngine: webViewEngine]) {
+        specifiedServerPath = serverPath;
+        SEL setServerBasePath = NSSelectorFromString(@"setServerBasePath:");
+        NSMutableArray * urlPathComponents = [serverPath pathComponents].mutableCopy;
+        [urlPathComponents removeLastObject];
+        NSString * serverBasePath = [urlPathComponents componentsJoinedByString:@"/"];
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
+        CDVInvokedUrlCommand * command = [CDVInvokedUrlCommand commandFromJson:[NSArray arrayWithObjects: @"", @"", @"", [NSMutableArray arrayWithObject:serverBasePath], nil]];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [webViewEngine performSelector: setServerBasePath withObject: command];
+        });
+#pragma clang diagnostic pop
+    }
 }
 
 - (void)loadStoreVersion {
@@ -437,6 +478,11 @@ StatusReport* rollbackStatusReport = nil;
         NSArray* realLocationArray = @[libraryLocation, @"NoCloud", packageLocation, @"www", startPage];
         NSString* realStartPageLocation = [NSString pathWithComponents:realLocationArray];
         if ([[NSFileManager defaultManager] fileExistsAtPath:realStartPageLocation]) {
+            // Fixes WKWebView unable to load start page from CodePush update directory
+            NSString* scheme = [self getAppScheme];
+            if ([Utilities CDVWebViewEngineAvailable] && ([realStartPageLocation hasPrefix:@"/_app_file_"] == NO) && !([scheme isEqualToString: @"file"] || scheme == nil)) {
+                realStartPageLocation = [@"/_app_file_" stringByAppendingString:realStartPageLocation];
+            }
             return [NSURL fileURLWithPath:realStartPageLocation];
         }
     }
@@ -447,7 +493,11 @@ StatusReport* rollbackStatusReport = nil;
 - (void)redirectStartPageToURL:(NSString*)packageLocation{
     NSURL* URL = [self getStartPageURLForLocalPackage:packageLocation];
     if (URL) {
-        ((CDVViewController *)self.viewController).startPage = [URL absoluteString];
+        if ([CodePush hasIonicWebViewEngine: self.webViewEngine]) {
+            [CodePush setServerBasePath:URL.path webView:self.webViewEngine];
+        } else {
+            ((CDVViewController *)self.viewController).startPage = [URL absoluteString];
+        }
     }
 }
 
@@ -502,6 +552,18 @@ StatusReport* rollbackStatusReport = nil;
         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:version];
         [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
     }];
+}
+
+- (NSString*)getAppScheme {
+    NSDictionary* settings = self.commandDelegate.settings;
+    // Cordova
+    NSString *scheme = [settings cordovaSettingForKey:@"scheme"];
+    if (scheme != nil) {
+        return scheme;
+    }
+    // Ionic
+    scheme = [settings cordovaSettingForKey:@"iosScheme"];
+    return scheme;
 }
 
 @end
