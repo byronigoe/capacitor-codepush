@@ -1,2 +1,2 @@
-import './codePush';
-export * from './definitions';
+export * from "./definitions";
+export * from "./codePush";

@@ -32,9 +32,9 @@ import java.util.Map;
 @CapacitorPlugin()
 public class CodePush extends Plugin {
 
-    private static final String DEPLOYMENT_KEY_PREFERENCE = "codepushdeploymentkey";
-    private static final String PUBLIC_KEY_PREFERENCE = "codepushpublickey";
-    private static final String SERVER_URL_PREFERENCE = "codepushserverurl";
+    private static final String DEPLOYMENT_KEY_PREFERENCE = "deploymentKey";
+    private static final String PUBLIC_KEY_PREFERENCE = "publicKey";
+    private static final String SERVER_URL_PREFERENCE = "serverUrl";
     private static final String WWW_ASSET_PATH_PREFIX = "file:///android_asset/www/";
     private static final String NEW_LINE = System.getProperty("line.separator");
     private static boolean ShouldClearHistoryOnLoad = false;

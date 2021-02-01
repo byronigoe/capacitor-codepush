@@ -1,3 +1,3 @@
-import './codePush';
-export * from './definitions';
+export * from "./definitions";
+export * from "./codePush";
 //# sourceMappingURL=index.js.map
