@@ -500,10 +500,15 @@ public class CodePush extends Plugin {
         }
     }
 
-    private void navigateToURL(String url) {
+    private void navigateToURL(final String url) {
         if (url != null) {
             CodePush.ShouldClearHistoryOnLoad = true;
-            bridge.getWebView().loadUrl(url);
+            bridge.getActivity().runOnUiThread(new Runnable() {
+              @Override
+              public void run() {
+                bridge.getWebView().loadUrl(url);
+              }
+            });
         }
     }
 
