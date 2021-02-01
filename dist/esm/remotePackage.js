@@ -38,12 +38,13 @@ export class RemotePackage extends Package {
             this.isDownloading = true;
             const file = LocalPackage.DownloadDir + "/" + LocalPackage.PackageUpdateFileName;
             const fullPath = yield Filesystem.getUri({ directory: Directory.Data, path: file });
+            // create directory if not exists (without any error thrown)
+            Filesystem.mkdir({
+                path: LocalPackage.DownloadDir,
+                directory: Directory.Data,
+                recursive: true,
+            }).then(console.log, console.error);
             try {
-                yield Filesystem.mkdir({
-                    path: LocalPackage.DownloadDir,
-                    directory: Directory.Data,
-                    recursive: true,
-                });
                 yield Http.downloadFile({
                     url: this.downloadUrl,
                     filePath: file,

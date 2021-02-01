@@ -1051,12 +1051,13 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, devi
                 this.isDownloading = true;
                 const file = LocalPackage.DownloadDir + "/" + LocalPackage.PackageUpdateFileName;
                 const fullPath = yield filesystem.Filesystem.getUri({ directory: filesystem.Directory.Data, path: file });
+                // create directory if not exists (without any error thrown)
+                filesystem.Filesystem.mkdir({
+                    path: LocalPackage.DownloadDir,
+                    directory: filesystem.Directory.Data,
+                    recursive: true,
+                }).then(console.log, console.error);
                 try {
-                    yield filesystem.Filesystem.mkdir({
-                        path: LocalPackage.DownloadDir,
-                        directory: filesystem.Directory.Data,
-                        recursive: true,
-                    });
                     yield Http.downloadFile({
                         url: this.downloadUrl,
                         filePath: file,

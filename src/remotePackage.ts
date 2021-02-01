@@ -37,13 +37,15 @@ export class RemotePackage extends Package implements IRemotePackage {
 
         const file = LocalPackage.DownloadDir + "/" + LocalPackage.PackageUpdateFileName;
         const fullPath = await Filesystem.getUri({directory: Directory.Data, path: file});
-        try {
-            await Filesystem.mkdir({
-                path: LocalPackage.DownloadDir,
-                directory: Directory.Data,
-                recursive: true,
-            });
 
+        // create directory if not exists (without any error thrown)
+        Filesystem.mkdir({
+            path: LocalPackage.DownloadDir,
+            directory: Directory.Data,
+            recursive: true,
+        }).then(console.log, console.error);
+
+        try {
             await Http.downloadFile({
                 url: this.downloadUrl,
                 filePath: file,
