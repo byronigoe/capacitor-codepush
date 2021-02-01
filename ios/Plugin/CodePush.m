@@ -19,8 +19,8 @@ static NSString *specifiedServerPath = @"";
 bool didUpdate = false;
 bool pendingInstall = false;
 NSDate* lastResignedDate;
-NSString* const DeploymentKeyPreference = @"deploymentKey";
-NSString* const PublicKeyPreference = @"publicKey";
+NSString* const DeploymentKeyPreference = @"IOS_DEPLOY_KEY";
+NSString* const PublicKeyPreference = @"IOS_PUBLIC_KEY";
 StatusReport* rollbackStatusReport = nil;
 
 - (void)getBinaryHash:(CDVInvokedUrlCommand *)command {
@@ -280,7 +280,7 @@ StatusReport* rollbackStatusReport = nil;
 }
 
 - (void)getServerURL:(CDVInvokedUrlCommand *)command {
-    [self sendResultForPreference:@"serverUrl" command:command];
+    [self sendResultForPreference:@"SERVER_URL" command:command];
 }
 
 - (void)getDeploymentKey:(CDVInvokedUrlCommand *)command {

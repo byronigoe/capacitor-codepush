@@ -4,9 +4,9 @@
 
 # Capacitor Plugin for CodePush
 
-This plugin provides client-side integration for the [CodePush service](https://microsoft.github.io/code-push/), allowing you to easily add a dynamic update experience to your Cordova app(s).
+This plugin provides client-side integration for the [CodePush service](https://microsoft.github.io/code-push/), allowing you to easily add a dynamic update experience to your Capacitor app(s).
 
-<!-- Cordova Catalog -->
+<!-- Capacitor Catalog -->
 
 * [How does it work?](#how-does-it-work)
 * [Supported Capacitor Platforms](#supported-cordova-platforms)
@@ -15,7 +15,7 @@ This plugin provides client-side integration for the [CodePush service](https://
 * [Releasing Updates](#releasing-updates)
 * [API Reference](#api-reference)
 
-<!-- Cordova Catalog -->
+<!-- Capacitor Catalog -->
 
 ## How does it work?
 
@@ -25,7 +25,7 @@ The CodePush plugin helps get product improvements in front of your end users in
 
 In order to ensure that your end users always have a functioning version of your app, the CodePush plugin maintains a copy of the previous update, so that in the event that you accidentally push an update which includes a crash, it can automatically roll back. This way, you can rest assured that your newfound release agility won't result in users becoming blocked before you have a chance to roll back on the server. It's a win-win-win!
 
-*Note: Any product changes which touch native code (e.g. upgrading Cordova versions, adding a new plugin) cannot be distributed via CodePush, and therefore, must be updated via the appropriate store(s).*
+*Note: Any product changes which touch native code (e.g. upgrading Capacitor versions, adding a new plugin) cannot be distributed via CodePush, and therefore, must be updated via the appropriate store(s).*
 
 ## Supported Capacitor Platforms
 
@@ -37,7 +37,8 @@ Tested with Capacitor 3.0.0-beta.1
 Once you've followed the general-purpose ["getting started"](https://docs.microsoft.com/en-us/appcenter/distribution/codepush/) instructions for setting up your CodePush account, you can start CodePush-ifying your Cordova app by running the following command from within your app's root directory:
 
 ```shell
-npm i 
+npm i https://github.com/mapiacompany/capacitor-codepush -D
+npx cap sync
 ```
 
 With the Capacitor plugin installed, configure your app to use it via the following steps:
@@ -48,30 +49,18 @@ With the Capacitor plugin installed, configure your app to use it via the follow
     "Plugins": {
         ... (other plugins)
         "CodePush": {
-          "deploymentKey": "DEPLOYMENT_KEY",
-          "publicKey": "APP_SECRET_KEY",
-          "serverUrl": "https://codepush.appcenter.ms/"
+          "IOS_DEPLOY_KEY": "ANDROID_DEPLOYMENT_KEY",
+          "IOS_PUBLIC_KEY": "APP_SECRET_KEY",
+          "ANDROID_DEPLOY_KEY": "IOS_DEPLOYMENT_KEY",
+          "ANDROID_PUBLIC_KEY": "APP_SECRET_KEY",
+          "SERVER_URL": "https://codepush.appcenter.ms/"
         }
     }
     ```
 
     As a reminder, these keys are generated for you when you created your CodePush app via the CLI. If you need to retrieve them, you can simply run `appcenter codepush deployment list <ownerName>/<appName> --displayKeys`, and grab the key for the specific deployment you want to use (e.g. `Staging`, `Production`).
 
-    *NOTE: You [must](https://docs.microsoft.com/en-us/appcenter/distribution/codepush/cli#releasing-updates) create a separate CodePush app for iOS and Android, which is why the above sample illustrates declaring separate keys for Android and iOS. If you're only developing for a single platform, then you only need to specify the deployment key for either Android or iOS, so you don't need to add the additional `<platform>` element as illustrated above.*
-
-    Beginning from version **1.10.0** you can sign your update bundles (for more information about code signing please refer to relevant documentation [section](https://github.com/Microsoft/code-push/blob/master/cli/README.md#code-signing)). In order to enable code signing for Cordova application you should setup public key to verify bundles signature by providing following `preference` setting in `config.xml`:
-
-     ```xml
-    <platform name="android">
-        ...
-        <preference name="CodePushPublicKey" value="YOUR-PUBLIC-KEY" />
-    </platform>
-    <platform name="ios">
-        ...
-        <preference name="CodePushPublicKey" value="YOUR-PUBLIC-KEY" />
-    </platform>
-    ```
-    You can use the same private/public key pair for each platform.
+    *NOTE: You [must](https://docs.microsoft.com/en-us/appcenter/distribution/codepush/cli#releasing-updates) create a separate CodePush app for iOS and Android, which is why the above sample illustrates declaring separate keys for Android and iOS. If you're only developing for a single platform, then you only need to specify the deployment key for either Android or iOS.*
 
 2. If you're using an `<access origin="*" />` element in your `config.xml` file, then your app is already allowed to communicate with the CodePush servers and you can safely skip this step. Otherwise, add the following additional `<access />` elements:
 
@@ -85,18 +74,6 @@ With the Capacitor plugin installed, configure your app to use it via the follow
 
     ```xml
     <meta http-equiv="Content-Security-Policy" content="default-src https://codepush.appcenter.ms 'self' data: gap: https://ssl.gstatic.com 'unsafe-eval'; style-src 'self' 'unsafe-inline'; media-src *" />
-    ```
-
-4. Finally, double-check that you already have the [`cordova-plugin-whitelist`](https://github.com/apache/cordova-plugin-whitelist) plugin installed (most apps will). To check this, simply run the following command:
-
-    ```shell
-    cordova plugin ls
-    ```
-
-    If `cordova-plugin-whitelist` is in the list, then you are good to go. Otherwise, simply run the following command to add it:
-
-    ```shell
-    cordova plugin add cordova-plugin-whitelist
     ```
 
 You are now ready to use the plugin in the application code. See the [sample applications](/samples) for examples and the API documentation for more details.

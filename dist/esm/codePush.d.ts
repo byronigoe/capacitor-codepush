@@ -64,7 +64,7 @@ interface CodePushCapacitorPlugin {
  * - notifying the plugin that the application loaded successfully after an update
  * - getting information about the currently deployed package
  */
-export declare class CodePush implements CodePushCapacitorPlugin {
+declare class CodePush implements CodePushCapacitorPlugin {
     /**
      * The default options for the sync command.
      */
@@ -163,4 +163,5 @@ export declare class CodePush implements CodePushCapacitorPlugin {
      */
     private getDefaultUpdateDialogOptions;
 }
+export declare const codePush: CodePush;
 export {};
