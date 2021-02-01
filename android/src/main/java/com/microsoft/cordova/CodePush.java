@@ -1,13 +1,11 @@
 package com.microsoft.cordova;
 
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Base64;
 import android.webkit.WebView;
 
 import com.getcapacitor.JSObject;
-import com.getcapacitor.NativePlugin;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
@@ -50,8 +48,8 @@ public class CodePush extends Plugin {
 
     @Override
     public void load() {
-        CodePushPreferences codePushPreferences = new CodePushPreferences(bridge.getActivity());
-        codePushPackageManager = new CodePushPackageManager(bridge.getActivity(), codePushPreferences);
+        CodePushPreferences codePushPreferences = new CodePushPreferences(bridge.getContext());
+        codePushPackageManager = new CodePushPackageManager(bridge.getContext(), codePushPreferences);
         codePushReportingManager = new CodePushReportingManager(bridge.getActivity(), codePushPreferences);
     }
 
@@ -226,7 +224,7 @@ public class CodePush extends Plugin {
             // Report first run of a binary version app
             this.codePushPackageManager.saveBinaryFirstRunFlag();
             try {
-                String appVersion = Utilities.getAppVersionName(bridge.getActivity());
+                String appVersion = Utilities.getAppVersionName(bridge.getContext());
                 codePushReportingManager.reportStatus(new StatusReport(ReportingStatus.STORE_VERSION, null, appVersion, (String) getConfigValue(DEPLOYMENT_KEY_PREFERENCE)), bridge.getWebView());
             } catch (PackageManager.NameNotFoundException e) {
                 // Should not happen unless the appVersion is not specified, in which case we can't report anything anyway.
@@ -382,12 +380,12 @@ public class CodePush extends Plugin {
         CodePushPackageMetadata deployedPackageMetadata = this.codePushPackageManager.getCurrentPackageMetadata();
         if (deployedPackageMetadata != null) {
             String deployedPackageTimeStamp = deployedPackageMetadata.nativeBuildTime;
-            long nativeBuildTime = Utilities.getApkBuildTime(this.bridge.getActivity());
+            long nativeBuildTime = Utilities.getApkBuildTime(this.bridge.getContext());
 
             String deployedPackageVersion = deployedPackageMetadata.appVersion;
             String applicationVersion = null;
             try {
-                applicationVersion = Utilities.getAppVersionName(this.bridge.getActivity());
+                applicationVersion = Utilities.getAppVersionName(this.bridge.getContext());
             } catch (PackageManager.NameNotFoundException e) {
                 e.printStackTrace();
             }
@@ -434,7 +432,7 @@ public class CodePush extends Plugin {
     @PluginMethod()
     public void getAppVersion(PluginCall call) {
         try {
-            String appVersionName = Utilities.getAppVersionName(this.bridge.getActivity());
+            String appVersionName = Utilities.getAppVersionName(this.bridge.getContext());
             call.resolve(jsObjectValue(appVersionName));
         } catch (PackageManager.NameNotFoundException e) {
             call.reject("Cannot get application version.");
@@ -443,7 +441,7 @@ public class CodePush extends Plugin {
 
     @PluginMethod()
     public void getNativeBuildTime(PluginCall call) {
-        long millis = Utilities.getApkBuildTime(this.bridge.getActivity());
+        long millis = Utilities.getApkBuildTime(this.bridge.getContext());
         if (millis == -1) {
             call.reject("Could not get the application buildstamp.");
         } else {
@@ -511,7 +509,7 @@ public class CodePush extends Plugin {
 
     private File getStartPageForPackage(String packageLocation) {
         if (packageLocation != null) {
-            File startPage = new File(this.bridge.getActivity().getFilesDir() + "/" + packageLocation, "www/index.html");
+            File startPage = new File(this.bridge.getContext().getFilesDir() + "/" + packageLocation, "www/index.html");
             if (startPage.exists()) {
                 return startPage;
             }
@@ -522,7 +520,7 @@ public class CodePush extends Plugin {
 
     private String getBasePathForPackage(String packageLocation) {
         if (packageLocation != null) {
-            return new File(this.bridge.getActivity().getFilesDir() + "/" + packageLocation, "www").toString();
+            return new File(this.bridge.getContext().getFilesDir() + "/" + packageLocation, "www").toString();
         }
 
         return null;
