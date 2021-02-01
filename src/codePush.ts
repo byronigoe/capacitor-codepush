@@ -84,7 +84,7 @@ interface CodePushCapacitorPlugin {
  * - notifying the plugin that the application loaded successfully after an update
  * - getting information about the currently deployed package
  */
-export class CodePush implements CodePushCapacitorPlugin {
+class CodePush implements CodePushCapacitorPlugin {
   /**
    * The default options for the sync command.
    */
@@ -523,3 +523,5 @@ enum ReportStatus {
   UPDATE_CONFIRMED = 1,
   UPDATE_ROLLED_BACK = 2
 }
+
+export const codePush = new CodePush();

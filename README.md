@@ -2,27 +2,24 @@
 
 #### [Sign up With App Center](https://appcenter.ms/signup?utm_source=CodePush&utm_medium=Azure) to use CodePush
 
-# Apache Cordova Plugin for CodePush
+# Capacitor Plugin for CodePush
 
 This plugin provides client-side integration for the [CodePush service](https://microsoft.github.io/code-push/), allowing you to easily add a dynamic update experience to your Cordova app(s).
 
 <!-- Cordova Catalog -->
 
 * [How does it work?](#how-does-it-work)
-* [Supported Cordova Platforms](#supported-cordova-platforms)
-* [Deprecating old versions](#deprecating-old-versions)
+* [Supported Capacitor Platforms](#supported-cordova-platforms)
 * [Getting Started](#getting-started)
 * [Plugin Usage](#plugin-usage)
 * [Releasing Updates](#releasing-updates)
 * [API Reference](#api-reference)
-* [PhoneGap Build](#phonegap-build)
-* [Example Apps](#example-apps)
 
 <!-- Cordova Catalog -->
 
 ## How does it work?
 
-A Cordova app is composed of HTML, CSS and JavaScript files and any accompanying images, which are bundled together by the Cordova CLI and distributed as part of a platform-specific binary (i.e. an .ipa or .apk file). Once the app is released, updating either the code (e.g. making bug fixes, adding new features) or image assets, requires you to recompile and redistribute the entire binary, which of course, includes any review time associated with the store(s) you are publishing to.
+A Capacitor app is composed of HTML, CSS and JavaScript files and any accompanying images, which are bundled together by the Cordova CLI and distributed as part of a platform-specific binary (i.e. an .ipa or .apk file). Once the app is released, updating either the code (e.g. making bug fixes, adding new features) or image assets, requires you to recompile and redistribute the entire binary, which of course, includes any review time associated with the store(s) you are publishing to.
 
 The CodePush plugin helps get product improvements in front of your end users instantly, by keeping your code and images synchronized with updates you release to the CodePush server. This way, your app gets the benefits of an offline mobile experience, as well as the "web-like" agility of side-loading updates as soon as they are available. It's a win-win!
 
@@ -30,55 +27,32 @@ In order to ensure that your end users always have a functioning version of your
 
 *Note: Any product changes which touch native code (e.g. upgrading Cordova versions, adding a new plugin) cannot be distributed via CodePush, and therefore, must be updated via the appropriate store(s).*
 
-## Supported Cordova Platforms
+## Supported Capacitor Platforms
 
-Cordova 5.0.0+ is fully supported, along with the following associated platforms:
+Tested with Capacitor 3.0.0-beta.1 
 
-* Android ([cordova-android](https://github.com/apache/cordova-android) 4.0.0+) - *Including CrossWalk!* *Note: Only on TLS 1.2 compatible devices*
-* iOS ([cordova-ios](https://github.com/apache/cordova-ios) 3.9.0+) - please see notes below.
-
-> Note: Starting with v2.0.0 `cordova-plugin-code-push` doesn't support apps using UIWebView due to [Apple officially deprecated it and discourage developers from using it](https://developer.apple.com/news/?id=12232019b). Prior versions of the plugin still support UIWebView but be aware that the App Store will no longer accept new apps using UIWebView as of April 2020 and app updates using UIWebView as of December 2020.
-
-> Note: In order to use CodePush along with the [`cordova-plugin-wkwebview-engine`](https://github.com/apache/cordova-plugin-wkwebview-engine) plugin, you need to install `v1.5.1-beta+` version of `cordova-plugin-code-push`, which includes full support for apps using either WebView. Please see [Using WKWebView](#using-wkwebview) section for more information of how to confiure your app to use `cordova-plugin-wkwebview-engine`.
-
-To check which versions of each Cordova platform you are currently using, you can run the following command and inspect the `Installed platforms` list:
-
-```shell
-cordova platform ls
-```
-
-If you're running an older Android and/or iOS platform than is mentioned above, and would be open to upgrading, you can easily do so by running the following commands (omitting a platform if it isn't necessary):
-
-```shell
-cordova platform update android
-cordova platform update ios
-```
-
-## Deprecating old versions
-
-Since CodePush is migrating to a new service all versions of cordova-plugin-code-push lower than **[1.12.0](https://github.com/microsoft/cordova-plugin-code-push/releases/tag/v1.12.0)** will not work in the nearest future.
-
-You can find more information in our [documentation](https://github.com/microsoft/code-push/blob/master/migration-notice.md).
 
 ## Getting Started
 
 Once you've followed the general-purpose ["getting started"](https://docs.microsoft.com/en-us/appcenter/distribution/codepush/) instructions for setting up your CodePush account, you can start CodePush-ifying your Cordova app by running the following command from within your app's root directory:
 
 ```shell
-cordova plugin add cordova-plugin-code-push@latest
+npm i 
 ```
 
-With the CodePush plugin installed, configure your app to use it via the following steps:
+With the Capacitor plugin installed, configure your app to use it via the following steps:
 
-1. Add your deployment keys to the `config.xml` file, making sure to include the right key for each Cordova platform:
+1. Add your deployment keys to the `capacitor.config.json` file, making sure to include the right key:
 
-    ```xml
-    <platform name="android">
-        <preference name="CodePushDeploymentKey" value="YOUR-ANDROID-DEPLOYMENT-KEY" />
-    </platform>
-    <platform name="ios">
-        <preference name="CodePushDeploymentKey" value="YOUR-IOS-DEPLOYMENT-KEY" />
-    </platform>
+    ```json
+    "Plugins": {
+        ... (other plugins)
+        "CodePush": {
+          "deploymentKey": "DEPLOYMENT_KEY",
+          "publicKey": "APP_SECRET_KEY",
+          "serverUrl": "https://codepush.appcenter.ms/"
+        }
+    }
     ```
 
     As a reminder, these keys are generated for you when you created your CodePush app via the CLI. If you need to retrieve them, you can simply run `appcenter codepush deployment list <ownerName>/<appName> --displayKeys`, and grab the key for the specific deployment you want to use (e.g. `Staging`, `Production`).
@@ -127,19 +101,9 @@ With the CodePush plugin installed, configure your app to use it via the followi
 
 You are now ready to use the plugin in the application code. See the [sample applications](/samples) for examples and the API documentation for more details.
 
-### Using WKWebView
-
-For cordova-ios v4-v5 there is a possibility to specify WebView engine on the plugin build phase. By default UIWebView engine is used. To use WKWebView engine please do the following:
-
-* Install [cordova-plugin-wkwebview-engine](https://github.com/apache/cordova-plugin-wkwebview-engine#installation)
-* [Configure your app](https://github.com/apache/cordova-plugin-wkwebview-engine#required-permissions) to use WKWebView
-
-> Note: `cordova-plugin-wkwebview-engine` is just a workaround for cordova-ios v4-v5 users to be able to use WKWebView in their apps to avoid stop accepting updates via AppStore as of December 2020.
-Cordova-ios v6+ has full support for native WKWebView and doesn't require `cordova-plugin-wkwebview-engine`.
-
 ## Plugin Usage
 
-With the CodePush plugin installed and configured, the only thing left is to add the necessary code to your app to control the following policies:
+With the Capacitor plugin installed and configured, the only thing left is to add the necessary code to your app to control the following policies:
 
 1. When (and how often) to check for an update? (e.g. app start, in response to clicking a button in a settings page, periodically at some fixed interval)
 
@@ -148,6 +112,7 @@ With the CodePush plugin installed and configured, the only thing left is to add
 The simplest way to do this is to perform the following in your app's `deviceready` event handler:
 
 ```javascript
+import { codePush } from 'capacitor-codepush';
 codePush.sync();
 ```
 
@@ -156,6 +121,7 @@ If an update is available, it will be silently downloaded, and installed the nex
 If you would like your app to discover updates more quickly, you can also choose to call `sync` every time the app resumes from the background, by adding the following code (or something equivalent) as part of your app's startup behavior. You can call `sync` as frequently as you would like, so when and where you call it just depends on your personal preference.
 
 ```javascript
+import { codePush } from 'capacitor-codepush';
 document.addEventListener("resume", function () {
     codePush.sync();
 });
@@ -688,21 +654,3 @@ Defines the possible statuses of the [sync](#codepushsync) operation. There are 
 - __DOWNLOADING_PACKAGE__: An available update is being downloaded from the CodePush server.
 
 - __INSTALLING_UPDATE__: An available update was downloaded and is about to be installed.
-
-## PhoneGap Build
-
-This plugin is compatible with [PhoneGap Build](https://build.phonegap.com), and supports creating Android and iOS builds out-of-the-box. However, in order for CodePush to calculate the hash of your binary contents on Android, PhoneGap Build needs to use Gradle to build your app, which isn't its default behavior (it uses Ant). To resolve this, simply add the following element to your app's `config.xml` file, as a child of the `<platform name="android">` element:
-
-```xml
-<preference name="android-build-tool" value="gradle" />
-```
-
-## Example Apps
-
-The Cordova community has graciously created some awesome open source apps that can serve as examples for developers that are getting started. The following is a list of OSS Cordova apps that are also using CodePush, and can therefore be used to see how others are using the service:
-
-* [PGDay CodePush Demo](https://github.com/rangle/pgdays-codepush-demo) - Demo app created by [Rangle.io](http://rangle.io) used for [PhoneGap Day Europe 2016](http://pgday.phonegap.com/eu2016/).
-
-*Note: If you've developed a Cordova app using CodePush, that is also open-source, please let us know. We would love to add it to this list!*
-
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
