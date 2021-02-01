@@ -1,6 +1,5 @@
 #import <Cordova/CDV.h>
 #import <Cordova/CDVConfigParser.h>
-#import <Cordova/CDVWebViewEngineProtocol.h>
 #import <Cordova/NSDictionary+CordovaPreferences.h>
 #import "CodePush.h"
 #import "CodePushPackageMetadata.h"
@@ -403,27 +402,7 @@ StatusReport* rollbackStatusReport = nil;
 }
 
 - (void)loadURL:(NSURL*)url {
-#if WK_WEB_VIEW_ONLY && defined(__CORDOVA_4_0_0)
-    BOOL useUiWebView = NO;
-#else
-    BOOL useUiWebView = YES;
-#endif
-    if([Utilities CDVWebViewEngineAvailable] || !useUiWebView)
-    {
-        [self.webViewEngine loadRequest:[NSURLRequest requestWithURL:url]];
-    } else {
-        CPLog(@"Current version of CodePush plugin doesn't support UIWebView anymore. Please consider using version of the plugin below v2.0.0 or migrating to WkWebView. For more info please see https://developer.apple.com/news/?id=12232019b.");
-    }
-}
-
-+ (Boolean) hasIonicWebViewEngine:(id<CDVWebViewEngineProtocol>) webViewEngine {
-    NSString * webViewEngineClass = NSStringFromClass([webViewEngine class]);
-    SEL setServerBasePath = NSSelectorFromString(@"setServerBasePath:");
-    if ([webViewEngineClass  isEqual: @"CDVWKWebViewEngine"] && [webViewEngine respondsToSelector:setServerBasePath]) {
-        return true;
-    } else {
-        return false;
-    }
+    [self.webViewEngine loadRequest:[NSURLRequest requestWithURL:url]];
 }
 
 + (NSString*) getCurrentServerBasePath {
@@ -431,20 +410,18 @@ StatusReport* rollbackStatusReport = nil;
 }
 
 + (void) setServerBasePath:(NSString*)serverPath webView:(id<CDVWebViewEngineProtocol>) webViewEngine {
-    if ([CodePush hasIonicWebViewEngine: webViewEngine]) {
-        specifiedServerPath = serverPath;
-        SEL setServerBasePath = NSSelectorFromString(@"setServerBasePath:");
-        NSMutableArray * urlPathComponents = [serverPath pathComponents].mutableCopy;
-        [urlPathComponents removeLastObject];
-        NSString * serverBasePath = [urlPathComponents componentsJoinedByString:@"/"];
+    specifiedServerPath = serverPath;
+    SEL setServerBasePath = NSSelectorFromString(@"setServerBasePath:");
+    NSMutableArray * urlPathComponents = [serverPath pathComponents].mutableCopy;
+    [urlPathComponents removeLastObject];
+    NSString * serverBasePath = [urlPathComponents componentsJoinedByString:@"/"];
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Warc-performSelector-leaks"
-        CDVInvokedUrlCommand * command = [CDVInvokedUrlCommand commandFromJson:[NSArray arrayWithObjects: @"", @"", @"", [NSMutableArray arrayWithObject:serverBasePath], nil]];
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [webViewEngine performSelector: setServerBasePath withObject: command];
-        });
+    CDVInvokedUrlCommand * command = [CDVInvokedUrlCommand commandFromJson:[NSArray arrayWithObjects: @"", @"", @"", [NSMutableArray arrayWithObject:serverBasePath], nil]];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [webViewEngine performSelector: setServerBasePath withObject: command];
+    });
 #pragma clang diagnostic pop
-    }
 }
 
 - (void)loadStoreVersion {
@@ -493,11 +470,7 @@ StatusReport* rollbackStatusReport = nil;
 - (void)redirectStartPageToURL:(NSString*)packageLocation{
     NSURL* URL = [self getStartPageURLForLocalPackage:packageLocation];
     if (URL) {
-        if ([CodePush hasIonicWebViewEngine: self.webViewEngine]) {
-            [CodePush setServerBasePath:URL.path webView:self.webViewEngine];
-        } else {
-            ((CDVViewController *)self.viewController).startPage = [URL absoluteString];
-        }
+        [CodePush setServerBasePath:URL.path webView:self.webViewEngine];
     }
 }
 
