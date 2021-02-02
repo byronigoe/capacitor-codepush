@@ -93,7 +93,7 @@ declare class CodePush implements CodePushCapacitorPlugin {
      * Reports an application status back to the server.
      * !!! This function is called from the native side, please make changes accordingly. !!!
      */
-    reportStatus(status: number, label: string, appVersion: string, deploymentKey: string, previousLabelOrAppVersion?: string, previousDeploymentKey?: string): void;
+    reportStatus(status: number, label: string, appVersion: string, deploymentKey: string, lastVersionLabelOrAppVersion?: string, lastVersionDeploymentKey?: string): void;
     /**
      * Get the current package information.
      *

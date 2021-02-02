@@ -24,7 +24,7 @@ export class HttpRequester {
         const headers = {
             "X-CodePush-Plugin-Name": "capacitor-code-push",
             "X-CodePush-Plugin-Version": "1.0.0",
-            "X-CodePush-SDK-Version": "3.1.5"
+            "X-CodePush-SDK-Version": "4.0.2"
         };
         if (this.contentType) {
             headers["Content-Type"] = this.contentType;

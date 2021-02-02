@@ -392,7 +392,7 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, devi
             const headers = {
                 "X-CodePush-Plugin-Name": "capacitor-code-push",
                 "X-CodePush-Plugin-Version": "1.0.0",
-                "X-CodePush-SDK-Version": "3.1.5"
+                "X-CodePush-SDK-Version": "4.0.2"
             };
             if (this.contentType) {
                 headers["Content-Type"] = this.contentType;
@@ -1189,9 +1189,9 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, devi
          * Reports an application status back to the server.
          * !!! This function is called from the native side, please make changes accordingly. !!!
          */
-        reportStatus(status, label, appVersion, deploymentKey, previousLabelOrAppVersion, previousDeploymentKey) {
-            if (((!label && appVersion === previousLabelOrAppVersion) || label === previousLabelOrAppVersion)
-                && deploymentKey === previousDeploymentKey) {
+        reportStatus(status, label, appVersion, deploymentKey, lastVersionLabelOrAppVersion, lastVersionDeploymentKey) {
+            if (((!label && appVersion === lastVersionLabelOrAppVersion) || label === lastVersionLabelOrAppVersion)
+                && deploymentKey === lastVersionDeploymentKey) {
                 // No-op since the new appVersion and label is exactly the same as the previous
                 // (the app might have been updated via a direct or HockeyApp deployment).
                 return;
@@ -1212,8 +1212,8 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, devi
                     label,
                     appVersion,
                     deploymentKey,
-                    previousLabelOrAppVersion,
-                    previousDeploymentKey
+                    lastVersionLabelOrAppVersion,
+                    lastVersionDeploymentKey
                 };
                 if (error) {
                     CodePushUtil.logError(`An error occurred while reporting status: ${JSON.stringify(reportArgs)}`, error);
@@ -1226,13 +1226,13 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, devi
             };
             switch (status) {
                 case ReportStatus.STORE_VERSION:
-                    Sdk.reportStatusDeploy(null, acquisitionSdk.AcquisitionStatus.DeploymentSucceeded, deploymentKey, previousLabelOrAppVersion, previousDeploymentKey, reportDone);
+                    Sdk.reportStatusDeploy(null, acquisitionSdk.AcquisitionStatus.DeploymentSucceeded, deploymentKey, lastVersionLabelOrAppVersion, lastVersionDeploymentKey, reportDone);
                     break;
                 case ReportStatus.UPDATE_CONFIRMED:
-                    Sdk.reportStatusDeploy(createPackageForReporting(label, appVersion), acquisitionSdk.AcquisitionStatus.DeploymentSucceeded, deploymentKey, previousLabelOrAppVersion, previousDeploymentKey, reportDone);
+                    Sdk.reportStatusDeploy(createPackageForReporting(label, appVersion), acquisitionSdk.AcquisitionStatus.DeploymentSucceeded, deploymentKey, lastVersionLabelOrAppVersion, lastVersionDeploymentKey, reportDone);
                     break;
                 case ReportStatus.UPDATE_ROLLED_BACK:
-                    Sdk.reportStatusDeploy(createPackageForReporting(label, appVersion), acquisitionSdk.AcquisitionStatus.DeploymentFailed, deploymentKey, previousLabelOrAppVersion, previousDeploymentKey, reportDone);
+                    Sdk.reportStatusDeploy(createPackageForReporting(label, appVersion), acquisitionSdk.AcquisitionStatus.DeploymentFailed, deploymentKey, lastVersionLabelOrAppVersion, lastVersionDeploymentKey, reportDone);
                     break;
             }
         }

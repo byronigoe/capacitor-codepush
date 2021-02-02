@@ -4,8 +4,8 @@ interface StatusReport {
     label: string;
     appVersion: string;
     deploymentKey: string;
-    previousLabelOrAppVersion: string;
-    previousDeploymentKey: string;
+    lastVersionLabelOrAppVersion: string;
+    lastVersionDeploymentKey: string;
 }
 interface PluginCallResponse<T> {
     value: T;

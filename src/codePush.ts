@@ -120,9 +120,9 @@ class CodePush implements CodePushCapacitorPlugin {
    * Reports an application status back to the server.
    * !!! This function is called from the native side, please make changes accordingly. !!!
    */
-  public reportStatus(status: number, label: string, appVersion: string, deploymentKey: string, previousLabelOrAppVersion?: string, previousDeploymentKey?: string) {
-    if (((!label && appVersion === previousLabelOrAppVersion) || label === previousLabelOrAppVersion)
-      && deploymentKey === previousDeploymentKey) {
+  public reportStatus(status: number, label: string, appVersion: string, deploymentKey: string, lastVersionLabelOrAppVersion?: string, lastVersionDeploymentKey?: string) {
+    if (((!label && appVersion === lastVersionLabelOrAppVersion) || label === lastVersionLabelOrAppVersion)
+      && deploymentKey === lastVersionDeploymentKey) {
       // No-op since the new appVersion and label is exactly the same as the previous
       // (the app might have been updated via a direct or HockeyApp deployment).
       return;
@@ -145,8 +145,8 @@ class CodePush implements CodePushCapacitorPlugin {
         label,
         appVersion,
         deploymentKey,
-        previousLabelOrAppVersion,
-        previousDeploymentKey
+        lastVersionLabelOrAppVersion,
+        lastVersionDeploymentKey
       };
 
       if (error) {
@@ -160,13 +160,13 @@ class CodePush implements CodePushCapacitorPlugin {
 
     switch (status) {
       case ReportStatus.STORE_VERSION:
-        Sdk.reportStatusDeploy(null, AcquisitionStatus.DeploymentSucceeded, deploymentKey, previousLabelOrAppVersion, previousDeploymentKey, reportDone);
+        Sdk.reportStatusDeploy(null, AcquisitionStatus.DeploymentSucceeded, deploymentKey, lastVersionLabelOrAppVersion, lastVersionDeploymentKey, reportDone);
         break;
       case ReportStatus.UPDATE_CONFIRMED:
-        Sdk.reportStatusDeploy(createPackageForReporting(label, appVersion), AcquisitionStatus.DeploymentSucceeded, deploymentKey, previousLabelOrAppVersion, previousDeploymentKey, reportDone);
+        Sdk.reportStatusDeploy(createPackageForReporting(label, appVersion), AcquisitionStatus.DeploymentSucceeded, deploymentKey, lastVersionLabelOrAppVersion, lastVersionDeploymentKey, reportDone);
         break;
       case ReportStatus.UPDATE_ROLLED_BACK:
-        Sdk.reportStatusDeploy(createPackageForReporting(label, appVersion), AcquisitionStatus.DeploymentFailed, deploymentKey, previousLabelOrAppVersion, previousDeploymentKey, reportDone);
+        Sdk.reportStatusDeploy(createPackageForReporting(label, appVersion), AcquisitionStatus.DeploymentFailed, deploymentKey, lastVersionLabelOrAppVersion, lastVersionDeploymentKey, reportDone);
         break;
     }
   }
