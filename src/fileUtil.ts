@@ -1,4 +1,4 @@
-import { Directory, GetUriOptions, Filesystem, Encoding } from '@capacitor/filesystem';
+import { Directory, GetUriOptions, Filesystem, Encoding } from "@capacitor/filesystem";
 import { Callback } from "./callbackUtil";
 
 

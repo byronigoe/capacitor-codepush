@@ -1,5 +1,5 @@
 import { Plugins } from "@capacitor/core";
-import { Directory, Filesystem, GetUriOptions } from '@capacitor/filesystem';
+import { Directory, Filesystem, GetUriOptions } from "@capacitor/filesystem";
 import { AcquisitionStatus } from "code-push/script/acquisition-sdk";
 import { Callback, ErrorCallback, SuccessCallback } from "./callbackUtil";
 import { CodePushUtil } from "./codePushUtil";

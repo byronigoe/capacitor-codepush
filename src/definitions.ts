@@ -1,6 +1,6 @@
-import type { NativeCodePushPlugin } from './nativeCodePushPlugin';
+import type { NativeCodePushPlugin } from "./nativeCodePushPlugin";
 
-declare module '@capacitor/core' {
+declare module "@capacitor/core" {
   interface PluginRegistry {
     CodePush: NativeCodePushPlugin;
   }

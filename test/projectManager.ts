@@ -52,6 +52,7 @@ export class ProjectManager {
         const packageFile = path.join(templatePath, "package.json");
         const destinationPackageFile = path.join(projectDirectory, "package.json");
 
+        // TODO: use Capacitor command & template
         return ProjectManager.execChildProcess("cordova create " + projectDirectory + " " + appNamespace + " " + appName + " --template " + templatePath)
             .then<string>(testUtil.copyFile.bind(undefined, packageFile, destinationPackageFile, true))
             .then<string>(ProjectManager.replaceString.bind(undefined, destinationIndexPath, ProjectManager.CODE_PUSH_APP_VERSION_PLACEHOLDER, version));
@@ -75,7 +76,7 @@ export class ProjectManager {
 
         const packageFile = eval("(" + fs.readFileSync("./package.json", "utf8") + ")");
         const pluginVersion = packageFile.version;
-        const AndroidManifest = path.join(projectDirectory, "platforms", "android", "app", "src", "main", "AndroidManifest.xml");
+        const AndroidManifest = path.join(projectDirectory, "android", "src", "main", "AndroidManifest.xml");
 
 
         console.log("Setting up scenario " + jsPath + " in " + projectDirectory);

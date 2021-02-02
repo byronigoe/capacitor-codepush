@@ -1,6 +1,7 @@
 import { Http } from "code-push/script/acquisition-sdk";
 import { Callback } from "./callbackUtil";
 import { Plugins } from "@capacitor/core";
+import type { HttpResponse } from "@capacitor-community/http";
 
 const { Http: NativeHttp } = Plugins;
 
@@ -32,7 +33,7 @@ export class HttpRequester implements Http.Requester {
 
         var methodName = this.getHttpMethodName(verb);
         if (methodName === null) return requestCallback(new Error("Method Not Allowed"), null);
-        const headers = {
+        const headers: { [key: string]: string } = {
             "X-CodePush-Plugin-Name": "cordova-plugin-code-push",
             "X-CodePush-Plugin-Version": "1.11.13",
             "X-CodePush-SDK-Version": "3.1.5"
@@ -45,7 +46,7 @@ export class HttpRequester implements Http.Requester {
             data: requestBody,
             url,
             headers
-        }).then((nativeRes) => {
+        }).then((nativeRes: HttpResponse) => {
             if (typeof nativeRes.data === "object") nativeRes.data = JSON.stringify(nativeRes.data);
             var response: Http.Response = { statusCode: nativeRes.status, body: nativeRes.data };
             requestCallback && requestCallback(null, response);

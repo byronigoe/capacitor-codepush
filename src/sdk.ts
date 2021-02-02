@@ -3,7 +3,7 @@ import { Callback } from "./callbackUtil";
 import { HttpRequester } from "./httpRequester";
 import { NativeAppInfo } from "./nativeAppInfo";
 import { IPackage } from "./package";
-import { Device } from '@capacitor/device';
+import { Device } from "@capacitor/device";
 
 /**
  * Interacts with the CodePush Acquisition SDK.
