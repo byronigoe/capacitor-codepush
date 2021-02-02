@@ -390,9 +390,9 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, devi
             if (methodName === null)
                 return requestCallback(new Error("Method Not Allowed"), null);
             const headers = {
-                "X-CodePush-Plugin-Name": "capacitor-code-push",
-                "X-CodePush-Plugin-Version": "1.0.0",
-                "X-CodePush-SDK-Version": "4.0.2"
+                "X-CodePush-Plugin-Name": "cordova-plugin-code-push",
+                "X-CodePush-Plugin-Version": "1.11.13",
+                "X-CodePush-SDK-Version": "3.1.5"
             };
             if (this.contentType) {
                 headers["Content-Type"] = this.contentType;
