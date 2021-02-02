@@ -7,7 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { Directory, Filesystem, Encoding } from '@capacitor/filesystem';
+import { Directory, Filesystem, Encoding } from "@capacitor/filesystem";
 /**
  * File utilities for CodePush.
  */

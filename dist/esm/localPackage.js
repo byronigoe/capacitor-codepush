@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { Plugins } from "@capacitor/core";
-import { Directory, Filesystem } from '@capacitor/filesystem';
+import { Directory, Filesystem } from "@capacitor/filesystem";
 import { AcquisitionStatus } from "code-push/script/acquisition-sdk";
 import { CodePushUtil } from "./codePushUtil";
 import { FileUtil } from "./fileUtil";
@@ -267,7 +267,11 @@ export class LocalPackage extends Package {
             };
             const isDiffUpdate = yield FileUtil.fileExists(manifestFile.directory, manifestFile.path);
             // do not throw error on already directory exists.
-            Filesystem.mkdir({ path: LocalPackage.VersionsDir, directory: Directory.Data, recursive: true }).then(() => null);
+            Filesystem.mkdir({
+                path: LocalPackage.VersionsDir,
+                directory: Directory.Data,
+                recursive: true
+            }).then(() => null).catch(() => null);
             (yield isDiffUpdate)
                 ? LocalPackage.handleDiffDeployment(newPackageLocation, manifestFile)
                 : LocalPackage.handleCleanDeployment(newPackageLocation);

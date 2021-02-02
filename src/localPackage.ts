@@ -320,7 +320,12 @@ export class LocalPackage extends Package implements ILocalPackage {
         const isDiffUpdate = await FileUtil.fileExists(manifestFile.directory, manifestFile.path);
 
         // do not throw error on already directory exists.
-        Filesystem.mkdir({path: LocalPackage.VersionsDir, directory: Directory.Data, recursive: true}).then(() => null);
+        Filesystem.mkdir({
+            path: LocalPackage.VersionsDir,
+            directory: Directory.Data,
+            recursive: true
+        }).then(() => null).catch(() => null);
+
         await isDiffUpdate
                 ? LocalPackage.handleDiffDeployment(newPackageLocation, manifestFile)
                 : LocalPackage.handleCleanDeployment(newPackageLocation);

@@ -1,4 +1,4 @@
-import { Directory, GetUriOptions } from '@capacitor/filesystem';
+import { Directory, GetUriOptions } from "@capacitor/filesystem";
 import { Callback } from "./callbackUtil";
 /**
  * File utilities for CodePush.

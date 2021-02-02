@@ -802,7 +802,11 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, devi
                 };
                 const isDiffUpdate = yield FileUtil.fileExists(manifestFile.directory, manifestFile.path);
                 // do not throw error on already directory exists.
-                filesystem.Filesystem.mkdir({ path: LocalPackage.VersionsDir, directory: filesystem.Directory.Data, recursive: true }).then(() => null);
+                filesystem.Filesystem.mkdir({
+                    path: LocalPackage.VersionsDir,
+                    directory: filesystem.Directory.Data,
+                    recursive: true
+                }).then(() => null).catch(() => null);
                 (yield isDiffUpdate)
                     ? LocalPackage.handleDiffDeployment(newPackageLocation, manifestFile)
                     : LocalPackage.handleCleanDeployment(newPackageLocation);

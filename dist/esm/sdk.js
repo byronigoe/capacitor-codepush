@@ -10,7 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { AcquisitionManager } from "code-push/script/acquisition-sdk";
 import { HttpRequester } from "./httpRequester";
 import { NativeAppInfo } from "./nativeAppInfo";
-import { Device } from '@capacitor/device';
+import { Device } from "@capacitor/device";
 /**
  * Interacts with the CodePush Acquisition SDK.
  */
