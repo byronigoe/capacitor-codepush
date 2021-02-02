@@ -272,9 +272,12 @@ export class LocalPackage extends Package {
                 directory: Directory.Data,
                 recursive: true
             }).then(() => null).catch(() => null);
-            (yield isDiffUpdate)
-                ? LocalPackage.handleDiffDeployment(newPackageLocation, manifestFile)
-                : LocalPackage.handleCleanDeployment(newPackageLocation);
+            if (isDiffUpdate) {
+                yield LocalPackage.handleDiffDeployment(newPackageLocation, manifestFile);
+            }
+            else {
+                yield LocalPackage.handleCleanDeployment(newPackageLocation);
+            }
             return { deployDir: newPackageLocation, isDiffUpdate };
         });
     }

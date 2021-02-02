@@ -326,9 +326,11 @@ export class LocalPackage extends Package implements ILocalPackage {
             recursive: true
         }).then(() => null).catch(() => null);
 
-        await isDiffUpdate
-                ? LocalPackage.handleDiffDeployment(newPackageLocation, manifestFile)
-                : LocalPackage.handleCleanDeployment(newPackageLocation);
+        if (isDiffUpdate) {
+            await LocalPackage.handleDiffDeployment(newPackageLocation, manifestFile);
+        } else {
+            await LocalPackage.handleCleanDeployment(newPackageLocation);
+        }
 
         return {deployDir: newPackageLocation, isDiffUpdate};
     }
