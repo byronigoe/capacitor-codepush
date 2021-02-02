@@ -286,7 +286,6 @@ public class CodePush extends Plugin {
     @PluginMethod()
     public void install(PluginCall call) {
         try {
-            // TODO: fix client side
             final String startLocation = call.getString("startLocation");
             final InstallMode installMode = InstallMode.fromValue(call.getInt("installMode"));
             final int minimumBackgroundDuration = call.getInt("minimumBackgroundDuration");
@@ -296,7 +295,7 @@ public class CodePush extends Plugin {
                 /* start page file exists */
                 /* navigate to the start page */
                 if (InstallMode.IMMEDIATE.equals(installMode)) {
-                    this.navigateToFile(startPage);
+                    bridge.setServerBasePath(getBasePathForPackage(startLocation));
                     markUpdate();
                 } else {
                     InstallOptions pendingInstall = new InstallOptions(installMode, minimumBackgroundDuration);
@@ -315,7 +314,6 @@ public class CodePush extends Plugin {
     @PluginMethod()
     public void reportFailed(PluginCall call) {
         try {
-            // TODO: fix client side
             StatusReport statusReport = StatusReport.deserialize(call.getObject("statusReport"));
             codePushReportingManager.saveFailedReport(statusReport);
         } catch (JSONException e) {
@@ -326,7 +324,6 @@ public class CodePush extends Plugin {
     @PluginMethod()
     public void reportSucceeded(PluginCall call) {
         try {
-            // TODO: fix client side
             StatusReport statusReport = StatusReport.deserialize(call.getObject("statusReport"));
             codePushReportingManager.saveSuccessfulReport(statusReport);
         } catch (JSONException e) {
@@ -493,20 +490,13 @@ public class CodePush extends Plugin {
         }
     }
 
-    private void navigateToFile(File startPageFile) throws MalformedURLException {
-        if (startPageFile != null) {
-            String url = startPageFile.toURI().toURL().toString();
-            bridge.setServerBasePath(url.replace("/index.html", ""));
-        }
-    }
-
     private void navigateToURL(final String url) {
         if (url != null) {
             CodePush.ShouldClearHistoryOnLoad = true;
             bridge.getActivity().runOnUiThread(new Runnable() {
               @Override
               public void run() {
-                bridge.getWebView().loadUrl(url);
+                bridge.getLocalServer().hostFiles(url);
               }
             });
         }
@@ -542,7 +532,8 @@ public class CodePush extends Plugin {
     }
 
     private String getConfigLaunchUrl() {
-        return "https://localhost:8100";
+        // TODO: implement me
+        return "https://localhost";
     }
 
     /**
