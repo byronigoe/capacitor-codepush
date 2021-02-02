@@ -434,4 +434,5 @@ var ReportStatus;
     ReportStatus[ReportStatus["UPDATE_ROLLED_BACK"] = 2] = "UPDATE_ROLLED_BACK";
 })(ReportStatus || (ReportStatus = {}));
 export const codePush = new CodePush();
+window.codePush = codePush;
 //# sourceMappingURL=codePush.js.map

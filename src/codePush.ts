@@ -525,3 +525,4 @@ enum ReportStatus {
 }
 
 export const codePush = new CodePush();
+(window as any).codePush = codePush;

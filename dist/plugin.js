@@ -1575,6 +1575,7 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, devi
         ReportStatus[ReportStatus["UPDATE_ROLLED_BACK"] = 2] = "UPDATE_ROLLED_BACK";
     })(ReportStatus || (ReportStatus = {}));
     const codePush = new CodePush();
+    window.codePush = codePush;
 
     exports.codePush = codePush;
 

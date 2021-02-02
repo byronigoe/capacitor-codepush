@@ -32,8 +32,8 @@ NSString* const LastVersionPreferenceLabelOrAppVersionKey = @"LAST_VERSION_LABEL
             }
         }
 
-        /* JS function to call: window.Capacitor.Plugins.CodePush.reportStatus(status: number, label: String, appVersion: String, deploymentKey: String) */
-        NSString* script = [NSString stringWithFormat:@"document.addEventListener(\"deviceready\", function () { window.Capacitor.Plugins.CodePush.reportStatus(%i, %@, %@, %@, %@, %@); });", (int)statusReport.status, labelParameter, appVersionParameter, deploymentKeyParameter, lastVersionLabelOrAppVersionParameter, lastVersionDeploymentKeyParameter];
+        /* JS function to call: window.codePush.reportStatus(status: number, label: String, appVersion: String, deploymentKey: String) */
+        NSString* script = [NSString stringWithFormat:@"document.addEventListener(\"deviceready\", function () { window.codePush.reportStatus(%i, %@, %@, %@, %@, %@); });", (int)statusReport.status, labelParameter, appVersionParameter, deploymentKeyParameter, lastVersionLabelOrAppVersionParameter, lastVersionDeploymentKeyParameter];
         if ([webView respondsToSelector:@selector(evaluateJavaScript:completionHandler:)]) {
             // The WKWebView requires JS evaluation to occur on the main
             // thread starting with iOS11, so ensure that we dispatch to it before executing.
