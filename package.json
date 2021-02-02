@@ -25,7 +25,7 @@
     "capacitor-android",
     "capacitor-ios"
   ],
-  "author": "Microsoft Corporation",
+  "author": "MAPIACOMPANY",
   "license": "MIT",
   "devDependencies": {
     "@commitlint/cli": "^11.0.0",
@@ -66,7 +66,7 @@
     "@capacitor/device": "^0.5.1",
     "@capacitor/dialog": "^0.4.1",
     "@capacitor/filesystem": "^0.3.1",
-    "code-push": "^3.1.5"
+    "code-push": "^4.0.2"
   },
   "capacitor": {
     "ios": {
