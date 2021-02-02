@@ -801,12 +801,14 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, devi
                     path: LocalPackage.DownloadUnzipDir + "/" + LocalPackage.DiffManifestFile
                 };
                 const isDiffUpdate = yield FileUtil.fileExists(manifestFile.directory, manifestFile.path);
-                // do not throw error on already directory exists.
-                filesystem.Filesystem.mkdir({
-                    path: LocalPackage.VersionsDir,
-                    directory: filesystem.Directory.Data,
-                    recursive: true
-                }).then(() => null).catch(() => null);
+                if (!(yield FileUtil.directoryExists(filesystem.Directory.Data, LocalPackage.VersionsDir))) {
+                    // If directory not exists, create recursive folder
+                    yield filesystem.Filesystem.mkdir({
+                        path: LocalPackage.VersionsDir,
+                        directory: filesystem.Directory.Data,
+                        recursive: true
+                    });
+                }
                 if (isDiffUpdate) {
                     yield LocalPackage.handleDiffDeployment(newPackageLocation, manifestFile);
                 }
