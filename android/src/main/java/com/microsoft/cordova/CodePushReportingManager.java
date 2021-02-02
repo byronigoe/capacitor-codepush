@@ -27,10 +27,9 @@ public class CodePushReportingManager {
             return;
         }
 
-        // TODO: fix js call
         final String script = String.format(
             Locale.US,
-            "javascript:document.addEventListener(\"deviceready\", function () { window.codePush.reportStatus(%d, %s, %s, %s, %s, %s); });",
+            "javascript:document.addEventListener(\"deviceready\", function () { window.Capacitor.Plugins.CodePush.reportStatus(%d, %s, %s, %s, %s, %s); });",
             statusReport.status.getValue(),
             convertStringParameter(statusReport.label),
             convertStringParameter(statusReport.appVersion),
