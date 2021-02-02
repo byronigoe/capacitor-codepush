@@ -496,7 +496,7 @@ public class CodePush extends Plugin {
     private void navigateToFile(File startPageFile) throws MalformedURLException {
         if (startPageFile != null) {
             String url = startPageFile.toURI().toURL().toString();
-            this.navigateToURL(url);
+            bridge.setServerBasePath(url.replace("/index.html", ""));
         }
     }
 
@@ -542,8 +542,7 @@ public class CodePush extends Plugin {
     }
 
     private String getConfigLaunchUrl() {
-        // TODO: implement me
-        return "https://localhost";
+        return "https://localhost:8100";
     }
 
     /**

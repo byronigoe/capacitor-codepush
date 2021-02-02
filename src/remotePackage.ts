@@ -67,7 +67,7 @@ export class RemotePackage extends Package implements IRemotePackage {
         localPackage.packageHash = this.packageHash;
         localPackage.isFirstRun = false;
         localPackage.failedInstall = installFailed;
-        localPackage.localPath = file;
+        localPackage.localPath = fullPath.uri;
 
         CodePushUtil.logMessage("Package download success: " + JSON.stringify(localPackage));
         Sdk.reportStatusDownload(localPackage, localPackage.deploymentKey);
