@@ -69,9 +69,6 @@
     "code-push": "^3.1.5"
   },
   "capacitor": {
-    "ios": {
-      "src": "ios"
-    },
     "android": {
       "src": "android"
     }
