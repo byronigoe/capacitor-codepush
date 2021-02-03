@@ -17,8 +17,7 @@
 - (void)decodeSignature:(CDVInvokedUrlCommand *)command;
 - (void)getPublicKey:(CDVInvokedUrlCommand *)command;
 - (void)pluginInitialize;
-+ (Boolean)hasIonicWebViewEngine:(id<CDVWebViewEngineProtocol>) webViewEngine;
-+ (void) setServerBasePath:(NSString*)serverPath webView:(id<CDVWebViewEngineProtocol>) webViewEngine;
++ (void) setServerBasePath:(NSString*)serverPath webView:(WKWebView *) webViewEngine;
 + (NSString*) getCurrentServerBasePath;
 
 void CPLog(NSString *formatString, ...);
