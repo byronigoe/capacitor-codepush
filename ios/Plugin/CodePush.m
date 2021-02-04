@@ -487,9 +487,17 @@ StatusReport* rollbackStatusReport = nil;
 
 - (void)unzip:(CAPPluginCall *)call {
     NSString * zipFile = [self getString:call field:@"zipFile" defaultValue:nil];
+    NSURL * zipURL =  [NSURL URLWithString:zipFile];
     NSString * unzipPath = [self getString:call field:@"targetDirectory" defaultValue:nil];
-    [SSZipArchive unzipFileAtPath:zipFile toDestination:unzipPath];
-    [call resolve];
+    NSURL * unzipURL =  [NSURL URLWithString:unzipPath];
+    // https://stackoverflow.com/questions/37564303/unzip-a-file-using-ssziparchive-not-extracting-the-contents-of-the-file
+    // It require NSURL path (not absoluteString - start with file://)
+    BOOL result = [SSZipArchive unzipFileAtPath:zipURL.path toDestination:unzipURL.path overwrite:YES password:nil error:nil];
+    if (result) {
+        [call resolve];
+    } else {
+        [call reject:@"Failed to unzip": nil : nil : @{}];
+    }
 }
 
 @end
