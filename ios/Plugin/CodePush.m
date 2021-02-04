@@ -31,13 +31,13 @@
 @property (nonatomic, readwrite) NSString* decodeSignature;
 @property (readwrite, assign, nonatomic) NSString* getPublicKey;
 
-- (void) setServerBasePath:(NSString*)serverPath webView:(WKWebView *) webViewEngine;
+- (void) setServerBasePath:(NSString*)serverPath;
 
 @end
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wprotocol"
-// suppressing warnings of the type: "Class 'KeyboardPlugin' does not conform to protocol 'CAPBridgedPlugin'"
+// suppressing warnings of the type: "Class 'CodePushPlugin' does not conform to protocol 'CAPBridgedPlugin'"
 // protocol conformance for this class is implemented by a macro and clang isn't detecting that
 @implementation CodePushPlugin
 
@@ -378,19 +378,15 @@ StatusReport* rollbackStatusReport = nil;
     return specifiedServerPath;
 }
 
-+ (void) setServerBasePath:(NSString*)serverPath webview:(WKWebView*) webViewEngine {
+- (void) setServerBasePath:(NSString*)serverPath {
     specifiedServerPath = serverPath;
-    SEL setServerBasePath = NSSelectorFromString(@"setServerBasePath:");
     NSMutableArray * urlPathComponents = [serverPath pathComponents].mutableCopy;
     [urlPathComponents removeLastObject];
     NSString * serverBasePath = [urlPathComponents componentsJoinedByString:@"/"];
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
-    CDVInvokedUrlCommand * command = [CDVInvokedUrlCommand commandFromJson:[NSArray arrayWithObjects: @"", @"", @"", [NSMutableArray arrayWithObject:serverBasePath], nil]];
+
     dispatch_async(dispatch_get_main_queue(), ^{
-        [webViewEngine performSelector: setServerBasePath withObject: command];
+        [(CAPBridgeViewController *) self.bridge.viewController setServerBasePathWithPath:serverBasePath];
     });
-#pragma clang diagnostic pop
 }
 
 - (void)loadStoreVersion {
@@ -438,7 +434,7 @@ StatusReport* rollbackStatusReport = nil;
 - (void)redirectStartPageToURL:(NSString*)packageLocation{
     NSURL* URL = [self getStartPageURLForLocalPackage:packageLocation];
     if (URL) {
-        [self setServerBasePath:URL.path webView:self.webView];
+        [self setServerBasePath:URL.path];
     }
 }
 

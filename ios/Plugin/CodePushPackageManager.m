@@ -14,17 +14,17 @@ NSString* const CurrentPackageManifestName = @"currentPackage.json";
 
 +(void)cleanOldPackage {
     CodePushPackageMetadata* oldMetadata = [self getOldPackageMetadata];
-    
+
     // delete the package folder
     [self cleanPackageDirectory:oldMetadata];
-    
+
     // delete the downloads folder
     [self cleanDownloads];
 }
 
 +(void)cleanDownloads {
-    NSString* libraryLocation = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) objectAtIndex:0];
-    NSArray* downloadFolderArray = @[libraryLocation, @"NoCloud", @"codepush", @"download"];
+    NSString* documentLocation = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
+    NSArray* downloadFolderArray = @[documentLocation, @"codepush", @"download"];
     NSString* downloadFolderLocation = [NSString pathWithComponents:downloadFolderArray];
     if ([[NSFileManager defaultManager] fileExistsAtPath: downloadFolderLocation]) {
         [[NSFileManager defaultManager] removeItemAtPath:downloadFolderLocation error:nil];
@@ -32,11 +32,11 @@ NSString* const CurrentPackageManifestName = @"currentPackage.json";
 }
 
 +(void)cleanPackageDirectory:(CodePushPackageMetadata*)packageMetadata {
-    NSString* libraryLocation = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) objectAtIndex:0];
-    
+    NSString* documentLocation = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
+
     if (nil != packageMetadata && nil != packageMetadata.localPath) {
         // delete the package folder
-        NSArray* oldPackageDir = @[libraryLocation, @"NoCloud", packageMetadata.localPath];
+        NSArray* oldPackageDir = @[documentLocation, packageMetadata.localPath];
         NSString* oldPackageDirPath = [NSString pathWithComponents:oldPackageDir];
         if ([[NSFileManager defaultManager] fileExistsAtPath: oldPackageDirPath]) {
             [[NSFileManager defaultManager] removeItemAtPath:oldPackageDirPath error:nil];
@@ -46,8 +46,8 @@ NSString* const CurrentPackageManifestName = @"currentPackage.json";
 
 +(void)cleanDeployments {
     // check if the file exists
-    NSString* libraryLocation = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) objectAtIndex:0];
-    NSArray* codePushDirectoryArray = @[libraryLocation, @"NoCloud", @"codepush" ];
+    NSString* documentLocation = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
+    NSArray* codePushDirectoryArray = @[documentLocation, @"codepush" ];
     NSString* codePushDirPath = [NSString pathWithComponents:codePushDirectoryArray];
     if ([[NSFileManager defaultManager] fileExistsAtPath:codePushDirPath]) {
         [[NSFileManager defaultManager] removeItemAtPath:codePushDirPath error:nil];
@@ -86,7 +86,7 @@ NSString* const CurrentPackageManifestName = @"currentPackage.json";
     if (nil == failedUpdates) {
         failedUpdates = [[NSMutableArray alloc] init];
     }
-    
+
     [failedUpdates addObject:packageHash];
     [preferences setObject:failedUpdates forKey:FailedUpdatesKey];
     [preferences synchronize];
@@ -111,7 +111,7 @@ NSString* const CurrentPackageManifestName = @"currentPackage.json";
         InstallOptions* pendingInstall = [NSKeyedUnarchiver unarchiveObjectWithData:serializedPendingInstall];
         return pendingInstall;
     }
-    
+
     return nil;
 }
 
@@ -157,8 +157,8 @@ NSString* const CurrentPackageManifestName = @"currentPackage.json";
 
 + (CodePushPackageMetadata*)readPackageManifest:(NSString*)manifestName {
     // check if the file exists
-    NSString* libraryLocation = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) objectAtIndex:0];
-    NSArray* manifestLocationArray = @[libraryLocation, @"NoCloud", @"codepush", manifestName];
+    NSString* documentLocation = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
+    NSArray* manifestLocationArray = @[documentLocation, @"codepush", manifestName];
     NSString* manifestLocation = [NSString pathWithComponents:manifestLocationArray];
     if ([[NSFileManager defaultManager] fileExistsAtPath:manifestLocation]) {
         // read the package manifest
@@ -168,9 +168,9 @@ NSString* const CurrentPackageManifestName = @"currentPackage.json";
             return [CodePushPackageMetadata parsePackageManifest:content];
         }
     }
-    
+
     return nil;
-    
+
 }
 
 + (void)revertToPreviousVersion {
@@ -180,24 +180,24 @@ NSString* const CurrentPackageManifestName = @"currentPackage.json";
         [self saveFailedUpdate:failedMetadata.packageHash];
     }
     [self cleanPackageDirectory:failedMetadata];
-    
+
     /* replace the current metadata file with the old one */
-    NSString* libraryLocation = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) objectAtIndex:0];
-    NSArray* oldManifestArray = @[libraryLocation, @"NoCloud", @"codepush", OldPackageManifestName];
-    NSArray* currentManifestArray = @[libraryLocation, @"NoCloud", @"codepush", CurrentPackageManifestName];
-    
+    NSString* documentLocation = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
+    NSArray* oldManifestArray = @[documentLocation, @"codepush", OldPackageManifestName];
+    NSArray* currentManifestArray = @[documentLocation, @"codepush", CurrentPackageManifestName];
+
     NSString* oldManifestLocation = [NSString pathWithComponents:oldManifestArray];
     NSString* currentManifestLocation = [NSString pathWithComponents:currentManifestArray];
-    
+
     if ([[NSFileManager defaultManager] fileExistsAtPath:currentManifestLocation]) {
         [[NSFileManager defaultManager] removeItemAtPath:currentManifestLocation error:nil];
     }
-    
+
     /* move the old manifest to the curent location */
     if ([[NSFileManager defaultManager] fileExistsAtPath:oldManifestLocation]) {
         [[NSFileManager defaultManager] moveItemAtPath:oldManifestLocation toPath:currentManifestLocation error:nil];
     }
-    
+
     [self cleanDownloads];
 }
 
