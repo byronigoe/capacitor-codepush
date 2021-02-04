@@ -49,16 +49,15 @@ StatusReport* rollbackStatusReport = nil;
 - (void)getBinaryHash:(CAPPluginCall *)call {
     NSString* binaryHash = [CodePushPackageManager getCachedBinaryHash];
     if (binaryHash) {
-        [call resolve: binaryHash]
+        [call resolve: @{@"value": binaryHash}];
     } else {
         NSError* error;
         binaryHash = [UpdateHashUtils getBinaryHash:&error];
         if (error) {
-            // TODO: is it working?
-            [call reject:@"An error occurred when trying to get the hash of the binary contents. " :(NSString * _Nullable) :error : error]
+            [call reject:@"An error occurred when trying to get the hash of the binary contents. " :nil : error:@{}];
         } else {
             [CodePushPackageManager saveBinaryHash:binaryHash];
-            [call resolve:binaryHash]
+            [call resolve:@{@"value":binaryHash}];
         }
     }
 }
@@ -66,7 +65,7 @@ StatusReport* rollbackStatusReport = nil;
 - (void)getPackageHash:(CAPPluginCall *)call {
     NSString *path = [self getString:call field:@"path" defaultValue:nil];
     if (!path) {
-        [call reject:@"No path supplied"];
+        [call reject:@"No path supplied":nil:nil:@{}];
     } else {
         path = [[[NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES)[0]
                 stringByAppendingPathComponent:@"NoCloud"]
@@ -75,16 +74,16 @@ StatusReport* rollbackStatusReport = nil;
         NSError *error;
         NSString *hash = [UpdateHashUtils getHashForPath:path error:&error];
         if (error) {
-            [call reject:[NSString stringWithFormat:@"An error occured when trying to get the hash of %@. %@", path, error.description]];
+            [call reject:[NSString stringWithFormat:@"An error occured when trying to get the hash of %@. %@", path, error.description]:nil:error:@{}];
         } else {
-            [call resolve:hash];
+            [call resolve:@{@"value":hash}];
         }
     }
 }
 
 - (void)getPublicKey:(CAPPluginCall *)call {
-    NSString *publicKey = ((CDVViewController *) self.viewController).settings[PublicKeyPreference];
-    [call resolve: publicKey];
+    NSString *publicKey = [self getConfigValue:PublicKeyPreference];
+    [call resolve:@{@"value":publicKey}];
 }
 
 - (void)decodeSignature:(CAPPluginCall *)call {
@@ -98,7 +97,7 @@ StatusReport* rollbackStatusReport = nil;
     publicKey = [publicKey stringByReplacingOccurrencesOfString:@"\n"
                                                      withString:@""];
 
-    NSString *jwt = [command argumentAtIndex:1 withDefault:nil andClass:[NSString class]];
+    NSString *jwt = [self getString:call field:@"signature" defaultValue:nil];
 
     id <JWTAlgorithmDataHolderProtocol> verifyDataHolder = [JWTAlgorithmRSFamilyDataHolder new]
             .keyExtractorType([JWTCryptoKeyExtractor publicKeyWithPEMBase64].type)
@@ -108,9 +107,9 @@ StatusReport* rollbackStatusReport = nil;
     JWTCodingResultType *verifyResult = verifyBuilder.result;
     if (verifyResult.successResult) {
         CPLog(@"JWT signature verification succeeded, payload content:  %@", verifyResult.successResult.payload);
-        [call resolve:verifyResult.successResult.payload[@"contentHash"]];
+        [call resolve:@{@"value":verifyResult.successResult.payload[@"contentHash"]}];
     } else {
-        [call resolve:[@"Signature verification failed: " stringByAppendingString:verifyResult.errorResult.error.description]];
+        [call reject:[@"Signature verification failed: " stringByAppendingString:verifyResult.errorResult.error.description]:nil:nil:@{}];
     }
 }
 
@@ -184,7 +183,7 @@ StatusReport* rollbackStatusReport = nil;
 
     if ([options installMode] == IMMEDIATE) {
         if (nil == location) {
-            [call reject: @"Cannot read the start URL."];
+            [call reject:@"Cannot read the start URL" : nil :nil:@{}];
         }
         else {
             bool applied = [self loadPackage: location];
@@ -193,7 +192,7 @@ StatusReport* rollbackStatusReport = nil;
                 [call resolve];
             }
             else {
-                [call reject: @"An error happened during package install.", ];
+                [call reject: @"An error happened during package install.": nil:nil: @{} ];
             }
         }
     }
@@ -205,7 +204,7 @@ StatusReport* rollbackStatusReport = nil;
 }
 
 - (void)reportFailed:(CAPPluginCall *)call {
-    NSDictionary* statusReportDict =  [command argumentAtIndex:0 withDefault:nil andClass:[NSDictionary class]];
+    NSDictionary* statusReportDict = [call.options objectForKey: @"statusReport"];
     if (statusReportDict) {
         [CodePushReportingManager saveFailedReport:[[StatusReport alloc] initWithDictionary:statusReportDict]];
     }
@@ -213,7 +212,7 @@ StatusReport* rollbackStatusReport = nil;
 }
 
 - (void)reportSucceeded:(CAPPluginCall *)call {
-    NSDictionary* statusReportDict = [command argumentAtIndex:0 withDefault:nil andClass:[NSDictionary class]];
+    NSDictionary* statusReportDict = [call.options objectForKey: @"statusReport"];
     if (statusReportDict) {
         [CodePushReportingManager saveSuccessfulReport:[[StatusReport alloc] initWithDictionary:statusReportDict]];
     }
@@ -246,7 +245,7 @@ StatusReport* rollbackStatusReport = nil;
 - (void)preInstall:(CAPPluginCall *)call {
     NSString* location = [self getString:call field:@"startLocation" defaultValue:nil];
     if (nil == location) {
-        [call reject: @"Cannot read the start URL."];
+        [call reject: @"Cannot read the start URL.":nil:nil:@{}];
     }
     else {
         NSURL* URL = [self getStartPageURLForLocalPackage:location];
@@ -254,7 +253,7 @@ StatusReport* rollbackStatusReport = nil;
             [call resolve];
         }
         else {
-            [call reject: @"Could not find start page in package."];
+            [call reject: @"Could not find start page in package.":nil:nil:@{}];
         }
     }
 }
@@ -276,9 +275,9 @@ StatusReport* rollbackStatusReport = nil;
     NSString* preferenceValue = [self getConfigValue:preferenceName];
     // length of NIL is zero
     if ([preferenceValue length] > 0) {
-        [call resolve: preferenceValue]; // TODO: should be { value: value };
+        [call resolve: @{@"value":preferenceValue}];
     } else {
-        [call reject: [NSString stringWithFormat:@"Could not find preference %@", preferenceName]];
+        [call reject: [NSString stringWithFormat:@"Could not find preference %@", preferenceName]:nil:nil:@{}];
     }
 }
 
@@ -443,20 +442,20 @@ StatusReport* rollbackStatusReport = nil;
 }
 
 - (void)isFailedUpdate:(CAPPluginCall *)call {
-    NSString* packageHash = [command argumentAtIndex:0 withDefault:nil andClass:[NSString class]];
+    NSString* packageHash = [self getString:call field:@"packageHash" defaultValue:nil];
     if (nil == packageHash) {
-        [call reject: @"Invalid package hash parameter."];
+        [call reject: @"Invalid package hash parameter.": nil:nil: @{}];
     }
     else {
         BOOL failedHash = [CodePushPackageManager isFailedHash:packageHash];
-        [call resolve: failedHash ? 1 : 0];
+        [call resolve:@{@"value": failedHash ? @1 : @0}];
     }
 }
 
 - (void)isFirstRun:(CAPPluginCall *)call {
     BOOL isFirstRun = NO;
 
-    NSString* packageHash = [command argumentAtIndex:0 withDefault:nil andClass:[NSString class]];
+    NSString* packageHash = [self getString:call field:@"packageHash" defaultValue:nil];
     CodePushPackageMetadata* currentPackageMetadata = [CodePushPackageManager getCurrentPackageMetadata];
     if (currentPackageMetadata) {
         isFirstRun = (nil != packageHash
@@ -465,28 +464,21 @@ StatusReport* rollbackStatusReport = nil;
                         && didUpdate);
     }
 
-    [call resolve: isFirstRun ? 1 : 0];
+    [call resolve:@{@"value": isFirstRun ? @1 : @0}];
 }
 
 - (void)isPendingUpdate:(CAPPluginCall *)call {
     InstallOptions* pendingInstall = [CodePushPackageManager getPendingInstall];
-    [call resolve: pendingInstall ? 1 : 0];
+    [call resolve:@{@"value": pendingInstall ? @1 : @0}];
 }
 
 - (void)getAppVersion:(CAPPluginCall *)call {
     NSString* version = [Utilities getApplicationVersion];
-    [call resolve: version];
+    [call resolve: @{@"value":version}];
 }
 
 - (NSString*)getAppScheme {
-    NSDictionary* settings = self.commandDelegate.settings;
-    // Cordova
-    NSString *scheme = [settings cordovaSettingForKey:@"scheme"];
-    if (scheme != nil) {
-        return scheme;
-    }
-    // Ionic
-    scheme = [settings cordovaSettingForKey:@"iosScheme"];
+    NSString *scheme = [self getConfigValue:@"scheme"];
     return scheme;
 }
 
