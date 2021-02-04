@@ -78,7 +78,7 @@ export class FileUtil {
      * Recursively deletes the contents of a directory.
      */
     public static async deleteDataDirectory(path: string): Promise<void> {
-        return Filesystem.rmdir({directory: Directory.Data, path, recursive: true}).then(() => null);
+        await Filesystem.rmdir({directory: Directory.Data, path, recursive: true}).then(() => null);
     }
 
     /**

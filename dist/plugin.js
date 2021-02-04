@@ -177,7 +177,7 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, devi
          */
         static deleteDataDirectory(path) {
             return __awaiter(this, void 0, void 0, function* () {
-                return filesystem.Filesystem.rmdir({ directory: filesystem.Directory.Data, path, recursive: true }).then(() => null);
+                yield filesystem.Filesystem.rmdir({ directory: filesystem.Directory.Data, path, recursive: true }).then(() => null);
             });
         }
         /**

@@ -88,7 +88,7 @@ export class FileUtil {
      */
     static deleteDataDirectory(path) {
         return __awaiter(this, void 0, void 0, function* () {
-            return Filesystem.rmdir({ directory: Directory.Data, path, recursive: true }).then(() => null);
+            yield Filesystem.rmdir({ directory: Directory.Data, path, recursive: true }).then(() => null);
         });
     }
     /**
