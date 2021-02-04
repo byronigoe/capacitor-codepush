@@ -28,4 +28,5 @@ CAP_PLUGIN(CodePushPlugin, "CodePush",
            CAP_PLUGIN_METHOD(getPackageHash, CAPPluginReturnPromise);
            CAP_PLUGIN_METHOD(decodeSignature, CAPPluginReturnPromise);
            CAP_PLUGIN_METHOD(getPublicKey, CAPPluginReturnPromise);
+           CAP_PLUGIN_METHOD(unzip, CAPPluginReturnPromise);
 )

@@ -1,5 +1,6 @@
 #import <Capacitor/Capacitor-Swift.h>
 #import <Capacitor/Capacitor.h>
+#import <SSZipArchive/SSZipArchive.h>
 #import "CodePush.h"
 #import "CodePushPackageMetadata.h"
 #import "CodePushPackageManager.h"
@@ -482,6 +483,13 @@ StatusReport* rollbackStatusReport = nil;
 - (NSString*)getAppScheme {
     NSString *scheme = [self getConfigValue:@"scheme"];
     return scheme;
+}
+
+- (void)unzip:(CAPPluginCall *)call {
+    NSString * zipPath = [self getString:call field:@"zipPath" defaultValue:nil];
+    NSString * unzipPath = [self getString:call field:@"targetDirectory" defaultValue:nil];
+    [SSZipArchive unzipFileAtPath:zipPath toDestination:unzipPath];
+    [call resolve];
 }
 
 @end
