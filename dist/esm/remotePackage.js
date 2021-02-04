@@ -14,6 +14,7 @@ import { NativeAppInfo } from "./nativeAppInfo";
 import { Package } from "./package";
 import { Sdk } from "./sdk";
 import { Directory, Filesystem } from "@capacitor/filesystem";
+import { FileUtil } from "./fileUtil";
 const { Http } = Plugins;
 /**
  * Defines a remote package, which represents an update package available for download.
@@ -38,13 +39,15 @@ export class RemotePackage extends Package {
             this.isDownloading = true;
             const file = LocalPackage.DownloadDir + "/" + LocalPackage.PackageUpdateFileName;
             const fullPath = yield Filesystem.getUri({ directory: Directory.Data, path: file });
-            // create directory if not exists (without any error thrown)
-            Filesystem.mkdir({
-                path: LocalPackage.DownloadDir,
-                directory: Directory.Data,
-                recursive: true,
-            }).then(console.log, console.error);
             try {
+                // create directory if not exists
+                if (!(yield FileUtil.directoryExists(Directory.Data, LocalPackage.DownloadDir))) {
+                    yield Filesystem.mkdir({
+                        path: LocalPackage.DownloadDir,
+                        directory: Directory.Data,
+                        recursive: true,
+                    });
+                }
                 yield Http.downloadFile({
                     url: this.downloadUrl,
                     filePath: file,

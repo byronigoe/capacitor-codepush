@@ -6,6 +6,7 @@ import { NativeAppInfo } from "./nativeAppInfo";
 import { DownloadProgress, ILocalPackage, IRemotePackage, Package } from "./package";
 import { Sdk } from "./sdk";
 import { Directory, Filesystem } from "@capacitor/filesystem";
+import { FileUtil } from "./fileUtil";
 
 const { Http } = Plugins;
 
@@ -38,14 +39,16 @@ export class RemotePackage extends Package implements IRemotePackage {
         const file = LocalPackage.DownloadDir + "/" + LocalPackage.PackageUpdateFileName;
         const fullPath = await Filesystem.getUri({directory: Directory.Data, path: file});
 
-        // create directory if not exists (without any error thrown)
-        Filesystem.mkdir({
-            path: LocalPackage.DownloadDir,
-            directory: Directory.Data,
-            recursive: true,
-        }).then(console.log, console.error);
-
         try {
+            // create directory if not exists
+            if (!(await FileUtil.directoryExists(Directory.Data, LocalPackage.DownloadDir))) {
+                await Filesystem.mkdir({
+                    path: LocalPackage.DownloadDir,
+                    directory: Directory.Data,
+                    recursive: true,
+                });
+            }
+
             await Http.downloadFile({
                 url: this.downloadUrl,
                 filePath: file,
