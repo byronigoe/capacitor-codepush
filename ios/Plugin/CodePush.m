@@ -486,9 +486,9 @@ StatusReport* rollbackStatusReport = nil;
 }
 
 - (void)unzip:(CAPPluginCall *)call {
-    NSString * zipPath = [self getString:call field:@"zipPath" defaultValue:nil];
+    NSString * zipFile = [self getString:call field:@"zipFile" defaultValue:nil];
     NSString * unzipPath = [self getString:call field:@"targetDirectory" defaultValue:nil];
-    [SSZipArchive unzipFileAtPath:zipPath toDestination:unzipPath];
+    [SSZipArchive unzipFileAtPath:zipFile toDestination:unzipPath];
     [call resolve];
 }
 
