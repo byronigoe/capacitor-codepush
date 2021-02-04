@@ -1,6 +1,5 @@
-#import <Cordova/CDV.h>
-#import <Cordova/CDVConfigParser.h>
-#import <Cordova/NSDictionary+CordovaPreferences.h>
+#import <Capacitor/Capacitor-Swift.h>
+#import <Capacitor/Capacitor.h>
 #import "CodePush.h"
 #import "CodePushPackageMetadata.h"
 #import "CodePushPackageManager.h"
@@ -12,7 +11,32 @@
 #import "UpdateHashUtils.h"
 #import "CodePushJWT.h"
 
-@implementation CodePush
+
+
+@interface CodePushPlugin () <UIScrollViewDelegate>
+
+@property (readwrite, assign, nonatomic) NSString* getServerURL;
+@property (readwrite, assign, nonatomic) NSString* getDeploymentKey;
+@property (readwrite, assign, nonatomic) NSString* getNativeBuildTime;
+@property (readwrite, assign, nonatomic) NSString* getAppVersion;
+@property (readwrite, assign, nonatomic) BOOL install;
+@property (readwrite, assign, nonatomic) BOOL preInstall;
+@property (readwrite, assign, nonatomic) BOOL isFailedUpdate;
+@property (readwrite, assign, nonatomic) BOOL isFirstRun;
+@property (readwrite, assign, nonatomic) BOOL isPendingUpdate;
+@property (readwrite, assign, nonatomic) BOOL restartApplication;
+@property (readwrite, assign, nonatomic) NSString* getBinaryHash;
+@property (readwrite, assign, nonatomic) NSString* getPackageHash;
+@property (nonatomic, readwrite) ResizePolicy decodeSignature;
+@property (readwrite, assign, nonatomic) NSString* getPublicKey;
+
+@end
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wprotocol"
+// suppressing warnings of the type: "Class 'KeyboardPlugin' does not conform to protocol 'CAPBridgedPlugin'"
+// protocol conformance for this class is implemented by a macro and clang isn't detecting that
+@implementation CodePushPlugin
 
 static NSString *specifiedServerPath = @"";
 bool didUpdate = false;
@@ -22,31 +46,24 @@ NSString* const DeploymentKeyPreference = @"IOS_DEPLOY_KEY";
 NSString* const PublicKeyPreference = @"IOS_PUBLIC_KEY";
 StatusReport* rollbackStatusReport = nil;
 
-- (void)getBinaryHash:(CDVInvokedUrlCommand *)command {
-    [self.commandDelegate runInBackground:^{
-        CDVPluginResult* pluginResult = nil;
-        NSString* binaryHash = [CodePushPackageManager getCachedBinaryHash];
-        if (binaryHash) {
-            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK
-                                             messageAsString:binaryHash];
+- (void)getBinaryHash:(CAPPluginCall *)call {
+    NSString* binaryHash = [CodePushPackageManager getCachedBinaryHash];
+    if (binaryHash) {
+        [call resolve: binaryHash]
+    } else {
+        NSError* error;
+        binaryHash = [UpdateHashUtils getBinaryHash:&error];
+        if (error) {
+            // TODO: is it working?
+            [call reject:@"An error occurred when trying to get the hash of the binary contents. " :(NSString * _Nullable) :error : error]
         } else {
-            NSError* error;
-            binaryHash = [UpdateHashUtils getBinaryHash:&error];
-            if (error) {
-                pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR
-                                                 messageAsString:[@"An error occurred when trying to get the hash of the binary contents. " stringByAppendingString:error.description]];
-            } else {
-                [CodePushPackageManager saveBinaryHash:binaryHash];
-                pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK
-                                                 messageAsString:binaryHash];
-            }
+            [CodePushPackageManager saveBinaryHash:binaryHash];
+            [call resolve:binaryHash]
         }
-
-        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-    }];
+    }
 }
 
-- (void)getPackageHash:(CDVInvokedUrlCommand *)command {
+- (void)getPackageHash:(CAPPluginCall *)call {
     [self.commandDelegate runInBackground:^{
         NSString *path = [command argumentAtIndex:0 withDefault:nil andClass:[NSString class]];
         CDVPluginResult *pluginResult = nil;
@@ -73,7 +90,7 @@ StatusReport* rollbackStatusReport = nil;
     }];
 }
 
-- (void)getPublicKey:(CDVInvokedUrlCommand *)command {
+- (void)getPublicKey:(CAPPluginCall *)call {
     [self.commandDelegate runInBackground:^{
         NSString *publicKey = ((CDVViewController *) self.viewController).settings[PublicKeyPreference];
         CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK
@@ -82,7 +99,7 @@ StatusReport* rollbackStatusReport = nil;
     }];
 }
 
-- (void)decodeSignature:(CDVInvokedUrlCommand *)command {
+- (void)decodeSignature:(CAPPluginCall *)call {
     [self.commandDelegate runInBackground:^{
         NSString *publicKey = [command argumentAtIndex:0 withDefault:nil andClass:[NSString class]];
 
@@ -136,7 +153,7 @@ StatusReport* rollbackStatusReport = nil;
     }
 }
 
-- (void)notifyApplicationReady:(CDVInvokedUrlCommand *)command {
+- (void)notifyApplicationReady:(CAPPluginCall *)call {
     [self.commandDelegate runInBackground:^{
         if ([CodePushPackageManager isBinaryFirstRun]) {
             // Report first run of a binary version app
@@ -177,7 +194,7 @@ StatusReport* rollbackStatusReport = nil;
     }];
 }
 
-- (void)install:(CDVInvokedUrlCommand *)command {
+- (void)install:(CAPPluginCall *)call {
     [self.commandDelegate runInBackground:^{
         CDVPluginResult* pluginResult = nil;
 
@@ -214,7 +231,7 @@ StatusReport* rollbackStatusReport = nil;
     }];
 }
 
-- (void)reportFailed:(CDVInvokedUrlCommand *)command {
+- (void)reportFailed:(CAPPluginCall *)call {
     [self.commandDelegate runInBackground:^{
         NSDictionary* statusReportDict = [command argumentAtIndex:0 withDefault:nil andClass:[NSDictionary class]];
         if (statusReportDict) {
@@ -223,7 +240,7 @@ StatusReport* rollbackStatusReport = nil;
     }];
 }
 
-- (void)reportSucceeded:(CDVInvokedUrlCommand *)command {
+- (void)reportSucceeded:(CAPPluginCall *)call {
     [self.commandDelegate runInBackground:^{
         NSDictionary* statusReportDict = [command argumentAtIndex:0 withDefault:nil andClass:[NSDictionary class]];
         if (statusReportDict) {
@@ -232,7 +249,7 @@ StatusReport* rollbackStatusReport = nil;
     }];
 }
 
-- (void)restartApplication:(CDVInvokedUrlCommand *)command {
+- (void)restartApplication:(CAPPluginCall *)call {
     /* Callback before navigating */
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
@@ -256,7 +273,7 @@ StatusReport* rollbackStatusReport = nil;
     [CodePushPackageManager markInstallNeedsConfirmation];
 }
 
-- (void)preInstall:(CDVInvokedUrlCommand *)command {
+- (void)preInstall:(CAPPluginCall *)call {
     [self.commandDelegate runInBackground:^{
         CDVPluginResult* pluginResult = nil;
 
@@ -278,15 +295,15 @@ StatusReport* rollbackStatusReport = nil;
     }];
 }
 
-- (void)getServerURL:(CDVInvokedUrlCommand *)command {
+- (void)getServerURL:(CAPPluginCall *)call {
     [self sendResultForPreference:@"SERVER_URL" command:command];
 }
 
-- (void)getDeploymentKey:(CDVInvokedUrlCommand *)command {
+- (void)getDeploymentKey:(CAPPluginCall *)call {
     [self sendResultForPreference:DeploymentKeyPreference command:command];
 }
 
-- (void)getNativeBuildTime:(CDVInvokedUrlCommand *)command {
+- (void)getNativeBuildTime:(CAPPluginCall *)call {
     [self.commandDelegate runInBackground:^{
         NSString* timeStamp = [Utilities getApplicationTimestamp];
         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:timeStamp];
@@ -294,7 +311,7 @@ StatusReport* rollbackStatusReport = nil;
     }];
 }
 
-- (void)sendResultForPreference:(NSString*)preferenceName command:(CDVInvokedUrlCommand*)command {
+- (void)sendResultForPreference:(NSString*)preferenceName command:(CAPPluginCall *)call {
     [self.commandDelegate runInBackground:^{
         NSString* preferenceValue = ((CDVViewController *)self.viewController).settings[preferenceName];
         // length of NIL is zero
@@ -469,7 +486,7 @@ StatusReport* rollbackStatusReport = nil;
     }
 }
 
-- (void)isFailedUpdate:(CDVInvokedUrlCommand *)command {
+- (void)isFailedUpdate:(CAPPluginCall *)call {
     [self.commandDelegate runInBackground:^{
         CDVPluginResult* result;
         NSString* packageHash = [command argumentAtIndex:0 withDefault:nil andClass:[NSString class]];
@@ -485,7 +502,7 @@ StatusReport* rollbackStatusReport = nil;
     }];
 }
 
-- (void)isFirstRun:(CDVInvokedUrlCommand *)command {
+- (void)isFirstRun:(CAPPluginCall *)call {
     [self.commandDelegate runInBackground:^{
         CDVPluginResult* result;
         BOOL isFirstRun = NO;
@@ -504,7 +521,7 @@ StatusReport* rollbackStatusReport = nil;
     }];
 }
 
-- (void)isPendingUpdate:(CDVInvokedUrlCommand *)command {
+- (void)isPendingUpdate:(CAPPluginCall *)call {
     [self.commandDelegate runInBackground:^{
         CDVPluginResult* result;
 
@@ -514,7 +531,7 @@ StatusReport* rollbackStatusReport = nil;
     }];
 }
 
-- (void)getAppVersion:(CDVInvokedUrlCommand *)command {
+- (void)getAppVersion:(CAPPluginCall *)call {
     [self.commandDelegate runInBackground:^{
         NSString* version = [Utilities getApplicationVersion];
         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:version];

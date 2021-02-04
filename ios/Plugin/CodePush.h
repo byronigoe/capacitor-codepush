@@ -1,24 +1,10 @@
-#import <Cordova/CDV.h>
+#import <UIKit/UIKit.h>
+#import "CAPPlugin.h"
+#import "CAPBridgedPlugin.h"
 
-@interface CodePush : CDVPlugin
 
-- (void)getServerURL:(CDVInvokedUrlCommand*)command;
-- (void)getDeploymentKey:(CDVInvokedUrlCommand*)command;
-- (void)getNativeBuildTime:(CDVInvokedUrlCommand*)command;
-- (void)getAppVersion:(CDVInvokedUrlCommand*)command;
-- (void)install:(CDVInvokedUrlCommand *)command;
-- (void)preInstall:(CDVInvokedUrlCommand *)command;
-- (void)isFailedUpdate:(CDVInvokedUrlCommand *)command;
-- (void)isFirstRun:(CDVInvokedUrlCommand *)command;
-- (void)isPendingUpdate:(CDVInvokedUrlCommand *)command;
-- (void)restartApplication:(CDVInvokedUrlCommand *)command;
-- (void)getBinaryHash:(CDVInvokedUrlCommand *)command;
-- (void)getPackageHash:(CDVInvokedUrlCommand *)command;
-- (void)decodeSignature:(CDVInvokedUrlCommand *)command;
-- (void)getPublicKey:(CDVInvokedUrlCommand *)command;
-- (void)pluginInitialize;
-+ (void) setServerBasePath:(NSString*)serverPath webView:(WKWebView *) webViewEngine;
-+ (NSString*) getCurrentServerBasePath;
+@class CAPPluginCall;
 
-void CPLog(NSString *formatString, ...);
+@interface CodePushPlugin : CAPPlugin <CAPBridgedPlugin>
+
 @end
