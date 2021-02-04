@@ -64,7 +64,7 @@ StatusReport* rollbackStatusReport = nil;
 }
 
 - (void)getPackageHash:(CAPPluginCall *)call {
-    NSString *path = [command argumentAtIndex:0 withDefault:nil andClass:[NSString class]];
+    NSString *path = [self getString:call field:@"path" defaultValue:nil];
     if (!path) {
         [call reject:@"No path supplied"];
     } else {
@@ -88,7 +88,7 @@ StatusReport* rollbackStatusReport = nil;
 }
 
 - (void)decodeSignature:(CAPPluginCall *)call {
-    NSString *publicKey = [command argumentAtIndex:0 withDefault:nil andClass:[NSString class]];
+    NSString *publicKey = [self getString:call field:@"publicKey" defaultValue:nil];
 
     // remove BEGIN / END tags and line breaks from public key string
     publicKey = [publicKey stringByReplacingOccurrencesOfString:@"-----BEGIN PUBLIC KEY-----\n"
@@ -140,7 +140,7 @@ StatusReport* rollbackStatusReport = nil;
         // Report first run of a binary version app
         [CodePushPackageManager markBinaryFirstRunFlag];
         NSString* appVersion = [Utilities getApplicationVersion];
-        NSString* deploymentKey = ((CDVViewController *)self.viewController).settings[DeploymentKeyPreference];
+        NSString* deploymentKey = [self getConfigValue:DeploymentKeyPreference];
         StatusReport* statusReport = [[StatusReport alloc] initWithStatus:STORE_VERSION
                                                                  andLabel:nil
                                                             andAppVersion:appVersion
@@ -193,7 +193,7 @@ StatusReport* rollbackStatusReport = nil;
                 [call resolve];
             }
             else {
-                [call reject: @"An error happened during package install."];
+                [call reject: @"An error happened during package install.", ];
             }
         }
     }
@@ -205,7 +205,7 @@ StatusReport* rollbackStatusReport = nil;
 }
 
 - (void)reportFailed:(CAPPluginCall *)call {
-    NSDictionary* statusReportDict = [command argumentAtIndex:0 withDefault:nil andClass:[NSDictionary class]];
+    NSDictionary* statusReportDict =  [command argumentAtIndex:0 withDefault:nil andClass:[NSDictionary class]];
     if (statusReportDict) {
         [CodePushReportingManager saveFailedReport:[[StatusReport alloc] initWithDictionary:statusReportDict]];
     }
@@ -273,14 +273,13 @@ StatusReport* rollbackStatusReport = nil;
 }
 
 - (void)sendResultForPreference:(NSString*)preferenceName call:(CAPPluginCall *)call {
-        NSString* preferenceValue = ((CDVViewController *)self.viewController).settings[preferenceName];
-        // length of NIL is zero
-        CDVPluginResult* pluginResult;
-        if ([preferenceValue length] > 0) {
-            [call resolve: preferenceValue]; // TODO: should be { value: value };
-        } else {
-            [call reject: [NSString stringWithFormat:@"Could not find preference %@", preferenceName]];
-        }
+    NSString* preferenceValue = [self getConfigValue:preferenceName];
+    // length of NIL is zero
+    if ([preferenceValue length] > 0) {
+        [call resolve: preferenceValue]; // TODO: should be { value: value };
+    } else {
+        [call reject: [NSString stringWithFormat:@"Could not find preference %@", preferenceName]];
+    }
 }
 
 - (void)dealloc {
@@ -319,7 +318,7 @@ StatusReport* rollbackStatusReport = nil;
     }
 }
 
-- (void)pluginInitialize {
+- (void)load {
     // register for "on resume", "on pause" notifications
     [self clearDeploymentsIfBinaryUpdated];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillEnterForeground) name:UIApplicationWillEnterForegroundNotification object:nil];
@@ -371,14 +370,14 @@ StatusReport* rollbackStatusReport = nil;
 }
 
 - (void)loadURL:(NSURL*)url {
-    [self.webViewEngine loadRequest:[NSURLRequest requestWithURL:url]];
+    [self.webView loadRequest:[NSURLRequest requestWithURL:url]];
 }
 
 + (NSString*) getCurrentServerBasePath {
     return specifiedServerPath;
 }
 
-+ (void) setServerBasePath:(NSString*)serverPath webView:(WKWebView *) webViewEngine {
++ (void) setServerBasePath:(NSString*)serverPath {
     specifiedServerPath = serverPath;
     SEL setServerBasePath = NSSelectorFromString(@"setServerBasePath:");
     NSMutableArray * urlPathComponents = [serverPath pathComponents].mutableCopy;
@@ -388,7 +387,7 @@ StatusReport* rollbackStatusReport = nil;
 #pragma clang diagnostic ignored "-Warc-performSelector-leaks"
     CDVInvokedUrlCommand * command = [CDVInvokedUrlCommand commandFromJson:[NSArray arrayWithObjects: @"", @"", @"", [NSMutableArray arrayWithObject:serverBasePath], nil]];
     dispatch_async(dispatch_get_main_queue(), ^{
-        [webViewEngine performSelector: setServerBasePath withObject: command];
+        [webView performSelector: setServerBasePath withObject: command];
     });
 #pragma clang diagnostic pop
 }
@@ -406,15 +405,15 @@ StatusReport* rollbackStatusReport = nil;
 
 - (NSString*)getConfigLaunchUrl
 {
-    CDVConfigParser* delegate = [[CDVConfigParser alloc] init];
-    NSString* configPath = [[NSBundle mainBundle] pathForResource:@"config" ofType:@"xml"];
-    NSURL* configUrl = [NSURL fileURLWithPath:configPath];
-
-    NSXMLParser* configParser = [[NSXMLParser alloc] initWithContentsOfURL:configUrl];
-    [configParser setDelegate:((id < NSXMLParserDelegate >)delegate)];
-    [configParser parse];
-
-    return delegate.startPage;
+//    CDVConfigParser* delegate = [[CDVConfigParser alloc] init];
+//    NSString* configPath = [[NSBundle mainBundle] pathForResource:@"config" ofType:@"xml"];
+//    NSURL* configUrl = [NSURL fileURLWithPath:configPath];
+//
+//    NSXMLParser* configParser = [[NSXMLParser alloc] initWithContentsOfURL:configUrl];
+//    [configParser setDelegate:((id < NSXMLParserDelegate >)delegate)];
+//    [configParser parse];
+    // TODO: implement me
+    return @"http://localhost";
 }
 
 - (NSURL *)getStartPageURLForLocalPackage:(NSString*)packageLocation {
@@ -439,7 +438,7 @@ StatusReport* rollbackStatusReport = nil;
 - (void)redirectStartPageToURL:(NSString*)packageLocation{
     NSURL* URL = [self getStartPageURLForLocalPackage:packageLocation];
     if (URL) {
-        [CodePush setServerBasePath:URL.path webView:self.webViewEngine];
+        [self setServerBasePath:URL.path];
     }
 }
 
