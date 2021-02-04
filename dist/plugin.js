@@ -1070,6 +1070,10 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, devi
                             recursive: true,
                         });
                     }
+                    // delete file if it exists
+                    if (yield FileUtil.fileExists(filesystem.Directory.Data, file)) {
+                        yield filesystem.Filesystem.deleteFile({ directory: filesystem.Directory.Data, path: file });
+                    }
                     yield Http.downloadFile({
                         url: this.downloadUrl,
                         filePath: file,

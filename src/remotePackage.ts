@@ -49,6 +49,11 @@ export class RemotePackage extends Package implements IRemotePackage {
                 });
             }
 
+            // delete file if it exists
+            if (await FileUtil.fileExists(Directory.Data, file)) {
+                await Filesystem.deleteFile({ directory: Directory.Data, path: file });
+            }
+
             await Http.downloadFile({
                 url: this.downloadUrl,
                 filePath: file,

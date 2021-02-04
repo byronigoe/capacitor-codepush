@@ -48,6 +48,10 @@ export class RemotePackage extends Package {
                         recursive: true,
                     });
                 }
+                // delete file if it exists
+                if (yield FileUtil.fileExists(Directory.Data, file)) {
+                    yield Filesystem.deleteFile({ directory: Directory.Data, path: file });
+                }
                 yield Http.downloadFile({
                     url: this.downloadUrl,
                     filePath: file,
