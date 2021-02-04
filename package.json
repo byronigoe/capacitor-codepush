@@ -71,13 +71,10 @@
   "capacitor": {
     "android": {
       "src": "android"
+    },
+    "ios": {
+      "src": "ios"
     }
-  },
-  "cordova": {
-    "id": "capacitor-codepush",
-    "platforms": [
-      "ios"
-    ]
   },
   "husky": {
     "hooks": {
