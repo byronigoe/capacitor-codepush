@@ -70,8 +70,7 @@ StatusReport* rollbackStatusReport = nil;
     if (!path) {
         [call reject:@"No path supplied":nil:nil:@{}];
     } else {
-        path = [[[NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES)[0]
-                stringByAppendingPathComponent:@"NoCloud"]
+        path = [[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES)[0]
                 stringByAppendingPathComponent:path]
                 stringByAppendingPathComponent:@"www"];
         NSError *error;
