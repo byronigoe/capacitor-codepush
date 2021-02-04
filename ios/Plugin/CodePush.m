@@ -27,7 +27,7 @@
 @property (readwrite, assign, nonatomic) BOOL restartApplication;
 @property (readwrite, assign, nonatomic) NSString* getBinaryHash;
 @property (readwrite, assign, nonatomic) NSString* getPackageHash;
-@property (nonatomic, readwrite) ResizePolicy decodeSignature;
+@property (nonatomic, readwrite) NSString* decodeSignature;
 @property (readwrite, assign, nonatomic) NSString* getPublicKey;
 
 @end
@@ -174,9 +174,9 @@ StatusReport* rollbackStatusReport = nil;
 }
 
 - (void)install:(CAPPluginCall *)call {
-    NSString* location = [command argumentAtIndex:0 withDefault:nil andClass:[NSString class]];
-    NSString* installModeString = [command argumentAtIndex:1 withDefault:IMMEDIATE andClass:[NSString class]];
-    NSString* minimumBackgroundDurationString = [command argumentAtIndex:2 withDefault:0 andClass:[NSString class]];
+    NSString* location = [self getString:call field:@"startLocation" defaultValue:nil];
+    NSString* installModeString = [self getString:call field:@"installMode" defaultValue:IMMEDIATE];
+    NSString* minimumBackgroundDurationString = [self getString:call field:@"minimumBackgroundDuration" defaultValue:0];
 
     InstallOptions* options = [[InstallOptions alloc] init];
     [options setInstallMode:[installModeString intValue]];
@@ -244,7 +244,7 @@ StatusReport* rollbackStatusReport = nil;
 }
 
 - (void)preInstall:(CAPPluginCall *)call {
-    NSString* location = [command argumentAtIndex:0 withDefault:nil andClass:[NSString class]];
+    NSString* location = [self getString:call field:@"startLocation" defaultValue:nil];
     if (nil == location) {
         [call reject: @"Cannot read the start URL."];
     }
@@ -268,20 +268,19 @@ StatusReport* rollbackStatusReport = nil;
 }
 
 - (void)getNativeBuildTime:(CAPPluginCall *)call {
-    [self.commandDelegate runInBackground:^{
-        NSString* timeStamp = [Utilities getApplicationTimestamp];
-        [call resolve: timeStamp];
-    }];
+    NSString* timeStamp = [Utilities getApplicationTimestamp];
+    [call resolve: timeStamp];
 }
 
-- (void)sendResultForPreference:(NSString*)preferenceName command:(CAPPluginCall *)call {
-    NSString* preferenceValue = ((CDVViewController *)self.viewController).settings[preferenceName];
-    // length of NIL is zero
-    if ([preferenceValue length] > 0) {
-        [call resolve: preferenceValue]; // TODO: should be { value: value };
-    } else {
-        [call reject: [NSString stringWithFormat:@"Could not find preference %@", preferenceName]];
-    }
+- (void)sendResultForPreference:(NSString*)preferenceName call:(CAPPluginCall *)call {
+        NSString* preferenceValue = ((CDVViewController *)self.viewController).settings[preferenceName];
+        // length of NIL is zero
+        CDVPluginResult* pluginResult;
+        if ([preferenceValue length] > 0) {
+            [call resolve: preferenceValue]; // TODO: should be { value: value };
+        } else {
+            [call reject: [NSString stringWithFormat:@"Could not find preference %@", preferenceName]];
+        }
 }
 
 - (void)dealloc {
