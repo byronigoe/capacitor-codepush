@@ -38,7 +38,7 @@ export class RemotePackage extends Package {
             }
             this.isDownloading = true;
             const file = LocalPackage.DownloadDir + "/" + LocalPackage.PackageUpdateFileName;
-            const fullPath = yield Filesystem.getUri({ directory: Directory.Data, path: file });
+            const fullPath = yield FileUtil.getUri(Directory.Data, file);
             try {
                 // create directory if not exists
                 if (!(yield FileUtil.directoryExists(Directory.Data, LocalPackage.DownloadDir))) {
@@ -74,7 +74,7 @@ export class RemotePackage extends Package {
             localPackage.packageHash = this.packageHash;
             localPackage.isFirstRun = false;
             localPackage.failedInstall = installFailed;
-            localPackage.localPath = fullPath.uri;
+            localPackage.localPath = fullPath;
             CodePushUtil.logMessage("Package download success: " + JSON.stringify(localPackage));
             Sdk.reportStatusDownload(localPackage, localPackage.deploymentKey);
             return localPackage;

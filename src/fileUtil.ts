@@ -9,7 +9,8 @@ export class FileUtil {
     public static async directoryExists(directory: Directory, path: string): Promise<boolean> {
         try {
             const statResult = await Filesystem.stat({directory, path});
-            return statResult.type === "directory";
+            // directory for Android, NSFileTypeDirectory for iOS
+            return statResult.type === "directory" || statResult.type === "NSFileTypeDirectory";
         } catch (error) {
             return false;
         }
@@ -22,7 +23,8 @@ export class FileUtil {
     public static async fileExists(directory: Directory, path: string): Promise<boolean> {
         try {
             const statResult = await Filesystem.stat({directory, path});
-            return statResult.type === "file";
+            // file for Android, NSFileTypeRegular for iOS
+            return statResult.type === "file" || statResult.type === "NSFileTypeRegular";
         } catch (error) {
             return false;
         }

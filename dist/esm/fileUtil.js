@@ -16,7 +16,8 @@ export class FileUtil {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const statResult = yield Filesystem.stat({ directory, path });
-                return statResult.type === "directory";
+                // directory for Android, NSFileTypeDirectory for iOS
+                return statResult.type === "directory" || statResult.type === "NSFileTypeDirectory";
             }
             catch (error) {
                 return false;
@@ -30,7 +31,8 @@ export class FileUtil {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const statResult = yield Filesystem.stat({ directory, path });
-                return statResult.type === "file";
+                // file for Android, NSFileTypeRegular for iOS
+                return statResult.type === "file" || statResult.type === "NSFileTypeRegular";
             }
             catch (error) {
                 return false;

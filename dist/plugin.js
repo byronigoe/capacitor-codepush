@@ -105,7 +105,8 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, devi
             return __awaiter(this, void 0, void 0, function* () {
                 try {
                     const statResult = yield filesystem.Filesystem.stat({ directory, path });
-                    return statResult.type === "directory";
+                    // directory for Android, NSFileTypeDirectory for iOS
+                    return statResult.type === "directory" || statResult.type === "NSFileTypeDirectory";
                 }
                 catch (error) {
                     return false;
@@ -119,7 +120,8 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, devi
             return __awaiter(this, void 0, void 0, function* () {
                 try {
                     const statResult = yield filesystem.Filesystem.stat({ directory, path });
-                    return statResult.type === "file";
+                    // file for Android, NSFileTypeRegular for iOS
+                    return statResult.type === "file" || statResult.type === "NSFileTypeRegular";
                 }
                 catch (error) {
                     return false;
@@ -1060,7 +1062,7 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, devi
                 }
                 this.isDownloading = true;
                 const file = LocalPackage.DownloadDir + "/" + LocalPackage.PackageUpdateFileName;
-                const fullPath = yield filesystem.Filesystem.getUri({ directory: filesystem.Directory.Data, path: file });
+                const fullPath = yield FileUtil.getUri(filesystem.Directory.Data, file);
                 try {
                     // create directory if not exists
                     if (!(yield FileUtil.directoryExists(filesystem.Directory.Data, LocalPackage.DownloadDir))) {
@@ -1096,7 +1098,7 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, devi
                 localPackage.packageHash = this.packageHash;
                 localPackage.isFirstRun = false;
                 localPackage.failedInstall = installFailed;
-                localPackage.localPath = fullPath.uri;
+                localPackage.localPath = fullPath;
                 CodePushUtil.logMessage("Package download success: " + JSON.stringify(localPackage));
                 Sdk.reportStatusDownload(localPackage, localPackage.deploymentKey);
                 return localPackage;
