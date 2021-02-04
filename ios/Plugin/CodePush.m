@@ -30,6 +30,8 @@
 @property (nonatomic, readwrite) NSString* decodeSignature;
 @property (readwrite, assign, nonatomic) NSString* getPublicKey;
 
+- (void) setServerBasePath:(NSString*)serverPath webView:(WKWebView *) webViewEngine;
+
 @end
 
 #pragma clang diagnostic push
@@ -106,7 +108,7 @@ StatusReport* rollbackStatusReport = nil;
     JWTCodingBuilder *verifyBuilder = [JWTDecodingBuilder decodeMessage:jwt].addHolder(verifyDataHolder);
     JWTCodingResultType *verifyResult = verifyBuilder.result;
     if (verifyResult.successResult) {
-        CPLog(@"JWT signature verification succeeded, payload content:  %@", verifyResult.successResult.payload);
+        NSLog(@"JWT signature verification succeeded, payload content:  %@", verifyResult.successResult.payload);
         [call resolve:@{@"value":verifyResult.successResult.payload[@"contentHash"]}];
     } else {
         [call reject:[@"Signature verification failed: " stringByAppendingString:verifyResult.errorResult.error.description]:nil:nil:@{}];
@@ -376,7 +378,7 @@ StatusReport* rollbackStatusReport = nil;
     return specifiedServerPath;
 }
 
-+ (void) setServerBasePath:(NSString*)serverPath {
++ (void) setServerBasePath:(NSString*)serverPath webview:(WKWebView*) webViewEngine {
     specifiedServerPath = serverPath;
     SEL setServerBasePath = NSSelectorFromString(@"setServerBasePath:");
     NSMutableArray * urlPathComponents = [serverPath pathComponents].mutableCopy;
@@ -386,7 +388,7 @@ StatusReport* rollbackStatusReport = nil;
 #pragma clang diagnostic ignored "-Warc-performSelector-leaks"
     CDVInvokedUrlCommand * command = [CDVInvokedUrlCommand commandFromJson:[NSArray arrayWithObjects: @"", @"", @"", [NSMutableArray arrayWithObject:serverBasePath], nil]];
     dispatch_async(dispatch_get_main_queue(), ^{
-        [webView performSelector: setServerBasePath withObject: command];
+        [webViewEngine performSelector: setServerBasePath withObject: command];
     });
 #pragma clang diagnostic pop
 }
@@ -437,7 +439,7 @@ StatusReport* rollbackStatusReport = nil;
 - (void)redirectStartPageToURL:(NSString*)packageLocation{
     NSURL* URL = [self getStartPageURLForLocalPackage:packageLocation];
     if (URL) {
-        [self setServerBasePath:URL.path];
+        [self setServerBasePath:URL.path webView:self.webView];
     }
 }
 
