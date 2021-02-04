@@ -6,5 +6,6 @@
 @class CAPPluginCall;
 
 @interface CodePushPlugin : CAPPlugin <CAPBridgedPlugin>
+- (void) setServerBasePath:(NSString*)serverPath;
 
 @end

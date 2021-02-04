@@ -268,7 +268,7 @@ StatusReport* rollbackStatusReport = nil;
 
 - (void)getNativeBuildTime:(CAPPluginCall *)call {
     NSString* timeStamp = [Utilities getApplicationTimestamp];
-    [call resolve: timeStamp];
+    [call resolve: @{@"value":timeStamp}];
 }
 
 - (void)sendResultForPreference:(NSString*)preferenceName call:(CAPPluginCall *)call {
