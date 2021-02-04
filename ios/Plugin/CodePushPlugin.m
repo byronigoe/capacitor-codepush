@@ -20,6 +20,9 @@ CAP_PLUGIN(CodePushPlugin, "CodePush",
            CAP_PLUGIN_METHOD(isFailedUpdate, CAPPluginReturnPromise);
            CAP_PLUGIN_METHOD(isFirstRun, CAPPluginReturnPromise);
            CAP_PLUGIN_METHOD(isPendingUpdate, CAPPluginReturnPromise);
+           CAP_PLUGIN_METHOD(notifyApplicationReady, CAPPluginReturnPromise);
+           CAP_PLUGIN_METHOD(reportFailed, CAPPluginReturnPromise);
+           CAP_PLUGIN_METHOD(reportSucceeded, CAPPluginReturnPromise);
            CAP_PLUGIN_METHOD(restartApplication, CAPPluginReturnNone);
            CAP_PLUGIN_METHOD(getBinaryHash, CAPPluginReturnPromise);
            CAP_PLUGIN_METHOD(getPackageHash, CAPPluginReturnPromise);
