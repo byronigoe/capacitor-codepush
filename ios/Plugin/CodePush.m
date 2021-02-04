@@ -420,8 +420,8 @@ StatusReport* rollbackStatusReport = nil;
 - (NSURL *)getStartPageURLForLocalPackage:(NSString*)packageLocation {
     if (packageLocation) {
         NSString* startPage = [self getConfigLaunchUrl];
-        NSString* libraryLocation = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) objectAtIndex:0];
-        NSArray* realLocationArray = @[libraryLocation, @"NoCloud", packageLocation, @"www", startPage];
+        NSString* libraryLocation = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
+        NSArray* realLocationArray = @[libraryLocation, packageLocation, @"www", startPage];
         NSString* realStartPageLocation = [NSString pathWithComponents:realLocationArray];
         if ([[NSFileManager defaultManager] fileExistsAtPath:realStartPageLocation]) {
             // Fixes WKWebView unable to load start page from CodePush update directory
