@@ -387,6 +387,14 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, http
             if (typeof callbackOrRequestBody === "string") {
                 requestBody = callbackOrRequestBody;
             }
+            if (typeof requestBody === "string") {
+                try {
+                    requestBody = JSON.parse(requestBody); // if it is stringify JSON string, parse
+                }
+                catch (e) {
+                    // do nothing
+                }
+            }
             var methodName = this.getHttpMethodName(verb);
             if (methodName === null) {
                 return requestCallback(new Error("Method Not Allowed"), null);

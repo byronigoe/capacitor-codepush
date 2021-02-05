@@ -15,7 +15,7 @@ export class HttpRequester implements Http.Requester {
     }
 
     public request(verb: Http.Verb, url: string, callbackOrRequestBody: Callback<Http.Response> | string, callback?: Callback<Http.Response>): void {
-        var requestBody: string;
+        var requestBody: any;
         var requestCallback: Callback<Http.Response> = callback!;
 
         // request(verb, url, callback)
@@ -26,6 +26,14 @@ export class HttpRequester implements Http.Requester {
         // request(verb, url, requestBody, callback)
         if (typeof callbackOrRequestBody === "string") {
             requestBody = <string>callbackOrRequestBody;
+        }
+
+        if (typeof requestBody === "string") {
+            try {
+                requestBody = JSON.parse(requestBody); // if it is stringify JSON string, parse
+            } catch (e) {
+                // do nothing
+            }
         }
 
         var methodName = this.getHttpMethodName(verb);
