@@ -316,8 +316,10 @@ public class CodePush extends Plugin {
         try {
             StatusReport statusReport = StatusReport.deserialize(call.getObject("statusReport"));
             codePushReportingManager.saveFailedReport(statusReport);
+            call.resolve();
         } catch (JSONException e) {
             Utilities.logException(e);
+            call.reject("Failed to report failed");
         }
     }
 
@@ -326,8 +328,10 @@ public class CodePush extends Plugin {
         try {
             StatusReport statusReport = StatusReport.deserialize(call.getObject("statusReport"));
             codePushReportingManager.saveSuccessfulReport(statusReport);
+            call.resolve();
         } catch (JSONException e) {
             Utilities.logException(e);
+            call.reject("Failed to report succeeded");
         }
     }
 
