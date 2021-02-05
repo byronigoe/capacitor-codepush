@@ -19,7 +19,7 @@ This plugin provides client-side integration for the [CodePush service](https://
 
 ## How does it work?
 
-A Capacitor app is composed of HTML, CSS and JavaScript files and any accompanying images, which are bundled together by the Cordova CLI and distributed as part of a platform-specific binary (i.e. an .ipa or .apk file). Once the app is released, updating either the code (e.g. making bug fixes, adding new features) or image assets, requires you to recompile and redistribute the entire binary, which of course, includes any review time associated with the store(s) you are publishing to.
+A Capacitor app is composed of HTML, CSS and JavaScript files and any accompanying images, which are bundled together by the Capacitor CLI and distributed as part of a platform-specific binary (i.e. an .ipa or .apk file). Once the app is released, updating either the code (e.g. making bug fixes, adding new features) or image assets, requires you to recompile and redistribute the entire binary, which of course, includes any review time associated with the store(s) you are publishing to.
 
 The CodePush plugin helps get product improvements in front of your end users instantly, by keeping your code and images synchronized with updates you release to the CodePush server. This way, your app gets the benefits of an offline mobile experience, as well as the "web-like" agility of side-loading updates as soon as they are available. It's a win-win!
 
@@ -34,7 +34,7 @@ Tested with Capacitor 3.0.0-beta.1
 
 ## Getting Started
 
-Once you've followed the general-purpose ["getting started"](https://docs.microsoft.com/en-us/appcenter/distribution/codepush/) instructions for setting up your CodePush account, you can start CodePush-ifying your Cordova app by running the following command from within your app's root directory:
+Once you've followed the general-purpose ["getting started"](https://docs.microsoft.com/en-us/appcenter/distribution/codepush/) instructions for setting up your CodePush account, you can start CodePush-ifying your Capacitor app by running the following command from within your app's root directory:
 
 ```shell
 npm i https://github.com/mapiacompany/capacitor-codepush -D
