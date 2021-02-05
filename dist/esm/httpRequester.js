@@ -1,5 +1,4 @@
-import { Plugins } from "@capacitor/core";
-const { Http: NativeHttp } = Plugins;
+import { Http as NativeHttp } from "@capacitor-community/http";
 /**
  * XMLHttpRequest-based implementation of Http.Requester.
  */
@@ -19,8 +18,9 @@ export class HttpRequester {
             requestBody = callbackOrRequestBody;
         }
         var methodName = this.getHttpMethodName(verb);
-        if (methodName === null)
+        if (methodName === null) {
             return requestCallback(new Error("Method Not Allowed"), null);
+        }
         const headers = {
             "X-CodePush-Plugin-Name": "cordova-plugin-code-push",
             "X-CodePush-Plugin-Version": "1.11.13",

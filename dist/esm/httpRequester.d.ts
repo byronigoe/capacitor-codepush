@@ -1,5 +1,5 @@
 import { Http } from "code-push/script/acquisition-sdk";
-import { Callback } from "./callbackUtil";
+import type { Callback } from "./callbackUtil";
 /**
  * XMLHttpRequest-based implementation of Http.Requester.
  */

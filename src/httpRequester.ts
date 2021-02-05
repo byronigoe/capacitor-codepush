@@ -1,16 +1,13 @@
 import { Http } from "code-push/script/acquisition-sdk";
-import { Callback } from "./callbackUtil";
-import { Plugins } from "@capacitor/core";
+import type { Callback } from "./callbackUtil";
 import type { HttpResponse } from "@capacitor-community/http";
+import { Http as NativeHttp } from "@capacitor-community/http";
 
-const { Http: NativeHttp } = Plugins;
 
 /**
  * XMLHttpRequest-based implementation of Http.Requester.
  */
 export class HttpRequester implements Http.Requester {
-    // TODO: use @capacitor-community/http
-
     private contentType: string | undefined;
 
     constructor(contentType?: string | undefined) {
@@ -32,7 +29,10 @@ export class HttpRequester implements Http.Requester {
         }
 
         var methodName = this.getHttpMethodName(verb);
-        if (methodName === null) return requestCallback(new Error("Method Not Allowed"), null);
+        if (methodName === null) {
+            return requestCallback(new Error("Method Not Allowed"), null);
+        }
+
         const headers: { [key: string]: string } = {
             "X-CodePush-Plugin-Name": "cordova-plugin-code-push",
             "X-CodePush-Plugin-Version": "1.11.13",

@@ -1,4 +1,4 @@
-var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, device, dialog) {
+var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, http, device, dialog) {
     'use strict';
 
     /**
@@ -369,7 +369,6 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, devi
     class Package {
     }
 
-    const { Http: NativeHttp } = core.Plugins;
     /**
      * XMLHttpRequest-based implementation of Http.Requester.
      */
@@ -389,8 +388,9 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, devi
                 requestBody = callbackOrRequestBody;
             }
             var methodName = this.getHttpMethodName(verb);
-            if (methodName === null)
+            if (methodName === null) {
                 return requestCallback(new Error("Method Not Allowed"), null);
+            }
             const headers = {
                 "X-CodePush-Plugin-Name": "cordova-plugin-code-push",
                 "X-CodePush-Plugin-Version": "1.11.13",
@@ -399,7 +399,7 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, devi
             if (this.contentType) {
                 headers["Content-Type"] = this.contentType;
             }
-            NativeHttp.request({
+            http.Http.request({
                 method: methodName,
                 data: requestBody,
                 url,
@@ -1600,5 +1600,5 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, devi
 
     return exports;
 
-}({}, capacitorExports, acquisitionSdk, filesystem, device, dialog));
+}({}, capacitorExports, acquisitionSdk, filesystem, http, device, dialog));
 //# sourceMappingURL=plugin.js.map
