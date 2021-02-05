@@ -1,8 +1,4 @@
-Microsoft CodePush Plugin for Apache Cordova 
-
-Copyright (c) Microsoft Corporation
-
-All rights reserved. 
+CodePush Plugin for Apache Capacitor 
 
 MIT License
 
