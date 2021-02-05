@@ -9,7 +9,7 @@ This plugin provides client-side integration for the [CodePush service](https://
 <!-- Capacitor Catalog -->
 
 * [How does it work?](#how-does-it-work)
-* [Supported Capacitor Platforms](#supported-cordova-platforms)
+* [Supported Capacitor Platforms](#supported-capacitor-platforms)
 * [Getting Started](#getting-started)
 * [Plugin Usage](#plugin-usage)
 * [Releasing Updates](#releasing-updates)
@@ -62,15 +62,7 @@ With the Capacitor plugin installed, configure your app to use it via the follow
 
     *NOTE: You [must](https://docs.microsoft.com/en-us/appcenter/distribution/codepush/cli#releasing-updates) create a separate CodePush app for iOS and Android, which is why the above sample illustrates declaring separate keys for Android and iOS. If you're only developing for a single platform, then you only need to specify the deployment key for either Android or iOS.*
 
-2. If you're using an `<access origin="*" />` element in your `config.xml` file, then your app is already allowed to communicate with the CodePush servers and you can safely skip this step. Otherwise, add the following additional `<access />` elements:
-
-    ```xml
-    <access origin="https://codepush.appcenter.ms" />
-    <access origin="https://codepush.blob.core.windows.net" />
-    <access origin="https://codepushupdates.azureedge.net" />
-    ```
-
-3. To ensure that your app can access the CodePush server on [CSP](https://developer.mozilla.org/en-US/docs/Web/Security/CSP/Introducing_Content_Security_Policy)-compliant platforms, add `https://codepush.appcenter.ms` to the `Content-Security-Policy` `meta` tag in your `index.html` file:
+2. To ensure that your app can access the CodePush server on [CSP](https://developer.mozilla.org/en-US/docs/Web/Security/CSP/Introducing_Content_Security_Policy)-compliant platforms, add `https://codepush.appcenter.ms` to the `Content-Security-Policy` `meta` tag in your `index.html` file:
 
     ```xml
     <meta http-equiv="Content-Security-Policy" content="default-src https://codepush.appcenter.ms 'self' data: gap: https://ssl.gstatic.com 'unsafe-eval'; style-src 'self' 'unsafe-inline'; media-src *" />
@@ -99,8 +91,15 @@ If you would like your app to discover updates more quickly, you can also choose
 
 ```javascript
 import { codePush } from 'capacitor-codepush';
-document.addEventListener("resume", function () {
-    codePush.sync();
+import { Plugins, AppState } from '@capacitor/core';
+
+const { App } = Plugins;
+
+App.addListener('appStateChange', (state: AppState) => {
+    // state.isActive contains the active state
+    if (state.isActive) {
+        codePush.sync();
+    }
 });
 ```
 
@@ -125,7 +124,7 @@ appcenter codepush release -a <ownerName>/MyApp-Android -c www/
 
 *NOTE: When releasing updates to CodePush, you do not need to bump your app's version in the `config.xml` file, since you aren't modifying the binary version at all. You only need to bump this version when you upgrade Capacitor and/or one of your plugins, at which point, you need to release an update to the native store(s). CodePush will automatically generate a "label" for each release you make (e.g. `v3`) in order to help identify it within your release history.*
 
-The `release` command enables such a simple workflow because it understands the standard layout of a Cordova app, and therefore, can generate your update and know exactly which files to upload. Additionally, in order to support flexible release strategies, the `release-cordova` command exposes numerous optional parameters that let you customize how the update should be distributed to your end users (e.g. Which binary versions are compatible with it? Should the release be viewed as mandatory?).
+The `release` command enables such a simple workflow because it understands the standard layout of a Capacitor app, and therefore, can generate your update and know exactly which files to upload. Additionally, in order to support flexible release strategies, the `release` command exposes numerous optional parameters that let you customize how the update should be distributed to your end users (e.g. Which binary versions are compatible with it? Should the release be viewed as mandatory?).
 
 ```shell
 # Release a mandatory update with a changelog
