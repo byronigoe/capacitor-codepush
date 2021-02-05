@@ -110,49 +110,49 @@ Additionally, if you would like to display an update confirmation dialog (an "ac
 
 ## Releasing Updates
 
-Once your app has been configured and distributed to your users, and you've made some code and/or asset changes, it's time to instantly release them! The simplest (and recommended) way to do this is to use the `release-cordova` command in the App Center CLI, which will handle preparing and releasing your update to the CodePush server.
+Once your app has been configured and distributed to your users, and you've made some code and/or asset changes, it's time to instantly release them! The simplest (and recommended) way to do this is to use the `release` command in the App Center CLI, which will handle preparing and releasing your update to the CodePush server.
 
 *NOTE: Before you can start releasing updates, please log into App Center by running the `appcenter login` command*
 
 In it's the most basic form, this command only requires one parameter: your owner name + "/" + app name.
 
 ```shell
-appcenter codepush release-cordova -a <ownerName>/<appName>
+appcenter codepush release -a <ownerName>/<appName> -c www/
 
-appcenter codepush release-cordova -a <ownerName>/MyApp-ios
-appcenter codepush release-cordova -a <ownerName>/MyApp-Android
+appcenter codepush release -a <ownerName>/MyApp-ios -c www/
+appcenter codepush release -a <ownerName>/MyApp-Android -c www/
 ```
 
-*NOTE: When releasing updates to CodePush, you do not need to bump your app's version in the `config.xml` file, since you aren't modifying the binary version at all. You only need to bump this version when you upgrade Cordova and/or one of your plugins, at which point, you need to release an update to the native store(s). CodePush will automatically generate a "label" for each release you make (e.g. `v3`) in order to help identify it within your release history.*
+*NOTE: When releasing updates to CodePush, you do not need to bump your app's version in the `config.xml` file, since you aren't modifying the binary version at all. You only need to bump this version when you upgrade Capacitor and/or one of your plugins, at which point, you need to release an update to the native store(s). CodePush will automatically generate a "label" for each release you make (e.g. `v3`) in order to help identify it within your release history.*
 
-The `release-cordova` command enables such a simple workflow because it understands the standard layout of a Cordova app, and therefore, can generate your update and know exactly which files to upload. Additionally, in order to support flexible release strategies, the `release-cordova` command exposes numerous optional parameters that let you customize how the update should be distributed to your end users (e.g. Which binary versions are compatible with it? Should the release be viewed as mandatory?).
+The `release` command enables such a simple workflow because it understands the standard layout of a Cordova app, and therefore, can generate your update and know exactly which files to upload. Additionally, in order to support flexible release strategies, the `release-cordova` command exposes numerous optional parameters that let you customize how the update should be distributed to your end users (e.g. Which binary versions are compatible with it? Should the release be viewed as mandatory?).
 
 ```shell
 # Release a mandatory update with a changelog
-appcenter codepush release-cordova -a <ownerName>/MyApp-ios -m --description "Modified the header color"
+appcenter codepush release -a <ownerName>/MyApp-ios -c www/ -m --description "Modified the header color"
 
 # Release a dev Android build to just 1/4 of your end users
-appcenter codepush release-cordova -a <ownerName>/MyApp-android --rollout 25
+appcenter codepush release -a <ownerName>/MyApp-android -c www/ --rollout 25
 
 # Release an update that targets users running any 1.1.* binary, as opposed to
 # limiting the update to exact version name in the config.xml file
-appcenter codepush release-cordova -a <ownerName>/MyApp-android --target-binary-version "~1.1.0"
+appcenter codepush release -a <ownerName>/MyApp-android -c www/ --target-binary-version "~1.1.0"
 
 # Release an update now but mark it as disabled
 # so that no users can download it yet
-appcenter codepush release-cordova -a <ownerName>/MyApp-ios -x
+appcenter codepush release -a <ownerName>/MyApp-ios -c www/ -x
 
 # Release an update signed by private key (public key should be configured for application)
-appcenter codepush release-cordova -a <ownerName>/MyApp-android --private-key-path ~/rsa/private_key.pem
+appcenter codepush release -a <ownerName>/MyApp-android --private-key-path ~/rsa/private_key.pem
 ```
 
 The CodePush client supports differential updates, so even though you are releasing your app code on every update, your end users will only actually download the files they need. The service handles this automatically so that you can focus on creating awesome apps and we can worry about optimizing end user downloads.
 
-*NOTE: for **Ionic** apps you need to run `ionic build` before running `cordova-release` or `release` command in order to build web assets.*
+*NOTE: for **Ionic** apps you need to run `ionic build` before running `release` command in order to build web assets.*
 
-For more details about how the `release-cordova` command works, as well as the various parameters it exposes, refer to the [CLI docs](https://docs.microsoft.com/en-us/appcenter/distribution/codepush/cli#releasing-updates-cordova). Additionally, if you would prefer to handle running the `cordova prepare` command yourself, and therefore, want an even more flexible solution than `release-cordova`, refer to the [`release` command](https://docs.microsoft.com/en-us/appcenter/distribution/codepush/cli#releasing-updates-general) for more details.
+For more details about how the `release` command works, as well as the various parameters it exposes, refer to the [CLI docs](https://docs.microsoft.com/en-us/appcenter/distribution/codepush/cli#releasing-updates-general). 
 
-If you run into any issues, or have any questions/comments/feedback, you can [e-mail us](mailto:codepushfeed@microsoft.com) and/or open a new issue on this repo and we'll respond ASAP!
+If you run into any issues, or have any questions/comments/feedback, you can open a new issue on this repo and we'll respond ASAP!
 
 ## API Reference
 
@@ -183,7 +183,7 @@ Additionally, the following objects and enums are also exposed globally as part 
 ### codePush.checkForUpdate
 
 ```javascript
-codePush.checkForUpdate(onSuccess, onError?, deploymentKey?: String);
+codePush.checkForUpdate(deploymentKey?: String);
 ```
 
 Queries the CodePush service to see whether the configured app deployment has an update available. By default, it will use the deployment key that is configured in your `config.xml` file, but you can override that by specifying a value via the optional `deploymentKey` parameter. This can be useful when you want to dynamically "redirect" a user to a specific deployment, such as allowing "Early access" via an easter egg or a user setting switch.
@@ -211,7 +211,7 @@ Parameters:
 Example usage:
 
 ```javascript
-codePush.checkForUpdate(function (update) {
+codePush.checkForUpdate().then(function (update) {
     if (!update) {
         console.log("The app is up to date.");
     } else {
@@ -223,7 +223,7 @@ codePush.checkForUpdate(function (update) {
 ### codePush.getCurrentPackage
 
 ```javascript
-codePush.getCurrentPackage(onSuccess, onError?);
+codePush.getCurrentPackage();
 ```
 
 Retrieves the metadata about the currently installed "package" (e.g. description, installation time). This can be useful for scenarios such as displaying a "what's new?" dialog after an update has been applied or checking whether there is a pending update that is waiting to be applied via a resume or restart.
@@ -247,7 +247,7 @@ Parameters:
 Example Usage:
 
 ```javascript
-codePush.getCurrentPackage(function (update) {
+codePush.getCurrentPackage().then(function (update) {
     if (!update) {
         console.log("No updates have been installed");
         return;
@@ -264,8 +264,8 @@ codePush.getCurrentPackage(function (update) {
 
 ### codePush.getPendingPackage
 
-```javascript
-codePush.getPendingPackage(onSuccess, onError?);
+```typescript
+codePush.getPendingPackage(): Promise<ILocalPackage>;
 ```
 
 Gets the metadata for the currently pending update (if one exists). An update is considered "pending" if it has been downloaded and installed, but hasn't been applied yet via an app restart. An update could only ever be in this state if   `InstallMode.ON_NEXT_RESTART` or `InstallMode.ON_NEXT_RESUME` were specified upon calling `sync` or `LocalPackage.install`, and the app hasn't yet been restarted or resumed (respectively). This method can be useful if you'd like to determine whether there is a pending update and then prompt the user if they would like to restart now (via `codePush.restartApplication`) in order to apply it.
@@ -276,19 +276,12 @@ When the update retrieval completes, it will trigger the `onSuccess` callback wi
 
 2. A `LocalPackage` instance which represents the metadata for the currently pending CodePush update.
 
-Parameters:
-
-- __onSuccess__: Callback that is invoked upon receiving the metadata about the currently pending update. The callback receives a single parameter, which is described above.
-
-- __onError__: Optional callback that is invoked in the event of an error. The callback takes one error parameter, containing the details of the error.
 
 Example Usage:
 
 ```javascript
-codePush.getPendingPackage(function (update) {
-    if (update) {
-        // An update is currently pending, ask the
-        // user if they would like to restart
+codePush.getPendingPackage().then(package => {
+    if (package) {
     }
 });
 ```
@@ -296,7 +289,7 @@ codePush.getPendingPackage(function (update) {
 ### codePush.notifyApplicationReady
 
 ```javascript
-codePush.notifyApplicationReady(notifySucceeded?, notifyFailed?);
+codePush.notifyApplicationReady(): Promise<void>;
 ```
 
 Notifies the CodePush runtime that a freshly installed update should be considered successful, and therefore, an automatic client-side rollback isn't necessary. It is mandatory to call this function somewhere in the code of the updated bundle. Otherwise, when the app next restarts, the CodePush runtime will assume that the installed update has failed and roll back to the previous version. This behavior exists to help ensure that your end users aren't blocked by a broken update.
@@ -323,8 +316,8 @@ Immediately restarts the app. This method is for advanced scenarios, and is prim
 
 ### codePush.sync
 
-```javascript
-codePush.sync(syncCallback?, syncOptions?, downloadProgress?, syncErrback?);
+```typescript
+sync(syncOptions?: SyncOptions, downloadProgress?: SuccessCallback<DownloadProgress>): Promise<SyncStatus>;
 ```
 
 Synchronizes your app's code and images with the latest release to the configured deployment. Unlike the `checkForUpdate` method, which simply checks for the presence of an update, and let's you control what to do next, `sync` handles the update check, download and installation experience for you.
@@ -346,14 +339,14 @@ codePush.sync();
 // Active update, which lets the end user know
 // about each update, and displays it to them
 // immediately after downloading it
-codePush.sync(null, { updateDialog: true, installMode: InstallMode.IMMEDIATE });
+codePush.sync({ updateDialog: true, installMode: InstallMode.IMMEDIATE });
 ```
 
 *Note: If you want to decide whether you check and/or download an available update based on the end user's device battery level, network conditions, etc. then simply wrap the call to sync in a condition that ensures you only call it when desired.*
 
 While the sync method tries to make it easy to perform silent and active updates with little configuration, it accepts the following optional parameters which allow you to customize numerous aspects of the default behavior mentioned above:
 
-- __syncCallback__: Called when the sync process moves from one stage to another in the overall update process. The method is called with a status code which represents the current state, and can be any of the [`SyncStatus`](#syncstatus) values.
+- __Promise<SyncStatus>__: Resolved with a status code which represents the current state, and can be any of the [`SyncStatus`](#syncstatus) values.
 
 - __syncOptions__: Optional [`SyncOptions`](#syncoptions) parameter configuring the behavior of the sync operation.
 
@@ -403,19 +396,19 @@ Example Usage:
 // Download the update silently, but install it on
 // the next resume, as long as at least 5 minutes
 // has passed since the app was put into the background.
-codePush.sync(null, { installMode: InstallMode.ON_NEXT_RESUME, minimumBackgroundDuration: 60 * 5 });
+codePush.sync({ installMode: InstallMode.ON_NEXT_RESUME, minimumBackgroundDuration: 60 * 5 });
 
 // Download the update silently, and install optional updates
 // on the next restart, but install mandatory updates on the next resume.
-codePush.sync(null, { mandatoryInstallMode: InstallMode.ON_NEXT_RESUME });
+codePush.sync({ mandatoryInstallMode: InstallMode.ON_NEXT_RESUME });
 
 // Changing the title displayed in the
 // confirmation dialog of an "active" update
-codePush.sync(null, { updateDialog: { updateTitle: "An update is available!" } });
+codePush.sync({ updateDialog: { updateTitle: "An update is available!" } });
 
 // Displaying an update prompt which includes the
 // description associated with the CodePush release
-codePush.sync(null, {
+codePush.sync({
    updateDialog: {
     appendReleaseDescription: true,
     descriptionPrefix: "\n\nChange log:\n"
@@ -426,9 +419,7 @@ codePush.sync(null, {
 // Silently check for the update, but
 // display a custom downloading UI
 // via the SyncStatus and DownloadProgress callbacks
-codePush.sync(syncStatus, null, downloadProgress);
-
-function syncStatus(status) {
+codePush.sync(null, downloadProgress).then(status => {
     switch (status) {
         case SyncStatus.DOWNLOADING_PACKAGE:
             // Show "downloading" modal
@@ -437,7 +428,7 @@ function syncStatus(status) {
             // Hide "downloading" modal
             break;
     }
-}
+});
 
 function downloadProgress(downloadProgress) {
     if (downloadProgress) {
