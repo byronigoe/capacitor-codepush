@@ -4,5 +4,6 @@
 // Copyright (c) Microsoft Corporation
 // All rights reserved.
 // Licensed under the MIT license.
-export {};
+import { registerPlugin } from "@capacitor/core";
+export const CodePush = /*#__PURE__*/ registerPlugin("CodePush");
 //# sourceMappingURL=nativeCodePushPlugin.js.map

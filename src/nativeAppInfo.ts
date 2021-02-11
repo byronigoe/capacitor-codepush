@@ -1,7 +1,4 @@
-import { Plugins } from "@capacitor/core";
-import { NativeCodePushPlugin } from "./nativeCodePushPlugin";
-
-const NativeCodePush = Plugins.CodePush as NativeCodePushPlugin;
+import { CodePush as NativeCodePush } from "./nativeCodePushPlugin";
 
 const DefaultServerUrl: string = "https://codepush.appcenter.ms/";
 
@@ -9,7 +6,7 @@ const DefaultServerUrl: string = "https://codepush.appcenter.ms/";
  * Provides information about the native app.
  */
 export class NativeAppInfo {
-    
+
     /**
      * Gets the application build timestamp.
      */
@@ -33,7 +30,7 @@ export class NativeAppInfo {
             throw new Error("Could not get application version.");
         }
     }
-    
+
     /**
      * Gets a hash of the `www` folder contents compiled in the app store binary.
      */
@@ -45,7 +42,7 @@ export class NativeAppInfo {
             throw new Error("Could not get binary hash.");
         }
     }
-    
+
     /**
      * Gets the server URL from config.xml by calling into the native platform.
      */
@@ -69,7 +66,7 @@ export class NativeAppInfo {
             throw new Error("Deployment key not found.");
         }
     }
-    
+
     /**
      * Checks if a package update was previously attempted but failed for a given package hash.
      * Every reverted update is stored such that the application developer has the option to ignore
@@ -84,11 +81,11 @@ export class NativeAppInfo {
             return false;
         }
     }
-    
+
     /**
      * Checks if this is the first application run of a package after it has been applied.
      * The didUpdateCallback callback can be used for migrating data from the old app version to the new one.
-     * 
+     *
      * @param packageHash The hash value of the package.
      * @returns Whether it is the first run after an update.
      */
@@ -101,7 +98,7 @@ export class NativeAppInfo {
             return false;
         }
     }
-    
+
     /**
      * Checks with the native side if there is a pending update.
      */

@@ -1,4 +1,3 @@
-import { Plugins } from "@capacitor/core";
 import { Directory, Filesystem, GetUriOptions } from "@capacitor/filesystem";
 import { AcquisitionStatus } from "code-push/script/acquisition-sdk";
 import { Callback, ErrorCallback, SuccessCallback } from "./callbackUtil";
@@ -7,11 +6,9 @@ import { FileUtil } from "./fileUtil";
 import { InstallMode } from "./installMode";
 import { InstallOptions } from "./installOptions";
 import { NativeAppInfo } from "./nativeAppInfo";
-import { NativeCodePushPlugin } from "./nativeCodePushPlugin";
+import { CodePush as NativeCodePush } from "./nativeCodePushPlugin";
 import { ILocalPackage, IPackageInfoMetadata, Package } from "./package";
 import { Sdk } from "./sdk";
-
-const NativeCodePush = Plugins.CodePush as NativeCodePushPlugin;
 
 
 /**

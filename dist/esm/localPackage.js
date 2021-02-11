@@ -7,16 +7,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { Plugins } from "@capacitor/core";
 import { Directory, Filesystem } from "@capacitor/filesystem";
 import { AcquisitionStatus } from "code-push/script/acquisition-sdk";
 import { CodePushUtil } from "./codePushUtil";
 import { FileUtil } from "./fileUtil";
 import { InstallMode } from "./installMode";
 import { NativeAppInfo } from "./nativeAppInfo";
+import { CodePush as NativeCodePush } from "./nativeCodePushPlugin";
 import { Package } from "./package";
 import { Sdk } from "./sdk";
-const NativeCodePush = Plugins.CodePush;
 /**
  * Defines a local package.
  *

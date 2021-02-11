@@ -6,6 +6,7 @@
 // Licensed under the MIT license.
 
 import { InstallOptions } from "./installOptions";
+import { registerPlugin } from "@capacitor/core";
 
 interface StatusReport {
     status: number;
@@ -69,3 +70,4 @@ export interface NativeCodePushPlugin {
     addListener(eventName: "codePushStatus", listenerFunc: (info: any) => void): void;
 }
 
+export const CodePush = /*#__PURE__*/ registerPlugin<NativeCodePushPlugin>("CodePush");

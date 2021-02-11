@@ -7,8 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { Plugins } from "@capacitor/core";
-const NativeCodePush = Plugins.CodePush;
+import { CodePush as NativeCodePush } from "./nativeCodePushPlugin";
 const DefaultServerUrl = "https://codepush.appcenter.ms/";
 /**
  * Provides information about the native app.

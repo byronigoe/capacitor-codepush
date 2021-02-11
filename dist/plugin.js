@@ -1,4 +1,4 @@
-var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, http, device, dialog) {
+var capacitorPlugin = (function (exports, acquisitionSdk, filesystem, core, http, device, dialog) {
     'use strict';
 
     /**
@@ -225,6 +225,9 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, http
         }
     }
 
+    // Type definitions for Apache Cordova CodePush plugin.
+    const CodePush = /*#__PURE__*/ core.registerPlugin("CodePush");
+
     var __awaiter$1 = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
         function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
         return new (P || (P = Promise))(function (resolve, reject) {
@@ -234,7 +237,6 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, http
             step((generator = generator.apply(thisArg, _arguments || [])).next());
         });
     };
-    const NativeCodePush = core.Plugins.CodePush;
     const DefaultServerUrl = "https://codepush.appcenter.ms/";
     /**
      * Provides information about the native app.
@@ -246,7 +248,7 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, http
         static getApplicationBuildTime() {
             return __awaiter$1(this, void 0, void 0, function* () {
                 try {
-                    const result = yield NativeCodePush.getNativeBuildTime();
+                    const result = yield CodePush.getNativeBuildTime();
                     return result.value;
                 }
                 catch (e) {
@@ -260,7 +262,7 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, http
         static getApplicationVersion() {
             return __awaiter$1(this, void 0, void 0, function* () {
                 try {
-                    const result = yield NativeCodePush.getAppVersion();
+                    const result = yield CodePush.getAppVersion();
                     return result.value;
                 }
                 catch (e) {
@@ -274,7 +276,7 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, http
         static getBinaryHash() {
             return __awaiter$1(this, void 0, void 0, function* () {
                 try {
-                    const result = yield NativeCodePush.getBinaryHash();
+                    const result = yield CodePush.getBinaryHash();
                     return result.value;
                 }
                 catch (e) {
@@ -288,7 +290,7 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, http
         static getServerURL() {
             return __awaiter$1(this, void 0, void 0, function* () {
                 try {
-                    const result = yield NativeCodePush.getServerURL();
+                    const result = yield CodePush.getServerURL();
                     return result.value;
                 }
                 catch (e) {
@@ -302,7 +304,7 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, http
         static getDeploymentKey() {
             return __awaiter$1(this, void 0, void 0, function* () {
                 try {
-                    const result = yield NativeCodePush.getDeploymentKey();
+                    const result = yield CodePush.getDeploymentKey();
                     return result.value;
                 }
                 catch (e) {
@@ -318,7 +320,7 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, http
         static isFailedUpdate(packageHash) {
             return __awaiter$1(this, void 0, void 0, function* () {
                 try {
-                    const result = yield NativeCodePush.isFailedUpdate({ packageHash });
+                    const result = yield CodePush.isFailedUpdate({ packageHash });
                     return result.value;
                 }
                 catch (e) {
@@ -337,7 +339,7 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, http
         static isFirstRun(packageHash) {
             return __awaiter$1(this, void 0, void 0, function* () {
                 try {
-                    const result = yield NativeCodePush.isFirstRun({ packageHash });
+                    const result = yield CodePush.isFirstRun({ packageHash });
                     return result.value;
                 }
                 catch (e) {
@@ -352,7 +354,7 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, http
         static isPendingUpdate() {
             return __awaiter$1(this, void 0, void 0, function* () {
                 try {
-                    const result = yield NativeCodePush.isPendingUpdate();
+                    const result = yield CodePush.isPendingUpdate();
                     return result.value;
                 }
                 catch (e) {
@@ -561,7 +563,6 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, http
             step((generator = generator.apply(thisArg, _arguments || [])).next());
         });
     };
-    const NativeCodePush$1 = core.Plugins.CodePush;
     /**
      * Defines a local package.
      *
@@ -599,7 +600,7 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, http
                             return;
                         }
                         try {
-                            yield NativeCodePush$1.unzip({ zipFile: this.localPath, targetDirectory: unzipDir });
+                            yield CodePush.unzip({ zipFile: this.localPath, targetDirectory: unzipDir });
                         }
                         catch (unzipError) {
                             installError(new Error("Could not unzip package" + CodePushUtil.getErrorMessage(unzipError)));
@@ -694,7 +695,7 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, http
             var fail = (error) => {
                 callback(error, null);
             };
-            NativeCodePush$1.getPublicKey().then(result => success(result.value || null), fail);
+            CodePush.getPublicKey().then(result => success(result.value || null), fail);
         }
         getSignatureFromUpdate(deployDir, callback) {
             return __awaiter$3(this, void 0, void 0, function* () {
@@ -727,7 +728,7 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, http
                 errorCallback(new Error("Unable to compute hash for package: " + error));
             };
             CodePushUtil.logMessage("Verifying hash for folder path: " + deployDir);
-            NativeCodePush$1.getPackageHash({ path: deployDir }).then(result => packageHashSuccess(result.value), packageHashFail);
+            CodePush.getPackageHash({ path: deployDir }).then(result => packageHashSuccess(result.value), packageHashFail);
         }
         verifySignature(deployDir, newUpdateHash, publicKey, signature, errorCallback, successCallback) {
             var decodeSignatureSuccess = (contentHash) => {
@@ -742,7 +743,7 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, http
                 errorCallback(new Error("Unable to verify signature for package: " + error));
             };
             CodePushUtil.logMessage("Verifying signature for folder path: " + deployDir);
-            NativeCodePush$1.decodeSignature({ publicKey, signature }).then(result => decodeSignatureSuccess(result.value), decodeSignatureFail);
+            CodePush.decodeSignature({ publicKey, signature }).then(result => decodeSignatureSuccess(result.value), decodeSignatureFail);
         }
         finishInstall(deployDir, installOptions, installSuccess, installError) {
             function backupPackageInformationFileIfNeeded(backupIfNeededDone) {
@@ -774,14 +775,14 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, http
                                 /* invoke success before navigating */
                                 installSuccess && installSuccess(installModeToUse);
                                 /* no need for callbacks, the javascript context will reload */
-                                NativeCodePush$1.install({
+                                CodePush.install({
                                     startLocation: deployDir,
                                     installMode: installModeToUse,
                                     minimumBackgroundDuration: installOptions.minimumBackgroundDuration
                                 });
                             }
                             else {
-                                NativeCodePush$1.install({
+                                CodePush.install({
                                     startLocation: deployDir,
                                     installMode: installModeToUse,
                                     minimumBackgroundDuration: installOptions.minimumBackgroundDuration
@@ -797,7 +798,7 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, http
                             var error = new Error("An error has occured while installing the package. " + CodePushUtil.getErrorMessage(preInstallError));
                             installError && installError(error);
                         };
-                        NativeCodePush$1.preInstall({ startLocation: deployDir }).then(preInstallSuccess, preInstallFailure);
+                        CodePush.preInstall({ startLocation: deployDir }).then(preInstallSuccess, preInstallFailure);
                     }, (writeMetadataError) => {
                         installError && installError(writeMetadataError);
                     });
@@ -1186,7 +1187,6 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, http
             step((generator = generator.apply(thisArg, _arguments || [])).next());
         });
     };
-    const NativeCodePush$2 = core.Plugins.CodePush;
     /**
      * This is the entry point to Cordova CodePush SDK.
      * It provides the following features to the app developer:
@@ -1194,21 +1194,21 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, http
      * - notifying the plugin that the application loaded successfully after an update
      * - getting information about the currently deployed package
      */
-    class CodePush {
+    class CodePush$1 {
         /**
          * Notifies the plugin that the update operation succeeded and that the application is ready.
          * Calling this function is required on the first run after an update. On every subsequent application run, calling this function is a noop.
          * If using sync API, calling this function is not required since sync calls it internally.
          */
         notifyApplicationReady() {
-            return NativeCodePush$2.notifyApplicationReady();
+            return CodePush.notifyApplicationReady();
         }
         /**
          * Reloads the application. If there is a pending update package installed using ON_NEXT_RESTART or ON_NEXT_RESUME modes, the update
          * will be immediately visible to the user. Otherwise, calling this function will simply reload the current version of the application.
          */
         restartApplication() {
-            return NativeCodePush$2.restartApplication();
+            return CodePush.restartApplication();
         }
         /**
          * Reports an application status back to the server.
@@ -1242,11 +1242,11 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, http
                 };
                 if (error) {
                     CodePushUtil.logError(`An error occurred while reporting status: ${JSON.stringify(reportArgs)}`, error);
-                    NativeCodePush$2.reportFailed({ statusReport: reportArgs });
+                    CodePush.reportFailed({ statusReport: reportArgs });
                 }
                 else {
                     CodePushUtil.logMessage(`Reported status: ${JSON.stringify(reportArgs)}`);
-                    NativeCodePush$2.reportSucceeded({ statusReport: reportArgs });
+                    CodePush.reportSucceeded({ statusReport: reportArgs });
                 }
             };
             switch (status) {
@@ -1400,7 +1400,7 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, http
         sync(syncOptions, downloadProgress) {
             return __awaiter$5(this, void 0, void 0, function* () {
                 /* Check if a sync is already in progress */
-                if (CodePush.SyncInProgress) {
+                if (CodePush$1.SyncInProgress) {
                     /* A sync is already in progress */
                     CodePushUtil.logMessage("Sync already in progress.");
                     return SyncStatus.IN_PROGRESS;
@@ -1418,7 +1418,7 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, http
                             case SyncStatus.UPDATE_IGNORED:
                             case SyncStatus.UPDATE_INSTALLED:
                                 /* The sync has completed */
-                                CodePush.SyncInProgress = false;
+                                CodePush$1.SyncInProgress = false;
                                 break;
                         }
                         if (err) {
@@ -1427,7 +1427,7 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, http
                         resolve(result);
                     };
                     /* Begin the sync */
-                    CodePush.SyncInProgress = true;
+                    CodePush$1.SyncInProgress = true;
                     this.syncInternal(syncCallbackAndUpdateSyncInProgress, syncOptions, downloadProgress);
                 });
             });
@@ -1557,8 +1557,8 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, http
          * If the options are not defined yet, the static DefaultSyncOptions member will be instantiated.
          */
         getDefaultSyncOptions() {
-            if (!CodePush.DefaultSyncOptions) {
-                CodePush.DefaultSyncOptions = {
+            if (!CodePush$1.DefaultSyncOptions) {
+                CodePush$1.DefaultSyncOptions = {
                     ignoreFailedUpdates: true,
                     installMode: exports.InstallMode.ON_NEXT_RESTART,
                     minimumBackgroundDuration: 0,
@@ -1567,15 +1567,15 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, http
                     deploymentKey: undefined
                 };
             }
-            return CodePush.DefaultSyncOptions;
+            return CodePush$1.DefaultSyncOptions;
         }
         /**
          * Returns the default options for the update dialog.
          * Please note that the dialog is disabled by default.
          */
         getDefaultUpdateDialogOptions() {
-            if (!CodePush.DefaultUpdateDialogOptions) {
-                CodePush.DefaultUpdateDialogOptions = {
+            if (!CodePush$1.DefaultUpdateDialogOptions) {
+                CodePush$1.DefaultUpdateDialogOptions = {
                     updateTitle: "Update available",
                     mandatoryUpdateMessage: "An update is available that must be installed.",
                     mandatoryContinueButtonLabel: "Continue",
@@ -1586,7 +1586,7 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, http
                     descriptionPrefix: " Description: "
                 };
             }
-            return CodePush.DefaultUpdateDialogOptions;
+            return CodePush$1.DefaultUpdateDialogOptions;
         }
     }
     /**
@@ -1599,14 +1599,15 @@ var capacitorPlugin = (function (exports, core, acquisitionSdk, filesystem, http
         ReportStatus[ReportStatus["UPDATE_CONFIRMED"] = 1] = "UPDATE_CONFIRMED";
         ReportStatus[ReportStatus["UPDATE_ROLLED_BACK"] = 2] = "UPDATE_ROLLED_BACK";
     })(ReportStatus || (ReportStatus = {}));
-    const codePush = new CodePush();
+    const codePush = new CodePush$1();
     window.codePush = codePush;
 
+    exports.CodePush = CodePush;
     exports.codePush = codePush;
 
     Object.defineProperty(exports, '__esModule', { value: true });
 
     return exports;
 
-}({}, capacitorExports, acquisitionSdk, filesystem, http, device, dialog));
+}({}, acquisitionSdk, filesystem, capacitorExports, http, device, dialog));
 //# sourceMappingURL=plugin.js.map

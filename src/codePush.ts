@@ -1,19 +1,16 @@
-import { Plugins } from "@capacitor/core";
 import { AcquisitionStatus, NativeUpdateNotification } from "code-push/script/acquisition-sdk";
 import { Callback, ErrorCallback, SuccessCallback } from "./callbackUtil";
 import { CodePushUtil } from "./codePushUtil";
 import { InstallMode } from "./installMode";
 import { LocalPackage } from "./localPackage";
 import { NativeAppInfo } from "./nativeAppInfo";
-import { NativeCodePushPlugin } from "./nativeCodePushPlugin";
+import { CodePush as NativeCodePush } from "./nativeCodePushPlugin";
 import { DownloadProgress, ILocalPackage, IPackage, IRemotePackage } from "./package";
 import { RemotePackage } from "./remotePackage";
 import { Sdk } from "./sdk";
 import { SyncOptions, UpdateDialogOptions } from "./syncOptions";
 import { SyncStatus } from "./syncStatus";
 import { Dialog } from "@capacitor/dialog";
-
-const NativeCodePush: NativeCodePushPlugin = Plugins.CodePush;
 
 interface CodePushCapacitorPlugin {
 

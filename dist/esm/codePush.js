@@ -7,17 +7,16 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { Plugins } from "@capacitor/core";
 import { AcquisitionStatus } from "code-push/script/acquisition-sdk";
 import { CodePushUtil } from "./codePushUtil";
 import { InstallMode } from "./installMode";
 import { LocalPackage } from "./localPackage";
 import { NativeAppInfo } from "./nativeAppInfo";
+import { CodePush as NativeCodePush } from "./nativeCodePushPlugin";
 import { RemotePackage } from "./remotePackage";
 import { Sdk } from "./sdk";
 import { SyncStatus } from "./syncStatus";
 import { Dialog } from "@capacitor/dialog";
-const NativeCodePush = Plugins.CodePush;
 /**
  * This is the entry point to Cordova CodePush SDK.
  * It provides the following features to the app developer:
