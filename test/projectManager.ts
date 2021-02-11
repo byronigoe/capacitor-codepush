@@ -34,7 +34,7 @@ export class ProjectManager {
     public static DEFAULT_APP_VERSION: string = "Store version";
 
     /**
-	 * Creates a new cordova test application at the specified path, and configures it
+	 * Creates a new capacitor test application at the specified path, and configures it
 	 * with the given server URL, android and ios deployment keys.
 	 */
     public static setupProject(projectDirectory: string,

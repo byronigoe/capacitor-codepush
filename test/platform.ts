@@ -27,7 +27,7 @@ export interface IPlatform {
     getPlatformWwwPath(projectDirectory: string): string;
 
     /**
-     * Gets an optional IEmulatorManager for platforms for which "cordova run --nobuild" rebuilds the application for this platform anyway.
+     * Gets an optional IEmulatorManager for platforms for which "npx cap run --nobuild" rebuilds the application for this platform anyway.
      * IOS needs special handling here, since ios-sim touches the app every time and changes the app timestamp.
      * This challenges the tests since we rely on the app timestamp in our logic for finding out if the application was updated through the app store.
      */
@@ -439,7 +439,7 @@ export class PlatformResolver {
     private static supportedPlatforms: IPlatform[] = [Android.getInstance(), IOS.getInstance()];
 
     /**
-     * Given the cordova name of a platform, this method returns the IPlatform associated with it.
+     * Given the capacitor name of a platform, this method returns the IPlatform associated with it.
      */
     public static resolvePlatforms(cordovaPlatformNames: string[]): IPlatform[] {
         var platforms: IPlatform[] = [];
@@ -458,7 +458,7 @@ export class PlatformResolver {
     }
 
     /**
-     * Given the cordova name of a platform, this method returns the IPlatform associated with it.
+     * Given the capacitor name of a platform, this method returns the IPlatform associated with it.
      */
     public static resolvePlatform(cordovaPlatformName: string): IPlatform {
         for (var i = 0; i < this.supportedPlatforms.length; i++) {

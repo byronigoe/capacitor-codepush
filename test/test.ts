@@ -33,7 +33,7 @@ var restartEmulators: boolean = testUtil.readRestartEmulators();
 const TestAppName = "CodePushTest";
 const TestNamespace = "com.microsoft.codepush.test";
 const AcquisitionSDKPluginName = "code-push";
-const WkWebViewEnginePluginName = "cordova-plugin-wkwebview-engine";
+const WkWebViewEnginePluginName = "capacitor-plugin-wkwebview-engine";
 
 const ScenarioCheckForUpdatePath = "js/scenarioCheckForUpdate.js";
 const ScenarioCheckForUpdateCustomKey = "js/scenarioCheckForUpdateCustomKey.js";

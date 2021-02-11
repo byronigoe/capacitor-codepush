@@ -1,4 +1,4 @@
-package com.microsoft.cordova;
+package com.microsoft.capacitor;
 
 /**
  * Defines the update installation options.

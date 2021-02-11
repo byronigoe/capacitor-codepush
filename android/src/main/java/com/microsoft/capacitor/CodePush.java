@@ -1,4 +1,4 @@
-package com.microsoft.cordova;
+package com.microsoft.capacitor;
 
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
@@ -48,6 +48,7 @@ public class CodePush extends Plugin {
 
     @Override
     public void load() {
+        super.load();
         CodePushPreferences codePushPreferences = new CodePushPreferences(getContext());
         codePushPackageManager = new CodePushPackageManager(getContext(), codePushPreferences);
         codePushReportingManager = new CodePushReportingManager(getActivity(), codePushPreferences);

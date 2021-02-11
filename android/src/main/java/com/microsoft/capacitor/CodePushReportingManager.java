@@ -1,4 +1,4 @@
-package com.microsoft.cordova;
+package com.microsoft.capacitor;
 
 import java.util.Locale;
 import android.app.Activity;

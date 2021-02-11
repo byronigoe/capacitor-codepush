@@ -1,4 +1,4 @@
-package com.microsoft.cordova;
+package com.microsoft.capacitor;
 
 /**
  * Defines application statuses we use in reporting events from the native to the JS layer.
