@@ -7,7 +7,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { Plugins } from "@capacitor/core";
 import { CodePushUtil } from "./codePushUtil";
 import { LocalPackage } from "./localPackage";
 import { NativeAppInfo } from "./nativeAppInfo";
@@ -15,7 +14,7 @@ import { Package } from "./package";
 import { Sdk } from "./sdk";
 import { Directory, Filesystem } from "@capacitor/filesystem";
 import { FileUtil } from "./fileUtil";
-const { Http } = Plugins;
+import { Http } from "@capacitor-community/http";
 /**
  * Defines a remote package, which represents an update package available for download.
  */
@@ -54,6 +53,7 @@ export class RemotePackage extends Package {
                 }
                 yield Http.downloadFile({
                     url: this.downloadUrl,
+                    method: "GET",
                     filePath: file,
                     fileDirectory: Directory.Data
                 });

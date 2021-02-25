@@ -1048,7 +1048,6 @@ var capacitorPlugin = (function (exports, acquisitionSdk, filesystem, core, http
             step((generator = generator.apply(thisArg, _arguments || [])).next());
         });
     };
-    const { Http } = core.Plugins;
     /**
      * Defines a remote package, which represents an update package available for download.
      */
@@ -1085,8 +1084,9 @@ var capacitorPlugin = (function (exports, acquisitionSdk, filesystem, core, http
                     if (yield FileUtil.fileExists(filesystem.Directory.Data, file)) {
                         yield filesystem.Filesystem.deleteFile({ directory: filesystem.Directory.Data, path: file });
                     }
-                    yield Http.downloadFile({
+                    yield http.Http.downloadFile({
                         url: this.downloadUrl,
+                        method: "GET",
                         filePath: file,
                         fileDirectory: filesystem.Directory.Data
                     });

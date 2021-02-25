@@ -54,6 +54,7 @@ export class RemotePackage extends Package implements IRemotePackage {
 
       await Http.downloadFile({
         url: this.downloadUrl,
+        method: "GET",
         filePath: file,
         fileDirectory: Directory.Data
       });
