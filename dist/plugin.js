@@ -409,12 +409,18 @@ var capacitorPlugin = (function (exports, acquisitionSdk, filesystem, core, http
             if (this.contentType) {
                 headers["Content-Type"] = this.contentType;
             }
-            http.Http.request({
+            const options = {
                 method: methodName,
-                data: requestBody,
                 url,
                 headers
-            }).then((nativeRes) => {
+            };
+            if (methodName === "GET") {
+                options.params = requestBody;
+            }
+            else {
+                options.data = requestBody;
+            }
+            http.Http.request(options).then((nativeRes) => {
                 if (typeof nativeRes.data === "object")
                     nativeRes.data = JSON.stringify(nativeRes.data);
                 var response = { statusCode: nativeRes.status, body: nativeRes.data };
