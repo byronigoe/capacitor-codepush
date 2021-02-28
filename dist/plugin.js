@@ -1094,7 +1094,8 @@ var capacitorPlugin = (function (exports, acquisitionSdk, filesystem, core, http
                         url: this.downloadUrl,
                         method: "GET",
                         filePath: file,
-                        fileDirectory: filesystem.Directory.Data
+                        fileDirectory: filesystem.Directory.Data,
+                        responseType: "blob"
                     });
                 }
                 catch (e) {

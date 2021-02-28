@@ -55,7 +55,8 @@ export class RemotePackage extends Package {
                     url: this.downloadUrl,
                     method: "GET",
                     filePath: file,
-                    fileDirectory: Directory.Data
+                    fileDirectory: Directory.Data,
+                    responseType: "blob"
                 });
             }
             catch (e) {

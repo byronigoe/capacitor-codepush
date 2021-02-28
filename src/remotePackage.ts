@@ -56,7 +56,8 @@ export class RemotePackage extends Package implements IRemotePackage {
         url: this.downloadUrl,
         method: "GET",
         filePath: file,
-        fileDirectory: Directory.Data
+        fileDirectory: Directory.Data,
+        responseType: "blob"
       });
     } catch (e) {
       CodePushUtil.throwError(new Error("An error occured while downloading the package. " + (e && e.message) ? e.message : ""));
