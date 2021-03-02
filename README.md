@@ -59,7 +59,7 @@ With the Capacitor plugin installed, configure your app to use it via the follow
     }
     ```
 
-    As a reminder, these keys are generated for you when you created your CodePush app via the CLI. If you need to retrieve them, you can simply run `appcenter codepush deployment list <ownerName>/<appName> --displayKeys`, and grab the key for the specific deployment you want to use (e.g. `Staging`, `Production`). App IDs can be retreived by running `appcenter apps list`.
+    As a reminder, these keys are generated for you when you created your CodePush app via the CLI. If you need to retrieve them, you can simply run `appcenter codepush deployment list --app <ownerName>/<appName> --displayKeys`, and grab the key for the specific deployment you want to use (e.g. `Staging`, `Production`). App IDs can be retreived by running `appcenter apps list`.
 
     *NOTE: You [must](https://docs.microsoft.com/en-us/appcenter/distribution/codepush/cli#releasing-updates) create a separate CodePush app for iOS and Android, which is why the above sample illustrates declaring separate keys for Android and iOS. If you're only developing for a single platform, then you only need to specify the deployment key for either Android or iOS.*
 
