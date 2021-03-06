@@ -174,14 +174,26 @@ StatusReport* rollbackStatusReport = nil;
     [call resolve];
 }
 
+-(NSNumber *) getNumber:(CAPPluginCall *)call field:(NSString *)field defaultValue:(NSNumber *)defaultValue {
+    id idVal = [call.options objectForKey:field];
+    if(![idVal isKindOfClass:[NSNumber class]]) {
+        return defaultValue;
+    }
+    NSNumber *value = (NSNumber *)idVal;
+    if(value == nil) {
+        return defaultValue;
+    }
+    return value;
+}
+
 - (void)install:(CAPPluginCall *)call {
     NSString* location = [self getString:call field:@"startLocation" defaultValue:nil];
-    NSString* installModeString = [self getString:call field:@"installMode" defaultValue:IMMEDIATE];
-    NSString* minimumBackgroundDurationString = [self getString:call field:@"minimumBackgroundDuration" defaultValue:0];
+    NSNumber* installMode = [self getNumber:call field:@"installMode" defaultValue:IMMEDIATE];
+    NSNumber* minimumBackgroundDuration = [self getNumber:call field:@"minimumBackgroundDuration" defaultValue:0];
 
     InstallOptions* options = [[InstallOptions alloc] init];
-    [options setInstallMode:[installModeString intValue]];
-    [options setMinimumBackgroundDuration:[minimumBackgroundDurationString intValue]];
+    [options setInstallMode:[installMode intValue]];
+    [options setMinimumBackgroundDuration:[minimumBackgroundDuration intValue]];
 
     if ([options installMode] == IMMEDIATE) {
         if (nil == location) {
