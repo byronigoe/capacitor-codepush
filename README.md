@@ -29,8 +29,16 @@ In order to ensure that your end users always have a functioning version of your
 
 ## Supported Capacitor Platforms
 
-Tested with Capacitor 3.0.0-beta.1 
+Tested with below environment
+```
+"@capacitor-community/http": "^1.0.0-alpha.1",
+"@capacitor/core": "^3.0.0-beta.6",
+"@capacitor/device": "^0.5.5",
+"@capacitor/dialog": "^0.4.5",
+"@capacitor/filesystem": "^0.5.1"
+```
 
+Capacitor v3 is still in beta. Until major update, this plugin can be unstable.
 
 ## Getting Started
 
