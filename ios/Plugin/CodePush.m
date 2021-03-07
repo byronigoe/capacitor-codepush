@@ -383,7 +383,9 @@ StatusReport* rollbackStatusReport = nil;
 }
 
 - (void)loadURL:(NSURL*)url {
-    [self.webView loadRequest:[NSURLRequest requestWithURL:url]];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self.webView loadRequest:[NSURLRequest requestWithURL:url]];
+    });
 }
 
 + (NSString*) getCurrentServerBasePath {
