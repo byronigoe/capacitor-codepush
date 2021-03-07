@@ -375,7 +375,7 @@ StatusReport* rollbackStatusReport = nil;
 - (BOOL)loadPackage:(NSString*)packageLocation {
     NSURL* URL = [self getStartPageURLForLocalPackage:packageLocation];
     if (URL) {
-        [self loadURL:URL];
+        [self setServerBasePath:URL.path];
         return YES;
     }
 
