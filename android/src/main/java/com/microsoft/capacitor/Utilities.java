@@ -80,6 +80,8 @@ public class Utilities {
             ).replaceAll("\"",""));
         } catch(Resources.NotFoundException e) {
             return -1;
+        } catch(NumberFormatException e) {
+            return -1;
         }
 
         return millis;
