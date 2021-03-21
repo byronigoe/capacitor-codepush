@@ -73,6 +73,7 @@ var capacitorPlugin = (function (exports, acquisitionSdk, filesystem, core, http
     /**
      * Defines the available install modes for updates.
      */
+    exports.InstallMode = void 0;
     (function (InstallMode) {
         /**
          * The update will be applied to the running application immediately. The application will be reloaded with the new content immediately.

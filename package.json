@@ -29,7 +29,11 @@
   "author": "MAPIACOMPANY",
   "license": "MIT",
   "devDependencies": {
-    "@capacitor/cli": "^3.0.0-beta.6",
+    "@capacitor-community/http": "^1.0.0-alpha.2",
+    "@capacitor/cli": "^3.0.0-rc.0",
+    "@capacitor/device": "^0.5.6",
+    "@capacitor/dialog": "^0.4.6",
+    "@capacitor/filesystem": "^0.5.2",
     "@commitlint/cli": "^11.0.0",
     "@commitlint/config-conventional": "^11.0.0",
     "@rollup/plugin-node-resolve": "^11.1.0",
@@ -65,7 +69,7 @@
     "code-push": "^4.0.2"
   },
   "peerDependencies": {
-    "@capacitor-community/http": "^1.0.0-alpha.1",
+    "@capacitor-community/http": "^1.0.0-alpha.2",
     "@capacitor/core": "^3.0.0-beta.6",
     "@capacitor/device": "^0.5.5",
     "@capacitor/dialog": "^0.4.5",
