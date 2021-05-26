@@ -537,7 +537,7 @@ var capacitorPlugin = (function (exports, acquisitionSdk, filesystem, core, http
                         deploymentKey = yield NativeAppInfo.getDeploymentKey();
                     }
                     catch (e) { }
-                    const device$1 = yield device.Device.getInfo();
+                    const device$1 = yield device.Device.getId();
                     Sdk.DefaultConfiguration = {
                         deploymentKey,
                         serverUrl,

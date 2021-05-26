@@ -58,7 +58,7 @@ export class Sdk {
                 deploymentKey = await NativeAppInfo.getDeploymentKey();
             } catch (e) {}
 
-            const device = await Device.getInfo();
+            const device = await Device.getId();
             Sdk.DefaultConfiguration = {
                 deploymentKey,
                 serverUrl,

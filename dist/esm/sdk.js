@@ -63,7 +63,7 @@ export class Sdk {
                     deploymentKey = yield NativeAppInfo.getDeploymentKey();
                 }
                 catch (e) { }
-                const device = yield Device.getInfo();
+                const device = yield Device.getId();
                 Sdk.DefaultConfiguration = {
                     deploymentKey,
                     serverUrl,
