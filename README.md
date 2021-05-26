@@ -29,7 +29,7 @@ In order to ensure that your end users always have a functioning version of your
 
 ## Supported Capacitor Platforms
 
-Tested with below environment
+Tested with these environment
 ```
 "@capacitor-community/http": "^1.0.0",
 "@capacitor/core": "^3.0.0",
@@ -37,8 +37,6 @@ Tested with below environment
 "@capacitor/dialog": "^1.0.0",
 "@capacitor/filesystem": "^1.0.0"
 ```
-
-Capacitor v3 is still in beta. Until major update, this plugin can be unstable.
 
 ## Getting Started
 
