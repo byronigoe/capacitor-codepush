@@ -3,7 +3,6 @@ package com.microsoft.capacitor;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.util.Base64;
-import android.util.Log;
 import android.webkit.WebView;
 
 import com.getcapacitor.JSObject;
@@ -420,19 +419,14 @@ public class CodePush extends Plugin {
         try {
             // TODO: fix client side
             final String startLocation = call.getString("startLocation");
-            Log.v("CodePush.Clovel", "Trying to get the package's start page at " + startLocation);
             File startPage = this.getStartPageForPackage(startLocation);
             if (startPage != null) {
                 /* start page exists */
                 call.resolve();
             } else {
-                Log.e("CodePush.Clovel", "Failed to get the package's start page at " + startLocation);
                 call.reject("Could not get the package start page");
             }
         } catch (Exception e) {
-            Log.e("CodePush.Clovel", "Failed to get the package's start page or it's location.");
-            Log.e("CodePush.Clovel", "Error is " + e.getMessage());
-            e.printStackTrace();
             call.reject("Could not get the package start page");
         }
     }
