@@ -72,7 +72,7 @@ StatusReport* rollbackStatusReport = nil;
     } else {
         path = [[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES)[0]
                 stringByAppendingPathComponent:path]
-                stringByAppendingPathComponent:@"www"];
+                stringByAppendingPathComponent:@"public"];
         NSError *error;
         NSString *hash = [UpdateHashUtils getHashForPath:path error:&error];
         if (error) {
@@ -406,7 +406,7 @@ StatusReport* rollbackStatusReport = nil;
 - (void)loadStoreVersion {
     NSString* mainBundlePath = [[NSBundle mainBundle] bundlePath];
     NSString* configStartPage = [self getConfigLaunchUrl];
-    NSArray* realLocationArray = @[mainBundlePath, @"www", configStartPage];
+    NSArray* realLocationArray = @[mainBundlePath, @"public", configStartPage];
     NSString* mainPageLocation = [NSString pathWithComponents:realLocationArray];
     if ([[NSFileManager defaultManager] fileExistsAtPath:mainPageLocation]) {
         NSURL* mainPagePath = [NSURL fileURLWithPath:mainPageLocation];
@@ -430,7 +430,7 @@ StatusReport* rollbackStatusReport = nil;
 - (NSURL *)getStartPageURLForLocalPackage:(NSString*)packageLocation {
     if (packageLocation) {
         NSString* libraryLocation = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
-        NSArray* realLocationArray = @[libraryLocation, packageLocation, @"www/index.html"];
+        NSArray* realLocationArray = @[libraryLocation, packageLocation, @"public/index.html"];
         NSString* realStartPageLocation = [NSString pathWithComponents:realLocationArray];
         if ([[NSFileManager defaultManager] fileExistsAtPath:realStartPageLocation]) {
             // Fixes WKWebView unable to load start page from CodePush update directory

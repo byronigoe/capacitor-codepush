@@ -32,7 +32,7 @@ export class NativeAppInfo {
     }
 
     /**
-     * Gets a hash of the `www` folder contents compiled in the app store binary.
+     * Gets a hash of the `public` folder contents compiled in the app store binary.
      */
     public static async getBinaryHash(): Promise<string> {
         try {

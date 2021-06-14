@@ -47,7 +47,7 @@ export class ProjectManager {
         }
         mkdirp.sync(projectDirectory);
 
-        const indexHtml = "www/index.html";
+        const indexHtml = "public/index.html";
         const destinationIndexPath = path.join(projectDirectory, indexHtml);
         const packageFile = path.join(templatePath, "package.json");
         const destinationPackageFile = path.join(projectDirectory, "package.json");
@@ -62,11 +62,11 @@ export class ProjectManager {
      * Sets up the scenario for a test in an already existing Cordova project.
      */
     public static setupScenario(projectDirectory: string, appId: string, templatePath: string, jsPath: string, targetPlatform: platform.IPlatform, build: boolean = true, version: string = ProjectManager.DEFAULT_APP_VERSION): Q.Promise<string> {
-        const indexHtml = "www/index.html";
+        const indexHtml = "public/index.html";
         const templateIndexPath = path.join(templatePath, indexHtml);
         const destinationIndexPath = path.join(projectDirectory, indexHtml);
 
-        const scenarioJs = "www/" + jsPath;
+        const scenarioJs = "public/" + jsPath;
         const templateScenarioJsPath = path.join(templatePath, scenarioJs);
         const destinationScenarioJsPath = path.join(projectDirectory, scenarioJs);
 
@@ -134,10 +134,10 @@ export class ProjectManager {
         });
 
         if (isDiff) {
-            archive.append(`{"deletedFiles":[]}`, { name: "www/hotcodepush.json" });
+            archive.append(`{"deletedFiles":[]}`, { name: "public/hotcodepush.json" });
         }
 
-        archive.directory(targetFolder, "www");
+        archive.directory(targetFolder, "public");
         archive.pipe(writeStream);
         archive.finalize();
 
