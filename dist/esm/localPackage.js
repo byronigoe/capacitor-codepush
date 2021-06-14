@@ -152,7 +152,7 @@ export class LocalPackage extends Package {
     }
     getSignatureFromUpdate(deployDir, callback) {
         return __awaiter(this, void 0, void 0, function* () {
-            const filePath = deployDir + "/www/.codepushrelease";
+            const filePath = deployDir + "/public/.codepushrelease";
             if (!(yield FileUtil.fileExists(Directory.Data, filePath))) {
                 // signature absents in the bundle
                 callback(null, null);
@@ -323,9 +323,9 @@ export class LocalPackage extends Package {
             const currentPackagePath = yield new Promise(resolve => {
                 LocalPackage.getPackage(LocalPackage.PackageInfoFile, (currentPackage) => resolve(currentPackage.localPath), () => resolve());
             });
-            newPackageLocation = currentPackagePath ? newPackageLocation : newPackageLocation + "/www";
+            newPackageLocation = currentPackagePath ? newPackageLocation : newPackageLocation + "/public";
             // https://github.com/ionic-team/capacitor/pull/2514 Directory.Application variable was removed. (TODO - for check)
-            const source = currentPackagePath ? { directory: Directory.Data, path: currentPackagePath } : { directory: Directory.Data, path: "www" };
+            const source = currentPackagePath ? { directory: Directory.Data, path: currentPackagePath } : { directory: Directory.Data, path: "public" };
             const target = { directory: Directory.Data, path: newPackageLocation };
             return FileUtil.copyDirectoryEntriesTo(source, target, ignoreList);
         });
