@@ -123,10 +123,10 @@ Once your app has been configured and distributed to your users, and you've made
 In it's the most basic form, this command only requires one parameter: your owner name + "/" + app name.
 
 ```shell
-appcenter codepush release -a <ownerName>/<appName> -c www/
+appcenter codepush release -a <ownerName>/<appName> -c public/
 
-appcenter codepush release -a <ownerName>/MyApp-ios -c www/
-appcenter codepush release -a <ownerName>/MyApp-Android -c www/
+appcenter codepush release -a <ownerName>/MyApp-ios -c public/
+appcenter codepush release -a <ownerName>/MyApp-Android -c public/
 ```
 
 *NOTE: When releasing updates to CodePush, you do not need to bump your app's version in the `config.xml` file, since you aren't modifying the binary version at all. You only need to bump this version when you upgrade Capacitor and/or one of your plugins, at which point, you need to release an update to the native store(s). CodePush will automatically generate a "label" for each release you make (e.g. `v3`) in order to help identify it within your release history.*
@@ -135,18 +135,18 @@ The `release` command enables such a simple workflow because it understands the 
 
 ```shell
 # Release a mandatory update with a changelog
-appcenter codepush release -a <ownerName>/MyApp-ios -c www/ -m --description "Modified the header color"
+appcenter codepush release -a <ownerName>/MyApp-ios -c public/ -m --description "Modified the header color"
 
 # Release a dev Android build to just 1/4 of your end users
-appcenter codepush release -a <ownerName>/MyApp-android -c www/ --rollout 25
+appcenter codepush release -a <ownerName>/MyApp-android -c public/ --rollout 25
 
 # Release an update that targets users running any 1.1.* binary, as opposed to
 # limiting the update to exact version name in the config.xml file
-appcenter codepush release -a <ownerName>/MyApp-android -c www/ --target-binary-version "~1.1.0"
+appcenter codepush release -a <ownerName>/MyApp-android -c public/ --target-binary-version "~1.1.0"
 
 # Release an update now but mark it as disabled
 # so that no users can download it yet
-appcenter codepush release -a <ownerName>/MyApp-ios -c www/ -x
+appcenter codepush release -a <ownerName>/MyApp-ios -c public/ -x
 
 # Release an update signed by private key (public key should be configured for application)
 appcenter codepush release -a <ownerName>/MyApp-android --private-key-path ~/rsa/private_key.pem
@@ -156,7 +156,7 @@ The CodePush client supports differential updates, so even though you are releas
 
 *NOTE: for **Ionic** apps you need to run `ionic build` before running `release` command in order to build web assets.*
 
-For more details about how the `release` command works, as well as the various parameters it exposes, refer to the [CLI docs](https://docs.microsoft.com/en-us/appcenter/distribution/codepush/cli#releasing-updates-general). 
+For more details about how the `release` command works, as well as the various parameters it exposes, refer to the [CLI docs](https://docs.microsoft.com/en-us/appcenter/distribution/codepush/cli#releasing-updates-general).
 
 If you run into any issues, or have any questions/comments/feedback, you can open a new issue on this repo and we'll respond ASAP!
 
