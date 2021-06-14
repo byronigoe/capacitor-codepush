@@ -149,8 +149,10 @@ appcenter codepush release -a <ownerName>/MyApp-android -c public/ --target-bina
 appcenter codepush release -a <ownerName>/MyApp-ios -c public/ -x
 
 # Release an update signed by private key (public key should be configured for application)
-appcenter codepush release -a <ownerName>/MyApp-android --private-key-path ~/rsa/private_key.pem
+appcenter codepush release -a <ownerName>/MyApp-android --privateKeyPath ~/rsa/private_key.pem
 ```
+
+*NOTE : The path you are to provide to the `-c` flag might vary depending on the platform or the framework. For example, with an Ionic Capacitor build for android, the path might be `./android/app/src/main/assets/public/`.*
 
 The CodePush client supports differential updates, so even though you are releasing your app code on every update, your end users will only actually download the files they need. The service handles this automatically so that you can focus on creating awesome apps and we can worry about optimizing end user downloads.
 
