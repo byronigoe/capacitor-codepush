@@ -26,6 +26,8 @@ export class TestUtil {
 
     public static thisPluginPath = path.join(__dirname, "../..");
 
+    public static defaultShouldUseWkWebView = 0;
+
     public static defaultAndroidServerUrl = "http://10.0.2.2:3001";
     public static defaultIOSServerUrl = "http://127.0.0.1:3000";
 
@@ -52,6 +54,16 @@ export class TestUtil {
         var testUpdatesDirectory = commandLineOption ? commandLineOption : TestUtil.defaultUpdatesDirectory;
         console.log("testUpdatesDirectory = " + testUpdatesDirectory);
         return testUpdatesDirectory;
+    }
+
+    /**
+     * Reads wether or not whe should use WkWebView.
+     */
+    public static readShouldUseWkWebView(): number {
+        var commandLineOption = parseInt(TestUtil.readMochaCommandLineOption(TestUtil.SHOULD_USE_WKWEBVIEW));
+        var shouldUseWkWebView = commandLineOption ? commandLineOption : TestUtil.defaultShouldUseWkWebView;
+        console.log("shouldUseWkWebView = " + shouldUseWkWebView);
+        return shouldUseWkWebView;
     }
 
     /**
@@ -256,7 +268,14 @@ export class TestUtil {
             console.log("Running command: " + command);
         }
 
-        child_process.exec(command, options, (error: Error, stdout: Buffer, stderr: Buffer) => {
+        child_process.exec(
+            command,
+            options,
+            (
+                error: child_process.ExecException | null,
+                stdout: Buffer | string,
+                stderr: Buffer | string,
+            ) => {
 
             result += stdout;
 
