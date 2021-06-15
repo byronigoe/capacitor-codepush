@@ -245,17 +245,16 @@ class CodePush implements CodePushCapacitorPlugin {
       const queryUpdate = async () => {
         try {
           const acquisitionManager = await Sdk.getAcquisitionManager(deploymentKey);
-          LocalPackage.getCurrentOrDefaultPackage().then(async (localPackage: LocalPackage) => {
+            const localPackage = await LocalPackage.getCurrentOrDefaultPackage();
             try {
               const currentBinaryVersion = await NativeAppInfo.getApplicationVersion();
               localPackage.appVersion = currentBinaryVersion;
             } catch (e) {
+              /* Nothing to do */
+              /* TODO : Why ? */
             }
             CodePushUtil.logMessage("Checking for update.");
             acquisitionManager.queryUpdateWithCurrentPackage(localPackage, callback);
-          }, (error: Error) => {
-            CodePushUtil.invokeErrorCallback(error, queryError);
-          });
         } catch (e) {
           CodePushUtil.invokeErrorCallback(e, queryError);
         }
@@ -264,12 +263,16 @@ class CodePush implements CodePushCapacitorPlugin {
       if (deploymentKey) {
         queryUpdate();
       } else {
-        NativeAppInfo.getDeploymentKey().then(defaultDeploymentKey => {
-          deploymentKey = defaultDeploymentKey;
-          queryUpdate();
-        }, deploymentKeyError => {
-          CodePushUtil.invokeErrorCallback(deploymentKeyError, queryError);
-        });
+        NativeAppInfo.getDeploymentKey()
+          .then(
+            (defaultDeploymentKey) => {
+              deploymentKey = defaultDeploymentKey;
+              queryUpdate();
+            },
+            (deploymentKeyError) => {
+              CodePushUtil.invokeErrorCallback(deploymentKeyError, queryError);
+            }
+          );
       }
     } catch (e) {
       CodePushUtil.invokeErrorCallback(new Error("An error occurred while querying for updates." + CodePushUtil.getErrorMessage(e)), queryError);
