@@ -23,7 +23,7 @@ interface CodePushCapacitorPlugin {
 
   /**
    * Gets the pending package information, if any. A pending package is one that has been installed but the application still runs the old code.
-   * This happends only after a package has been installed using ON_NEXT_RESTART or ON_NEXT_RESUME mode, but the application was not restarted/resumed yet.
+   * This happens only after a package has been installed using ON_NEXT_RESTART or ON_NEXT_RESUME mode, but the application was not restarted/resumed yet.
    */
   getPendingPackage(): Promise<ILocalPackage>;
 
@@ -183,7 +183,7 @@ class CodePush implements CodePushCapacitorPlugin {
 
   /**
    * Gets the pending package information, if any. A pending package is one that has been installed but the application still runs the old code.
-   * This happends only after a package has been installed using ON_NEXT_RESTART or ON_NEXT_RESUME mode, but the application was not restarted/resumed yet.
+   * This happens only after a package has been installed using ON_NEXT_RESTART or ON_NEXT_RESUME mode, but the application was not restarted/resumed yet.
    */
   public async getPendingPackage(): Promise<ILocalPackage> {
     const pendingUpdate = await NativeAppInfo.isPendingUpdate();
@@ -360,15 +360,16 @@ class CodePush implements CodePushCapacitorPlugin {
   private syncInternal(syncCallback?: Callback<any>, syncOptions?: SyncOptions, downloadProgress?: SuccessCallback<DownloadProgress>): void {
 
     /* No options were specified, use default */
+    const defaultSyncOptions = this.getDefaultSyncOptions();
     if (!syncOptions) {
-      syncOptions = this.getDefaultSyncOptions();
+      syncOptions = defaultSyncOptions;
     } else {
       /* Some options were specified */
       /* Handle dialog options */
-      var defaultDialogOptions = this.getDefaultUpdateDialogOptions();
+      const defaultDialogOptions = this.getDefaultUpdateDialogOptions();
       if (syncOptions.updateDialog) {
         if (typeof syncOptions.updateDialog !== typeof ({})) {
-          /* updateDialog set to truey condition, use default options */
+          /* updateDialog set to true condition, use default options */
           syncOptions.updateDialog = defaultDialogOptions;
         } else {
           /* some options were specified, merge with default */
@@ -377,18 +378,17 @@ class CodePush implements CodePushCapacitorPlugin {
       }
 
       /* Handle other options. Dialog options will not be overwritten. */
-      var defaultOptions = this.getDefaultSyncOptions();
-      CodePushUtil.copyUnassignedMembers(defaultOptions, syncOptions);
+      CodePushUtil.copyUnassignedMembers(defaultSyncOptions, syncOptions);
     }
 
     this.notifyApplicationReady();
 
-    var onError = (error: Error) => {
+    const onError = (error: Error) => {
       CodePushUtil.logError("An error occurred during sync.", error);
       syncCallback && syncCallback(error, SyncStatus.ERROR);
     };
 
-    var onInstallSuccess = (appliedWhen: InstallMode) => {
+    const onInstallSuccess = (appliedWhen: InstallMode) => {
       switch (appliedWhen) {
         case InstallMode.ON_NEXT_RESTART:
           CodePushUtil.logMessage("Update is installed and will be run on the next app restart.");
@@ -407,33 +407,33 @@ class CodePush implements CodePushCapacitorPlugin {
       syncCallback && syncCallback(null, SyncStatus.UPDATE_INSTALLED);
     };
 
-    var onDownloadSuccess = (localPackage: ILocalPackage) => {
+    const onDownloadSuccess = (localPackage: ILocalPackage) => {
       syncCallback && syncCallback(null, SyncStatus.INSTALLING_UPDATE);
       localPackage.install(syncOptions).then(onInstallSuccess, onError);
     };
 
-    var downloadAndInstallUpdate = (remotePackage: RemotePackage) => {
+    const downloadAndInstallUpdate = (remotePackage: RemotePackage) => {
       syncCallback && syncCallback(null, SyncStatus.DOWNLOADING_PACKAGE);
       remotePackage.download(downloadProgress).then(onDownloadSuccess, onError);
     };
 
-    var onUpdate = async (remotePackage: RemotePackage) => {
-      var updateShouldBeIgnored = remotePackage && (remotePackage.failedInstall && syncOptions.ignoreFailedUpdates);
-      if (!remotePackage || updateShouldBeIgnored) {
+    const onUpdate = async (remotePackage: RemotePackage) => {
+      const updateShouldBeIgnored = remotePackage && (remotePackage.failedInstall && syncOptions.ignoreFailedUpdates);
+      if (updateShouldBeIgnored) {
         if (updateShouldBeIgnored) {
           CodePushUtil.logMessage("An update is available, but it is being ignored due to have been previously rolled back.");
         }
 
         syncCallback && syncCallback(null, SyncStatus.UP_TO_DATE);
       } else {
-        var dlgOpts: UpdateDialogOptions = <UpdateDialogOptions>syncOptions.updateDialog;
+        const dlgOpts: UpdateDialogOptions = <UpdateDialogOptions>syncOptions.updateDialog;
         if (dlgOpts) {
           CodePushUtil.logMessage("Awaiting user action.");
           syncCallback && syncCallback(null, SyncStatus.AWAITING_USER_ACTION);
         }
         if (remotePackage.isMandatory && syncOptions.updateDialog) {
           /* Alert user */
-          var message = dlgOpts.appendReleaseDescription ?
+          const message = dlgOpts.appendReleaseDescription ?
             dlgOpts.mandatoryUpdateMessage + dlgOpts.descriptionPrefix + remotePackage.description
             : dlgOpts.mandatoryUpdateMessage;
           await Dialog.alert({
@@ -444,7 +444,7 @@ class CodePush implements CodePushCapacitorPlugin {
           downloadAndInstallUpdate(remotePackage);
         } else if (!remotePackage.isMandatory && syncOptions.updateDialog) {
           /* Confirm update with user */
-          var message = dlgOpts.appendReleaseDescription ?
+          const message = dlgOpts.appendReleaseDescription ?
             dlgOpts.optionalUpdateMessage + dlgOpts.descriptionPrefix + remotePackage.description
             : dlgOpts.optionalUpdateMessage;
 
