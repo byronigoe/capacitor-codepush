@@ -71,7 +71,7 @@ interface CodePushCapacitorPlugin {
    * @returns The status of the sync operation. The possible statuses are defined by the SyncStatus enum.
    *
    */
-  sync(syncOptions?: SyncOptions, downloadProgress?: SuccessCallback<DownloadProgress>): Promise<SyncStatus>;
+  sync(syncOptions?: SyncOptions, downloadProgress?: SuccessCallback<DownloadProgress>): SyncStatus | Promise<SyncStatus>;
 }
 
 /**
@@ -205,11 +205,11 @@ class CodePush implements CodePushCapacitorPlugin {
    */
   public checkForUpdate(querySuccess: SuccessCallback<IRemotePackage>, queryError?: ErrorCallback, deploymentKey?: string): void {
     try {
-      var callback: Callback<RemotePackage | NativeUpdateNotification> = async (error: Error, remotePackageOrUpdateNotification: IRemotePackage | NativeUpdateNotification) => {
+      const callback: Callback<RemotePackage | NativeUpdateNotification> = async (error: Error, remotePackageOrUpdateNotification: IRemotePackage | NativeUpdateNotification) => {
         if (error) {
           CodePushUtil.invokeErrorCallback(error, queryError);
         } else {
-          var appUpToDate = () => {
+          const appUpToDate = () => {
             CodePushUtil.logMessage("App is up to date.");
             querySuccess && querySuccess(null);
           };
@@ -242,7 +242,7 @@ class CodePush implements CodePushCapacitorPlugin {
         }
       };
 
-      var queryUpdate = async () => {
+      const queryUpdate = async () => {
         try {
           const acquisitionManager = await Sdk.getAcquisitionManager(deploymentKey);
           LocalPackage.getCurrentOrDefaultPackage().then(async (localPackage: LocalPackage) => {
@@ -292,14 +292,10 @@ class CodePush implements CodePushCapacitorPlugin {
    * - If no update is available on the server, the syncCallback will be invoked with the SyncStatus.UP_TO_DATE.
    * - If an error occurs during checking for update, downloading or installing it, the syncCallback will be invoked with the SyncStatus.ERROR.
    *
-   * @param syncCallback Optional callback to be called with the status of the sync operation.
-   *                     The callback will be called only once, and the possible statuses are defined by the SyncStatus enum.
    * @param syncOptions Optional SyncOptions parameter configuring the behavior of the sync operation.
    * @param downloadProgress Optional callback invoked during the download process. It is called several times with one DownloadProgress parameter.
-   * @param syncErrback Optional errback invoked if an error occurs. The callback will be called only once
-   *
    */
-  public async sync(syncOptions?: SyncOptions, downloadProgress?: SuccessCallback<DownloadProgress>): Promise<any> {
+  public sync(syncOptions?: SyncOptions, downloadProgress?: SuccessCallback<DownloadProgress>): SyncStatus | Promise<SyncStatus> {
     /* Check if a sync is already in progress */
     if (CodePush.SyncInProgress) {
       /* A sync is already in progress */
@@ -312,32 +308,38 @@ class CodePush implements CodePushCapacitorPlugin {
        * If the sync status is a result status, then the sync must be complete and the flag must be updated
        * Otherwise, do not change the flag and trigger the syncCallback as usual
        */
-      var syncCallbackAndUpdateSyncInProgress: Callback<any> = (err: Error, result: any): void => {
-        switch (result) {
-          case SyncStatus.ERROR:
-          case SyncStatus.IN_PROGRESS:
-          case SyncStatus.UP_TO_DATE:
-          case SyncStatus.UPDATE_IGNORED:
-          case SyncStatus.UPDATE_INSTALLED:
-            /* The sync has completed */
-            CodePush.SyncInProgress = false;
-            break;
-
-          default:
-            /* The sync is not yet complete, so do nothing */
-            break;
-        }
-
+      const syncCallbackAndUpdateSyncInProgress: Callback<SyncStatus> = (err: Error | null, result: SyncStatus | null): void => {
         if (err) {
+          syncOptions.onSyncError && syncOptions.onSyncError(err);
           reject(err);
-        }
+        } else {
+          /* Call the user's callback */
+          syncOptions.onSyncStatusChanged && syncOptions.onSyncStatusChanged(result);
 
-        resolve(result);
+          /* Check if the sync operation is over */
+          switch (result) {
+            case SyncStatus.ERROR:
+            case SyncStatus.UP_TO_DATE:
+            case SyncStatus.UPDATE_IGNORED:
+            case SyncStatus.UPDATE_INSTALLED:
+              /* The sync has completed */
+              CodePush.SyncInProgress = false;
+              resolve(result);
+              break;
+            default:
+              /* The sync is not yet complete, so do nothing */
+              break;
+          }
+        }
       };
 
       /* Begin the sync */
       CodePush.SyncInProgress = true;
-      this.syncInternal(syncCallbackAndUpdateSyncInProgress, syncOptions, downloadProgress);
+      this.syncInternal(
+        syncCallbackAndUpdateSyncInProgress,
+        syncOptions,
+        downloadProgress,
+      );
     });
   }
 
