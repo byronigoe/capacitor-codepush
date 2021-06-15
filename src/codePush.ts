@@ -315,6 +315,7 @@ class CodePush implements CodePushCapacitorPlugin {
         const syncCallbackAndUpdateSyncInProgress: Callback<SyncStatus> = (err: Error | null, result: SyncStatus | null): void => {
           if (err) {
             syncOptions.onSyncError && syncOptions.onSyncError(err);
+            CodePush.SyncInProgress = false;
             reject(err);
           } else {
             /* Call the user's callback */
