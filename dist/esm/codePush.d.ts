@@ -11,7 +11,7 @@ interface CodePushCapacitorPlugin {
     getCurrentPackage(): Promise<ILocalPackage>;
     /**
      * Gets the pending package information, if any. A pending package is one that has been installed but the application still runs the old code.
-     * This happends only after a package has been installed using ON_NEXT_RESTART or ON_NEXT_RESUME mode, but the application was not restarted/resumed yet.
+     * This happens only after a package has been installed using ON_NEXT_RESTART or ON_NEXT_RESUME mode, but the application was not restarted/resumed yet.
      */
     getPendingPackage(): Promise<ILocalPackage>;
     /**
@@ -102,7 +102,7 @@ declare class CodePush implements CodePushCapacitorPlugin {
     getCurrentPackage(): Promise<ILocalPackage>;
     /**
      * Gets the pending package information, if any. A pending package is one that has been installed but the application still runs the old code.
-     * This happends only after a package has been installed using ON_NEXT_RESTART or ON_NEXT_RESUME mode, but the application was not restarted/resumed yet.
+     * This happens only after a package has been installed using ON_NEXT_RESTART or ON_NEXT_RESUME mode, but the application was not restarted/resumed yet.
      */
     getPendingPackage(): Promise<ILocalPackage>;
     /**
