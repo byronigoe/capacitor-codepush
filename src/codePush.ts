@@ -10,7 +10,7 @@ import { RemotePackage } from "./remotePackage";
 import { Sdk } from "./sdk";
 import { SyncOptions, UpdateDialogOptions } from "./syncOptions";
 import { SyncStatus } from "./syncStatus";
-import { Dialog } from "@capacitor/dialog";
+import { ConfirmResult, Dialog } from "@capacitor/dialog";
 
 interface CodePushCapacitorPlugin {
 
@@ -423,18 +423,20 @@ class CodePush implements CodePushCapacitorPlugin {
     const onUpdate = async (remotePackage: RemotePackage) => {
       const updateShouldBeIgnored = remotePackage && (remotePackage.failedInstall && syncOptions.ignoreFailedUpdates);
       if (updateShouldBeIgnored) {
-        if (updateShouldBeIgnored) {
           CodePushUtil.logMessage("An update is available, but it is being ignored due to have been previously rolled back.");
-        }
 
-        syncCallback && syncCallback(null, SyncStatus.UP_TO_DATE);
+        syncCallback && syncCallback(null, SyncStatus.UPDATE_IGNORED);
       } else {
         const dlgOpts: UpdateDialogOptions = <UpdateDialogOptions>syncOptions.updateDialog;
         if (dlgOpts) {
           CodePushUtil.logMessage("Awaiting user action.");
           syncCallback && syncCallback(null, SyncStatus.AWAITING_USER_ACTION);
         }
-        if (remotePackage.isMandatory && syncOptions.updateDialog) {
+
+        if (remotePackage === null) {
+          /* Then the app is up to date */
+          syncCallback && syncCallback(null, SyncStatus.UP_TO_DATE);
+        } else if (remotePackage.isMandatory && syncOptions.updateDialog) {
           /* Alert user */
           const message = dlgOpts.appendReleaseDescription ?
             dlgOpts.mandatoryUpdateMessage + dlgOpts.descriptionPrefix + remotePackage.description
@@ -451,14 +453,14 @@ class CodePush implements CodePushCapacitorPlugin {
             dlgOpts.optionalUpdateMessage + dlgOpts.descriptionPrefix + remotePackage.description
             : dlgOpts.optionalUpdateMessage;
 
-          const confirmResult = await Dialog.confirm({
+          const confirmResult: ConfirmResult = await Dialog.confirm({
             message,
             title: dlgOpts.updateTitle,
             okButtonTitle: dlgOpts.optionalInstallButtonLabel,
             cancelButtonTitle: dlgOpts.optionalIgnoreButtonLabel
           });
 
-          if (confirmResult.value) {
+          if (confirmResult.value === true) {
             /* Install */
             downloadAndInstallUpdate(remotePackage);
           } else {
