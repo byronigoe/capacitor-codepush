@@ -130,12 +130,12 @@ class CodePush {
      */
     checkForUpdate(querySuccess, queryError, deploymentKey) {
         try {
-            var callback = (error, remotePackageOrUpdateNotification) => __awaiter(this, void 0, void 0, function* () {
+            const callback = (error, remotePackageOrUpdateNotification) => __awaiter(this, void 0, void 0, function* () {
                 if (error) {
                     CodePushUtil.invokeErrorCallback(error, queryError);
                 }
                 else {
-                    var appUpToDate = () => {
+                    const appUpToDate = () => {
                         CodePushUtil.logMessage("App is up to date.");
                         querySuccess && querySuccess(null);
                     };
@@ -168,7 +168,7 @@ class CodePush {
                     }
                 }
             });
-            var queryUpdate = () => __awaiter(this, void 0, void 0, function* () {
+            const queryUpdate = () => __awaiter(this, void 0, void 0, function* () {
                 try {
                     const acquisitionManager = yield Sdk.getAcquisitionManager(deploymentKey);
                     LocalPackage.getCurrentOrDefaultPackage().then((localPackage) => __awaiter(this, void 0, void 0, function* () {
@@ -220,44 +220,45 @@ class CodePush {
      * - If no update is available on the server, the syncCallback will be invoked with the SyncStatus.UP_TO_DATE.
      * - If an error occurs during checking for update, downloading or installing it, the syncCallback will be invoked with the SyncStatus.ERROR.
      *
-     * @param syncCallback Optional callback to be called with the status of the sync operation.
-     *                     The callback will be called only once, and the possible statuses are defined by the SyncStatus enum.
      * @param syncOptions Optional SyncOptions parameter configuring the behavior of the sync operation.
      * @param downloadProgress Optional callback invoked during the download process. It is called several times with one DownloadProgress parameter.
-     * @param syncErrback Optional errback invoked if an error occurs. The callback will be called only once
-     *
      */
     sync(syncOptions, downloadProgress) {
         return __awaiter(this, void 0, void 0, function* () {
-            /* Check if a sync is already in progress */
-            if (CodePush.SyncInProgress) {
-                /* A sync is already in progress */
-                CodePushUtil.logMessage("Sync already in progress.");
-                return SyncStatus.IN_PROGRESS;
-            }
-            return new Promise((resolve, reject) => {
+            return yield new Promise((resolve, reject) => {
+                /* Check if a sync is already in progress */
+                if (CodePush.SyncInProgress) {
+                    /* A sync is already in progress */
+                    CodePushUtil.logMessage("Sync already in progress.");
+                    resolve(SyncStatus.IN_PROGRESS);
+                }
                 /* Create a callback that resets the SyncInProgress flag when the sync is complete
-                 * If the sync status is a result status, then the sync must be complete and the flag must be updated
-                 * Otherwise, do not change the flag and trigger the syncCallback as usual
-                 */
-                var syncCallbackAndUpdateSyncInProgress = (err, result) => {
-                    switch (result) {
-                        case SyncStatus.ERROR:
-                        case SyncStatus.IN_PROGRESS:
-                        case SyncStatus.UP_TO_DATE:
-                        case SyncStatus.UPDATE_IGNORED:
-                        case SyncStatus.UPDATE_INSTALLED:
-                            /* The sync has completed */
-                            CodePush.SyncInProgress = false;
-                            break;
-                        default:
-                            /* The sync is not yet complete, so do nothing */
-                            break;
-                    }
+                * If the sync status is a result status, then the sync must be complete and the flag must be updated
+                * Otherwise, do not change the flag and trigger the syncCallback as usual
+                */
+                const syncCallbackAndUpdateSyncInProgress = (err, result) => {
                     if (err) {
+                        syncOptions.onSyncError && syncOptions.onSyncError(err);
                         reject(err);
                     }
-                    resolve(result);
+                    else {
+                        /* Call the user's callback */
+                        syncOptions.onSyncStatusChanged && syncOptions.onSyncStatusChanged(result);
+                        /* Check if the sync operation is over */
+                        switch (result) {
+                            case SyncStatus.ERROR:
+                            case SyncStatus.UP_TO_DATE:
+                            case SyncStatus.UPDATE_IGNORED:
+                            case SyncStatus.UPDATE_INSTALLED:
+                                /* The sync has completed */
+                                CodePush.SyncInProgress = false;
+                                resolve(result);
+                                break;
+                            default:
+                                /* The sync is not yet complete, so do nothing */
+                                break;
+                        }
+                    }
                 };
                 /* Begin the sync */
                 CodePush.SyncInProgress = true;

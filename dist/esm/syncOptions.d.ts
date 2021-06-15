@@ -1,4 +1,6 @@
-import { InstallOptions } from "./installOptions";
+import { SyncStatus } from "./syncStatus";
+import type { ErrorCallback, SuccessCallback } from "./callbackUtil";
+import type { InstallOptions } from "./installOptions";
 /**
  * Defines the sync operation options.
  */
@@ -17,6 +19,14 @@ export interface SyncOptions extends InstallOptions {
      * Overrides the config.xml deployment key when checking for updates.
      */
     deploymentKey?: string;
+    /**
+     * A callback to call when the SyncStatus changes.
+     */
+    onSyncStatusChanged?: SuccessCallback<SyncStatus>;
+    /**
+     * A callback to call when the SyncStatus changes.
+     */
+    onSyncError?: ErrorCallback;
 }
 /**
  * Defines the configuration options for the alert or confirmation dialog
