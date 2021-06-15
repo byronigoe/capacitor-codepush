@@ -422,56 +422,59 @@ class CodePush implements CodePushCapacitorPlugin {
     };
 
     const onUpdate = async (remotePackage: RemotePackage) => {
-      const updateShouldBeIgnored = remotePackage && (remotePackage.failedInstall && syncOptions.ignoreFailedUpdates);
-      if (updateShouldBeIgnored) {
-          CodePushUtil.logMessage("An update is available, but it is being ignored due to have been previously rolled back.");
-
-        syncCallback && syncCallback(null, SyncStatus.UPDATE_IGNORED);
+      if (remotePackage === null) {
+        /* Then the app is up to date */
+        syncCallback && syncCallback(null, SyncStatus.UP_TO_DATE);
       } else {
-        const dlgOpts: UpdateDialogOptions = <UpdateDialogOptions>syncOptions.updateDialog;
-        if (dlgOpts) {
-          CodePushUtil.logMessage("Awaiting user action.");
-          syncCallback && syncCallback(null, SyncStatus.AWAITING_USER_ACTION);
-        }
-
-        if (remotePackage === null) {
-          /* Then the app is up to date */
-          syncCallback && syncCallback(null, SyncStatus.UP_TO_DATE);
-        } else if (remotePackage.isMandatory && syncOptions.updateDialog) {
-          /* Alert user */
-          const message = dlgOpts.appendReleaseDescription ?
-            dlgOpts.mandatoryUpdateMessage + dlgOpts.descriptionPrefix + remotePackage.description
-            : dlgOpts.mandatoryUpdateMessage;
-          await Dialog.alert({
-            message,
-            title: dlgOpts.updateTitle,
-            buttonTitle: dlgOpts.mandatoryContinueButtonLabel
-          });
-          downloadAndInstallUpdate(remotePackage);
-        } else if (!remotePackage.isMandatory && syncOptions.updateDialog) {
-          /* Confirm update with user */
-          const message = dlgOpts.appendReleaseDescription ?
-            dlgOpts.optionalUpdateMessage + dlgOpts.descriptionPrefix + remotePackage.description
-            : dlgOpts.optionalUpdateMessage;
-
-          const confirmResult: ConfirmResult = await Dialog.confirm({
-            message,
-            title: dlgOpts.updateTitle,
-            okButtonTitle: dlgOpts.optionalInstallButtonLabel,
-            cancelButtonTitle: dlgOpts.optionalIgnoreButtonLabel
-          });
-
-          if (confirmResult.value === true) {
-            /* Install */
-            downloadAndInstallUpdate(remotePackage);
-          } else {
-            /* Cancel */
-            CodePushUtil.logMessage("User cancelled the update.");
-            syncCallback && syncCallback(null, SyncStatus.UPDATE_IGNORED);
-          }
+        if (remotePackage.failedInstall && syncOptions.ignoreFailedUpdates) {
+          CodePushUtil.logMessage("An update is available, but it is being ignored due to have been previously rolled back.");
+          syncCallback && syncCallback(null, SyncStatus.UPDATE_IGNORED);
         } else {
-          /* No user interaction */
-          downloadAndInstallUpdate(remotePackage);
+          if (syncOptions.updateDialog) {
+            CodePushUtil.logMessage("Awaiting user action.");
+            syncCallback && syncCallback(null, SyncStatus.AWAITING_USER_ACTION);
+
+            const dlgOpts: UpdateDialogOptions = <UpdateDialogOptions>syncOptions.updateDialog;
+
+            if (remotePackage.isMandatory) {
+              /* Alert user */
+              const message = dlgOpts.appendReleaseDescription ?
+                dlgOpts.mandatoryUpdateMessage + dlgOpts.descriptionPrefix + remotePackage.description :
+                dlgOpts.mandatoryUpdateMessage;
+              await Dialog.alert(
+                {
+                  message,
+                  title: dlgOpts.updateTitle,
+                  buttonTitle: dlgOpts.mandatoryContinueButtonLabel
+                }
+              );
+              downloadAndInstallUpdate(remotePackage);
+            } else {
+              /* Confirm update with user */
+              const message = dlgOpts.appendReleaseDescription ?
+                dlgOpts.optionalUpdateMessage + dlgOpts.descriptionPrefix + remotePackage.description
+                : dlgOpts.optionalUpdateMessage;
+
+              const confirmResult: ConfirmResult = await Dialog.confirm({
+                message,
+                title: dlgOpts.updateTitle,
+                okButtonTitle: dlgOpts.optionalInstallButtonLabel,
+                cancelButtonTitle: dlgOpts.optionalIgnoreButtonLabel
+              });
+
+              if (confirmResult.value === true) {
+                /* Install */
+                downloadAndInstallUpdate(remotePackage);
+              } else {
+                /* Cancel */
+                CodePushUtil.logMessage("User cancelled the update.");
+                syncCallback && syncCallback(null, SyncStatus.UPDATE_IGNORED);
+              }
+            }
+          } else {
+            /* No user interaction */
+            downloadAndInstallUpdate(remotePackage);
+          }
         }
       }
     };
