@@ -123,10 +123,14 @@ Once your app has been configured and distributed to your users, and you've made
 In it's the most basic form, this command only requires one parameter: your owner name + "/" + app name.
 
 ```shell
+# Generic
 appcenter codepush release -a <ownerName>/<appName> -c public/
 
-appcenter codepush release -a <ownerName>/MyApp-ios -c public/
-appcenter codepush release -a <ownerName>/MyApp-Android -c public/
+# iOS
+appcenter codepush release -a <ownerName>/MyApp-ios -c ios/App/App/public/
+
+# Android
+appcenter codepush release -a <ownerName>/MyApp-Android -c android/app/src/main/assets/public/
 ```
 
 *NOTE: When releasing updates to CodePush, you do not need to bump your app's version in the `config.xml` file, since you aren't modifying the binary version at all. You only need to bump this version when you upgrade Capacitor and/or one of your plugins, at which point, you need to release an update to the native store(s). CodePush will automatically generate a "label" for each release you make (e.g. `v3`) in order to help identify it within your release history.*
@@ -135,28 +139,32 @@ The `release` command enables such a simple workflow because it understands the 
 
 ```shell
 # Release a mandatory update with a changelog
-appcenter codepush release -a <ownerName>/MyApp-ios -c public/ -m --description "Modified the header color"
+appcenter codepush release -a <ownerName>/MyApp-ios -c ios/App/App/public/ -m --description "Modified the header color"
 
 # Release a dev Android build to just 1/4 of your end users
-appcenter codepush release -a <ownerName>/MyApp-android -c public/ --rollout 25
+appcenter codepush release -a <ownerName>/MyApp-android -c android/app/src/main/assets/public/ --rollout 25
 
 # Release an update that targets users running any 1.1.* binary, as opposed to
 # limiting the update to exact version name in the config.xml file
-appcenter codepush release -a <ownerName>/MyApp-android -c public/ --target-binary-version "~1.1.0"
+appcenter codepush release -a <ownerName>/MyApp-android -c android/app/src/main/assets/public/ --target-binary-version "~1.1.0"
 
 # Release an update now but mark it as disabled
 # so that no users can download it yet
-appcenter codepush release -a <ownerName>/MyApp-ios -c public/ -x
+appcenter codepush release -a <ownerName>/MyApp-ios -c ios/App/App/public/ -x
 
 # Release an update signed by private key (public key should be configured for application)
-appcenter codepush release -a <ownerName>/MyApp-android --privateKeyPath ~/rsa/private_key.pem
+appcenter codepush release -a <ownerName>/MyApp-android -c android/app/src/main/assets/public/ --privateKeyPath ~/rsa/private_key.pem
 ```
 
-*NOTE : The path you are to provide to the `-c` flag might vary depending on the platform or the framework. For example, with an Ionic Capacitor build for android, the path might be `./android/app/src/main/assets/public/`.*
+*NOTE : The path you are to provide to the `-c` flag might vary depending on the platform or the framework. For example, with an Ionic Capacitor project :
+- Android : `./android/app/src/main/assets/public/`
+- iOS : `./ios/App/App/public/`
 
 The CodePush client supports differential updates, so even though you are releasing your app code on every update, your end users will only actually download the files they need. The service handles this automatically so that you can focus on creating awesome apps and we can worry about optimizing end user downloads.
 
-*NOTE: for **Ionic** apps you need to run `ionic build` before running `release` command in order to build web assets.*
+*NOTE: for **Ionic** apps you need to run `ionic cap build` before running `release` command in order to build web assets.*
+
+*NOTE: for Cordova, we used to use `appcenter codepush release-cordova`, but with Capacitor we must use `appcenter codepush release`.*
 
 For more details about how the `release` command works, as well as the various parameters it exposes, refer to the [CLI docs](https://docs.microsoft.com/en-us/appcenter/distribution/codepush/cli#releasing-updates-general).
 
