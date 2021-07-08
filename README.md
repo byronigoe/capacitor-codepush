@@ -415,6 +415,10 @@ While the `sync` method tries to make it easy to perform silent and active updat
 
     - __updateTitle__ *(String)* - The text used as the header of an update notification that is displayed to the end user. Defaults to `"Update available"`.
 
+- __onSyncStatusChanged__ *(`SuccessCallback<SyncStatus>`)* - A custom callback that is called when the `SyncStatus` changes.
+
+- __onSyncError__ *(`ErrorCallback`)* - A custom callback that is called on a sync process error.
+
 Example Usage:
 
 ```javascript
@@ -441,26 +445,29 @@ codePush.sync({
    installMode: InstallMode.IMMEDIATE
 });
 
-// Silently check for the update, but
-// display a custom downloading UI
-// via the SyncStatus and DownloadProgress callbacks
-codePush.sync(null, downloadProgress).then(status => {
-    switch (status) {
-        case SyncStatus.DOWNLOADING_PACKAGE:
-            // Show "downloading" modal
-            break;
-        case SyncStatus.INSTALLING_UPDATE:
-            // Hide "downloading" modal
-            break;
-    }
-});
-
-function downloadProgress(downloadProgress) {
+const downloadProgress = (downloadProgress) => {
     if (downloadProgress) {
     	// Update "downloading" modal with current download %
         //console.log("Downloading " + downloadProgress.receivedBytes + " of " + downloadProgress.totalBytes);
     }
 }
+
+// Silently check for the update, but
+// display a custom downloading UI
+// via the SyncStatus and DownloadProgress callbacks
+codePush.sync(null, downloadProgress)
+    .then(
+        (status) => {
+            switch (status) {
+                case SyncStatus.DOWNLOADING_PACKAGE:
+                    // Show "downloading" modal
+                    break;
+                case SyncStatus.INSTALLING_UPDATE:
+                    // Hide "downloading" modal
+                    break;
+            }
+        }
+    );
 ```
 
 The `sync` method can be called anywhere you'd like to check for an update. That could be in the `deviceready` event handler, the `click` event of a button, in the callback of a periodic timer, or whatever else makes sense for your needs. Just like the `checkForUpdate` method, it will perform the network request to check for an update in the background, so it won't impact your UI thread and/or JavaScript thread's responsiveness.

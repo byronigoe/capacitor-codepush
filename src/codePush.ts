@@ -10,7 +10,7 @@ import { RemotePackage } from "./remotePackage";
 import { Sdk } from "./sdk";
 import { SyncOptions, UpdateDialogOptions } from "./syncOptions";
 import { SyncStatus } from "./syncStatus";
-import { Dialog } from "@capacitor/dialog";
+import { ConfirmResult, Dialog } from "@capacitor/dialog";
 
 interface CodePushCapacitorPlugin {
 
@@ -23,7 +23,7 @@ interface CodePushCapacitorPlugin {
 
   /**
    * Gets the pending package information, if any. A pending package is one that has been installed but the application still runs the old code.
-   * This happends only after a package has been installed using ON_NEXT_RESTART or ON_NEXT_RESUME mode, but the application was not restarted/resumed yet.
+   * This happens only after a package has been installed using ON_NEXT_RESTART or ON_NEXT_RESUME mode, but the application was not restarted/resumed yet.
    */
   getPendingPackage(): Promise<ILocalPackage>;
 
@@ -183,7 +183,7 @@ class CodePush implements CodePushCapacitorPlugin {
 
   /**
    * Gets the pending package information, if any. A pending package is one that has been installed but the application still runs the old code.
-   * This happends only after a package has been installed using ON_NEXT_RESTART or ON_NEXT_RESUME mode, but the application was not restarted/resumed yet.
+   * This happens only after a package has been installed using ON_NEXT_RESTART or ON_NEXT_RESUME mode, but the application was not restarted/resumed yet.
    */
   public async getPendingPackage(): Promise<ILocalPackage> {
     const pendingUpdate = await NativeAppInfo.isPendingUpdate();
@@ -205,11 +205,11 @@ class CodePush implements CodePushCapacitorPlugin {
    */
   public checkForUpdate(querySuccess: SuccessCallback<IRemotePackage>, queryError?: ErrorCallback, deploymentKey?: string): void {
     try {
-      var callback: Callback<RemotePackage | NativeUpdateNotification> = async (error: Error, remotePackageOrUpdateNotification: IRemotePackage | NativeUpdateNotification) => {
+      const callback: Callback<RemotePackage | NativeUpdateNotification> = async (error: Error, remotePackageOrUpdateNotification: IRemotePackage | NativeUpdateNotification) => {
         if (error) {
           CodePushUtil.invokeErrorCallback(error, queryError);
         } else {
-          var appUpToDate = () => {
+          const appUpToDate = () => {
             CodePushUtil.logMessage("App is up to date.");
             querySuccess && querySuccess(null);
           };
@@ -242,20 +242,19 @@ class CodePush implements CodePushCapacitorPlugin {
         }
       };
 
-      var queryUpdate = async () => {
+      const queryUpdate = async () => {
         try {
           const acquisitionManager = await Sdk.getAcquisitionManager(deploymentKey);
-          LocalPackage.getCurrentOrDefaultPackage().then(async (localPackage: LocalPackage) => {
+            const localPackage = await LocalPackage.getCurrentOrDefaultPackage();
             try {
               const currentBinaryVersion = await NativeAppInfo.getApplicationVersion();
               localPackage.appVersion = currentBinaryVersion;
             } catch (e) {
+              /* Nothing to do */
+              /* TODO : Why ? */
             }
             CodePushUtil.logMessage("Checking for update.");
             acquisitionManager.queryUpdateWithCurrentPackage(localPackage, callback);
-          }, (error: Error) => {
-            CodePushUtil.invokeErrorCallback(error, queryError);
-          });
         } catch (e) {
           CodePushUtil.invokeErrorCallback(e, queryError);
         }
@@ -264,12 +263,16 @@ class CodePush implements CodePushCapacitorPlugin {
       if (deploymentKey) {
         queryUpdate();
       } else {
-        NativeAppInfo.getDeploymentKey().then(defaultDeploymentKey => {
-          deploymentKey = defaultDeploymentKey;
-          queryUpdate();
-        }, deploymentKeyError => {
-          CodePushUtil.invokeErrorCallback(deploymentKeyError, queryError);
-        });
+        NativeAppInfo.getDeploymentKey()
+          .then(
+            (defaultDeploymentKey) => {
+              deploymentKey = defaultDeploymentKey;
+              queryUpdate();
+            },
+            (deploymentKeyError) => {
+              CodePushUtil.invokeErrorCallback(deploymentKeyError, queryError);
+            }
+          );
       }
     } catch (e) {
       CodePushUtil.invokeErrorCallback(new Error("An error occurred while querying for updates." + CodePushUtil.getErrorMessage(e)), queryError);
@@ -292,53 +295,58 @@ class CodePush implements CodePushCapacitorPlugin {
    * - If no update is available on the server, the syncCallback will be invoked with the SyncStatus.UP_TO_DATE.
    * - If an error occurs during checking for update, downloading or installing it, the syncCallback will be invoked with the SyncStatus.ERROR.
    *
-   * @param syncCallback Optional callback to be called with the status of the sync operation.
-   *                     The callback will be called only once, and the possible statuses are defined by the SyncStatus enum.
    * @param syncOptions Optional SyncOptions parameter configuring the behavior of the sync operation.
    * @param downloadProgress Optional callback invoked during the download process. It is called several times with one DownloadProgress parameter.
-   * @param syncErrback Optional errback invoked if an error occurs. The callback will be called only once
-   *
    */
-  public async sync(syncOptions?: SyncOptions, downloadProgress?: SuccessCallback<DownloadProgress>): Promise<any> {
-    /* Check if a sync is already in progress */
-    if (CodePush.SyncInProgress) {
-      /* A sync is already in progress */
-      CodePushUtil.logMessage("Sync already in progress.");
-      return SyncStatus.IN_PROGRESS;
-    }
+  public async sync(syncOptions?: SyncOptions, downloadProgress?: SuccessCallback<DownloadProgress>): Promise<SyncStatus> {
+    return await new Promise(
+      (resolve, reject) => {
+        /* Check if a sync is already in progress */
+        if (CodePush.SyncInProgress) {
+          /* A sync is already in progress */
+          CodePushUtil.logMessage("Sync already in progress.");
+          resolve(SyncStatus.IN_PROGRESS);
+        }
 
-    return new Promise((resolve, reject) => {
-      /* Create a callback that resets the SyncInProgress flag when the sync is complete
-       * If the sync status is a result status, then the sync must be complete and the flag must be updated
-       * Otherwise, do not change the flag and trigger the syncCallback as usual
-       */
-      var syncCallbackAndUpdateSyncInProgress: Callback<any> = (err: Error, result: any): void => {
-        switch (result) {
-          case SyncStatus.ERROR:
-          case SyncStatus.IN_PROGRESS:
-          case SyncStatus.UP_TO_DATE:
-          case SyncStatus.UPDATE_IGNORED:
-          case SyncStatus.UPDATE_INSTALLED:
-            /* The sync has completed */
+        /* Create a callback that resets the SyncInProgress flag when the sync is complete
+        * If the sync status is a result status, then the sync must be complete and the flag must be updated
+        * Otherwise, do not change the flag and trigger the syncCallback as usual
+        */
+        const syncCallbackAndUpdateSyncInProgress: Callback<SyncStatus> = (err: Error | null, result: SyncStatus | null): void => {
+          if (err) {
+            syncOptions.onSyncError && syncOptions.onSyncError(err);
             CodePush.SyncInProgress = false;
-            break;
+            reject(err);
+          } else {
+            /* Call the user's callback */
+            syncOptions.onSyncStatusChanged && syncOptions.onSyncStatusChanged(result);
 
-          default:
-            /* The sync is not yet complete, so do nothing */
-            break;
-        }
+            /* Check if the sync operation is over */
+            switch (result) {
+              case SyncStatus.ERROR:
+              case SyncStatus.UP_TO_DATE:
+              case SyncStatus.UPDATE_IGNORED:
+              case SyncStatus.UPDATE_INSTALLED:
+                /* The sync has completed */
+                CodePush.SyncInProgress = false;
+                resolve(result);
+                break;
+              default:
+                /* The sync is not yet complete, so do nothing */
+                break;
+            }
+          }
+        };
 
-        if (err) {
-          reject(err);
-        }
-
-        resolve(result);
-      };
-
-      /* Begin the sync */
-      CodePush.SyncInProgress = true;
-      this.syncInternal(syncCallbackAndUpdateSyncInProgress, syncOptions, downloadProgress);
-    });
+        /* Begin the sync */
+        CodePush.SyncInProgress = true;
+        this.syncInternal(
+          syncCallbackAndUpdateSyncInProgress,
+          syncOptions,
+          downloadProgress,
+        );
+      }
+    );
   }
 
   /**
@@ -356,15 +364,16 @@ class CodePush implements CodePushCapacitorPlugin {
   private syncInternal(syncCallback?: Callback<any>, syncOptions?: SyncOptions, downloadProgress?: SuccessCallback<DownloadProgress>): void {
 
     /* No options were specified, use default */
+    const defaultSyncOptions = this.getDefaultSyncOptions();
     if (!syncOptions) {
-      syncOptions = this.getDefaultSyncOptions();
+      syncOptions = defaultSyncOptions;
     } else {
       /* Some options were specified */
       /* Handle dialog options */
-      var defaultDialogOptions = this.getDefaultUpdateDialogOptions();
+      const defaultDialogOptions = this.getDefaultUpdateDialogOptions();
       if (syncOptions.updateDialog) {
         if (typeof syncOptions.updateDialog !== typeof ({})) {
-          /* updateDialog set to truey condition, use default options */
+          /* updateDialog set to true condition, use default options */
           syncOptions.updateDialog = defaultDialogOptions;
         } else {
           /* some options were specified, merge with default */
@@ -373,18 +382,17 @@ class CodePush implements CodePushCapacitorPlugin {
       }
 
       /* Handle other options. Dialog options will not be overwritten. */
-      var defaultOptions = this.getDefaultSyncOptions();
-      CodePushUtil.copyUnassignedMembers(defaultOptions, syncOptions);
+      CodePushUtil.copyUnassignedMembers(defaultSyncOptions, syncOptions);
     }
 
     this.notifyApplicationReady();
 
-    var onError = (error: Error) => {
+    const onError = (error: Error) => {
       CodePushUtil.logError("An error occurred during sync.", error);
       syncCallback && syncCallback(error, SyncStatus.ERROR);
     };
 
-    var onInstallSuccess = (appliedWhen: InstallMode) => {
+    const onInstallSuccess = (appliedWhen: InstallMode) => {
       switch (appliedWhen) {
         case InstallMode.ON_NEXT_RESTART:
           CodePushUtil.logMessage("Update is installed and will be run on the next app restart.");
@@ -403,65 +411,70 @@ class CodePush implements CodePushCapacitorPlugin {
       syncCallback && syncCallback(null, SyncStatus.UPDATE_INSTALLED);
     };
 
-    var onDownloadSuccess = (localPackage: ILocalPackage) => {
+    const onDownloadSuccess = (localPackage: ILocalPackage) => {
       syncCallback && syncCallback(null, SyncStatus.INSTALLING_UPDATE);
       localPackage.install(syncOptions).then(onInstallSuccess, onError);
     };
 
-    var downloadAndInstallUpdate = (remotePackage: RemotePackage) => {
+    const downloadAndInstallUpdate = (remotePackage: RemotePackage) => {
       syncCallback && syncCallback(null, SyncStatus.DOWNLOADING_PACKAGE);
       remotePackage.download(downloadProgress).then(onDownloadSuccess, onError);
     };
 
-    var onUpdate = async (remotePackage: RemotePackage) => {
-      var updateShouldBeIgnored = remotePackage && (remotePackage.failedInstall && syncOptions.ignoreFailedUpdates);
-      if (!remotePackage || updateShouldBeIgnored) {
-        if (updateShouldBeIgnored) {
-          CodePushUtil.logMessage("An update is available, but it is being ignored due to have been previously rolled back.");
-        }
-
+    const onUpdate = async (remotePackage: RemotePackage) => {
+      if (remotePackage === null) {
+        /* Then the app is up to date */
         syncCallback && syncCallback(null, SyncStatus.UP_TO_DATE);
       } else {
-        var dlgOpts: UpdateDialogOptions = <UpdateDialogOptions>syncOptions.updateDialog;
-        if (dlgOpts) {
-          CodePushUtil.logMessage("Awaiting user action.");
-          syncCallback && syncCallback(null, SyncStatus.AWAITING_USER_ACTION);
-        }
-        if (remotePackage.isMandatory && syncOptions.updateDialog) {
-          /* Alert user */
-          var message = dlgOpts.appendReleaseDescription ?
-            dlgOpts.mandatoryUpdateMessage + dlgOpts.descriptionPrefix + remotePackage.description
-            : dlgOpts.mandatoryUpdateMessage;
-          await Dialog.alert({
-            message,
-            title: dlgOpts.updateTitle,
-            buttonTitle: dlgOpts.mandatoryContinueButtonLabel
-          });
-          downloadAndInstallUpdate(remotePackage);
-        } else if (!remotePackage.isMandatory && syncOptions.updateDialog) {
-          /* Confirm update with user */
-          var message = dlgOpts.appendReleaseDescription ?
-            dlgOpts.optionalUpdateMessage + dlgOpts.descriptionPrefix + remotePackage.description
-            : dlgOpts.optionalUpdateMessage;
-
-          const confirmResult = await Dialog.confirm({
-            message,
-            title: dlgOpts.updateTitle,
-            okButtonTitle: dlgOpts.optionalInstallButtonLabel,
-            cancelButtonTitle: dlgOpts.optionalIgnoreButtonLabel
-          });
-
-          if (confirmResult.value) {
-            /* Install */
-            downloadAndInstallUpdate(remotePackage);
-          } else {
-            /* Cancel */
-            CodePushUtil.logMessage("User cancelled the update.");
-            syncCallback && syncCallback(null, SyncStatus.UPDATE_IGNORED);
-          }
+        if (remotePackage.failedInstall && syncOptions.ignoreFailedUpdates) {
+          CodePushUtil.logMessage("An update is available, but it is being ignored due to have been previously rolled back.");
+          syncCallback && syncCallback(null, SyncStatus.UPDATE_IGNORED);
         } else {
-          /* No user interaction */
-          downloadAndInstallUpdate(remotePackage);
+          if (syncOptions.updateDialog) {
+            CodePushUtil.logMessage("Awaiting user action.");
+            syncCallback && syncCallback(null, SyncStatus.AWAITING_USER_ACTION);
+
+            const dlgOpts: UpdateDialogOptions = <UpdateDialogOptions>syncOptions.updateDialog;
+
+            if (remotePackage.isMandatory) {
+              /* Alert user */
+              const message = dlgOpts.appendReleaseDescription ?
+                dlgOpts.mandatoryUpdateMessage + dlgOpts.descriptionPrefix + remotePackage.description :
+                dlgOpts.mandatoryUpdateMessage;
+              await Dialog.alert(
+                {
+                  message,
+                  title: dlgOpts.updateTitle,
+                  buttonTitle: dlgOpts.mandatoryContinueButtonLabel
+                }
+              );
+              downloadAndInstallUpdate(remotePackage);
+            } else {
+              /* Confirm update with user */
+              const message = dlgOpts.appendReleaseDescription ?
+                dlgOpts.optionalUpdateMessage + dlgOpts.descriptionPrefix + remotePackage.description
+                : dlgOpts.optionalUpdateMessage;
+
+              const confirmResult: ConfirmResult = await Dialog.confirm({
+                message,
+                title: dlgOpts.updateTitle,
+                okButtonTitle: dlgOpts.optionalInstallButtonLabel,
+                cancelButtonTitle: dlgOpts.optionalIgnoreButtonLabel
+              });
+
+              if (confirmResult.value === true) {
+                /* Install */
+                downloadAndInstallUpdate(remotePackage);
+              } else {
+                /* Cancel */
+                CodePushUtil.logMessage("User cancelled the update.");
+                syncCallback && syncCallback(null, SyncStatus.UPDATE_IGNORED);
+              }
+            }
+          } else {
+            /* No user interaction */
+            downloadAndInstallUpdate(remotePackage);
+          }
         }
       }
     };

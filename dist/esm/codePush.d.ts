@@ -11,7 +11,7 @@ interface CodePushCapacitorPlugin {
     getCurrentPackage(): Promise<ILocalPackage>;
     /**
      * Gets the pending package information, if any. A pending package is one that has been installed but the application still runs the old code.
-     * This happends only after a package has been installed using ON_NEXT_RESTART or ON_NEXT_RESUME mode, but the application was not restarted/resumed yet.
+     * This happens only after a package has been installed using ON_NEXT_RESTART or ON_NEXT_RESUME mode, but the application was not restarted/resumed yet.
      */
     getPendingPackage(): Promise<ILocalPackage>;
     /**
@@ -102,7 +102,7 @@ declare class CodePush implements CodePushCapacitorPlugin {
     getCurrentPackage(): Promise<ILocalPackage>;
     /**
      * Gets the pending package information, if any. A pending package is one that has been installed but the application still runs the old code.
-     * This happends only after a package has been installed using ON_NEXT_RESTART or ON_NEXT_RESUME mode, but the application was not restarted/resumed yet.
+     * This happens only after a package has been installed using ON_NEXT_RESTART or ON_NEXT_RESUME mode, but the application was not restarted/resumed yet.
      */
     getPendingPackage(): Promise<ILocalPackage>;
     /**
@@ -131,14 +131,10 @@ declare class CodePush implements CodePushCapacitorPlugin {
      * - If no update is available on the server, the syncCallback will be invoked with the SyncStatus.UP_TO_DATE.
      * - If an error occurs during checking for update, downloading or installing it, the syncCallback will be invoked with the SyncStatus.ERROR.
      *
-     * @param syncCallback Optional callback to be called with the status of the sync operation.
-     *                     The callback will be called only once, and the possible statuses are defined by the SyncStatus enum.
      * @param syncOptions Optional SyncOptions parameter configuring the behavior of the sync operation.
      * @param downloadProgress Optional callback invoked during the download process. It is called several times with one DownloadProgress parameter.
-     * @param syncErrback Optional errback invoked if an error occurs. The callback will be called only once
-     *
      */
-    sync(syncOptions?: SyncOptions, downloadProgress?: SuccessCallback<DownloadProgress>): Promise<any>;
+    sync(syncOptions?: SyncOptions, downloadProgress?: SuccessCallback<DownloadProgress>): Promise<SyncStatus>;
     /**
      * Convenience method for installing updates in one method call.
      * This method is provided for simplicity, and its behavior can be replicated by using window.codePush.checkForUpdate(), RemotePackage's download() and LocalPackage's install() methods.
