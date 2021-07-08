@@ -85,7 +85,11 @@ StatusReport* rollbackStatusReport = nil;
 
 - (void)getPublicKey:(CAPPluginCall *)call {
     NSString *publicKey = [self getConfigValue:PublicKeyPreference];
-    [call resolve:@{@"value":publicKey}];
+    if (!publicKey) {
+        [call resolve:nil]; /* Returning @{@"value":nil} causes an uncaught exception */
+    } else {
+        [call resolve:@{@"value":publicKey}];
+    }
 }
 
 - (void)decodeSignature:(CAPPluginCall *)call {
