@@ -37,11 +37,11 @@ public class UpdateHashUtils {
     public static String getHashForPath(Activity activity, String path) throws IOException, NoSuchAlgorithmException, ClassNotFoundException {
         ArrayList<String> manifestEntries = new ArrayList<String>();
         if (path == null) {
-            addFolderEntriesToManifestFromAssets(manifestEntries, activity.getAssets(), "www");
+            addFolderEntriesToManifestFromAssets(manifestEntries, activity.getAssets(), "public");
         } else {
             File basePath = activity.getApplicationContext().getFilesDir();
             File fullPath = new File(basePath, path);
-            addFolderEntriesToManifest(manifestEntries, "www", fullPath.getPath());
+            addFolderEntriesToManifest(manifestEntries, "public", fullPath.getPath());
         }
         Collections.sort(manifestEntries);
         JSONArray manifestJSONArray = new JSONArray();

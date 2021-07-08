@@ -13,7 +13,7 @@
 
 + (NSString*)binaryAssetsPath
 {
-    return [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"www"];
+    return [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"public"];
 }
 
 + (void)addFolderEntriesToManifest:(NSString*)folderPath
@@ -94,7 +94,7 @@
 {
     NSMutableArray* manifestEntries = [NSMutableArray array];
     [self addFolderEntriesToManifest:path
-                          pathPrefix:@"www"
+                          pathPrefix:@"public"
                      manifestEntries:manifestEntries
                                error:error];
     return [self computeFinalHashFromManifestEntries:manifestEntries error:error];

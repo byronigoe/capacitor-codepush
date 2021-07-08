@@ -42,7 +42,7 @@ export class NativeAppInfo {
         });
     }
     /**
-     * Gets a hash of the `www` folder contents compiled in the app store binary.
+     * Gets a hash of the `public` folder contents compiled in the app store binary.
      */
     static getBinaryHash() {
         return __awaiter(this, void 0, void 0, function* () {

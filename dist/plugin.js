@@ -293,7 +293,7 @@ var capacitorPlugin = (function (exports, acquisitionSdk, filesystem, core, http
             });
         }
         /**
-         * Gets a hash of the `www` folder contents compiled in the app store binary.
+         * Gets a hash of the `public` folder contents compiled in the app store binary.
          */
         static getBinaryHash() {
             return __awaiter$1(this, void 0, void 0, function* () {
@@ -727,7 +727,7 @@ var capacitorPlugin = (function (exports, acquisitionSdk, filesystem, core, http
         }
         getSignatureFromUpdate(deployDir, callback) {
             return __awaiter$3(this, void 0, void 0, function* () {
-                const filePath = deployDir + "/www/.codepushrelease";
+                const filePath = deployDir + "/public/.codepushrelease";
                 if (!(yield FileUtil.fileExists(filesystem.Directory.Data, filePath))) {
                     // signature absents in the bundle
                     callback(null, null);
@@ -898,9 +898,9 @@ var capacitorPlugin = (function (exports, acquisitionSdk, filesystem, core, http
                 const currentPackagePath = yield new Promise(resolve => {
                     LocalPackage.getPackage(LocalPackage.PackageInfoFile, (currentPackage) => resolve(currentPackage.localPath), () => resolve());
                 });
-                newPackageLocation = currentPackagePath ? newPackageLocation : newPackageLocation + "/www";
+                newPackageLocation = currentPackagePath ? newPackageLocation : newPackageLocation + "/public";
                 // https://github.com/ionic-team/capacitor/pull/2514 Directory.Application variable was removed. (TODO - for check)
-                const source = currentPackagePath ? { directory: filesystem.Directory.Data, path: currentPackagePath } : { directory: filesystem.Directory.Data, path: "www" };
+                const source = currentPackagePath ? { directory: filesystem.Directory.Data, path: currentPackagePath } : { directory: filesystem.Directory.Data, path: "public" };
                 const target = { directory: filesystem.Directory.Data, path: newPackageLocation };
                 return FileUtil.copyDirectoryEntriesTo(source, target, ignoreList);
             });

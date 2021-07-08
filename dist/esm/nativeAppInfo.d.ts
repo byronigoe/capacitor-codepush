@@ -11,7 +11,7 @@ export declare class NativeAppInfo {
      */
     static getApplicationVersion(): Promise<string>;
     /**
-     * Gets a hash of the `www` folder contents compiled in the app store binary.
+     * Gets a hash of the `public` folder contents compiled in the app store binary.
      */
     static getBinaryHash(): Promise<string>;
     /**

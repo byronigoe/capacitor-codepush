@@ -35,7 +35,7 @@ public class CodePush extends Plugin {
     private static final String DEPLOYMENT_KEY_PREFERENCE = "ANDROID_DEPLOY_KEY";
     private static final String PUBLIC_KEY_PREFERENCE = "ANDROID_PUBLIC_KEY";
     private static final String SERVER_URL_PREFERENCE = "SERVER_URL";
-    private static final String WWW_ASSET_PATH_PREFIX = "file:///android_asset/www/";
+    private static final String WWW_ASSET_PATH_PREFIX = "file:///android_asset/public/";
     private static final String NEW_LINE = System.getProperty("line.separator");
     private static boolean ShouldClearHistoryOnLoad = false;
     private CodePushPackageManager codePushPackageManager;
@@ -189,7 +189,7 @@ public class CodePush extends Plugin {
             protected Void doInBackground(Void... params) {
                 try {
                     // TODO: fix client side
-                    String binaryHash = UpdateHashUtils.getHashForPath(getActivity(), call.getString("path") + "/www");
+                    String binaryHash = UpdateHashUtils.getHashForPath(getActivity(), call.getString("path") + "/public");
                     call.resolve(jsObjectValue(binaryHash));
                 } catch (Exception e) {
                     call.reject("An error occurred when trying to get the hash of the binary contents. " + e.getMessage());
@@ -509,7 +509,7 @@ public class CodePush extends Plugin {
 
     private File getStartPageForPackage(String packageLocation) {
         if (packageLocation != null) {
-            File startPage = new File(this.bridge.getContext().getFilesDir() + "/" + packageLocation, "www/index.html");
+            File startPage = new File(this.bridge.getContext().getFilesDir() + "/" + packageLocation, "public/index.html");
             if (startPage.exists()) {
                 return startPage;
             }
@@ -520,7 +520,7 @@ public class CodePush extends Plugin {
 
     private String getBasePathForPackage(String packageLocation) {
         if (packageLocation != null) {
-            return new File(this.bridge.getContext().getFilesDir() + "/" + packageLocation, "www").toString();
+            return new File(this.bridge.getContext().getFilesDir() + "/" + packageLocation, "public").toString();
         }
 
         return null;
