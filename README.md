@@ -38,6 +38,8 @@ Tested with these environment
 "@capacitor/filesystem": "^1.0.0"
 ```
 
+This Capacitor plugin does not work with Capacitor v2 or older versions.
+
 ## Getting Started
 
 Once you've followed the general-purpose ["getting started"](https://docs.microsoft.com/en-us/appcenter/distribution/codepush/) instructions for setting up your CodePush account, you can start CodePush-ifying your Capacitor app by running the following command from within your app's root directory:
