@@ -1,11 +1,11 @@
 {
   "name": "capacitor-codepush",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "CodePush Plugin for Capacitor",
   "module": "dist/esm/index.js",
   "types": "dist/esm/index.d.ts",
-  "homepage": "https://github.com/mapiacompany/capacitor-codepush",
-  "repository": "github:mapiacompany/capacitor-codepush",
+  "homepage": "https://github.com/byronigoe/capacitor-codepush",
+  "repository": "github:byronigoe/capacitor-codepush",
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/"
   },
@@ -26,7 +26,7 @@
     "capacitor-android",
     "capacitor-ios"
   ],
-  "author": "MAPIACOMPANY",
+  "author": "byronigoe",
   "license": "MIT",
   "devDependencies": {
     "@capacitor-community/http": "^1.0.0",
